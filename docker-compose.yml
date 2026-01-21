@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: appdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sh:/docker-entrypoint-initdb.d/init.sh
+    networks:
+      - app_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./app
+    container_name: app
+    environment:
+      DB_URL: postgres://user:pass@db:5432/appdb?sslmode=disable
+    networks:
+      - app_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs
+    networks:
+      - app_net
+    depends_on:
+      - app
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
