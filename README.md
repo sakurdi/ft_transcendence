@@ -1,4 +1,4 @@
-# ft_transcendence_skeleton
+# ft_transcendence
 
 
 Major: Use a framework for both the frontend and backend
