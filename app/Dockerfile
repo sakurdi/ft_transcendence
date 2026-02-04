@@ -2,8 +2,9 @@ FROM golang:1.24-alpine
 
 WORKDIR /app
 
-COPY main.go .
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN go mod init app && go mod tidy
+COPY . .
 
-CMD ["go", "run", "main.go"]
+CMD ["go", "run", "."]

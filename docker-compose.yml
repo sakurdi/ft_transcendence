@@ -13,13 +13,15 @@ services:
       - app_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 1s
+      timeout: 1s
+      retries: 2
 
   app:
     build: ./app
     container_name: app
+    volumes:
+    - ./app:/app
     environment:
       DB_URL: postgres://user:pass@db:5432/appdb?sslmode=disable
     networks:
@@ -32,8 +34,8 @@ services:
     build: ./nginx
     container_name: nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - "1042:80"
+      - "1043:443"
     volumes:
       - ./certs:/etc/nginx/certs
     networks:

@@ -1,47 +1,50 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {
-	db, err := sql.Open("postgres", os.Getenv("DB_URL"))
+
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer conn.Close(context.Background())
 
-	if err := db.Ping(); err != nil {
+	if err := conn.Ping(context.Background()); err != nil {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query("SELECT login FROM users")
-		if err != nil {
-			http.Error(w, "Database error", 500)
-			return
-		}
-		defer rows.Close()
-
-		fmt.Fprintf(w, "<html><body><h1>Users</h1><ul>")
-		for rows.Next() {
-    		var login string
-    		if err := rows.Scan(&login); err != nil {
-        		http.Error(w, err.Error(), 500)
-        		return
-    		}
-    	fmt.Fprintf(w, "<li>%s</li>", login)
-}
-
-		fmt.Fprintf(w, "</ul></body></html>")
-	})
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get("/test/{id}", testHandler(conn))
 
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
+}
+
+func testHandler(db *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+
+		var login string
+		err := db.QueryRow(context.Background(), "SELECT login FROM users WHERE id=$1", idStr).Scan(&login)
+
+		if err != nil {
+			log.Printf("SQL request failed: %v\n", err)
+			fmt.Fprintf(w, "error: no user with the given ID found")
+		} else {
+			fmt.Fprintf(w, "login: %v", login)
+		}
+	}
 }
