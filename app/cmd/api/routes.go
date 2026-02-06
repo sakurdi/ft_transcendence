@@ -18,6 +18,11 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(c.Session.LoadAndSave)
 
 	mux.Get("/test/{id}", UserHandler.GetUserById(c))
+	mux.Get("/session_new", UserHandler.SessionNewHandler(c))
+	mux.Get("/session_get", UserHandler.SessionGetHandler(c))
+
+	mux.Post("/login", UserHandler.LoginHandler(c))
+
 
 	return mux
 }

@@ -10,8 +10,8 @@ import (
 )
 
 type Config struct {
-	DB      *pgxpool.Pool
-	Session *scs.SessionManager
+	DB	*pgxpool.Pool
+	Session	*scs.SessionManager
 }
 
 func InitConfig(db *pgxpool.Pool) *Config {
@@ -24,7 +24,7 @@ func InitConfig(db *pgxpool.Pool) *Config {
 	sessionManager.Cookie.Secure = true
 
 	return &Config{
-		DB:      db,
+		DB:	db,
 		Session: sessionManager,
 	}
 }
