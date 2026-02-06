@@ -7,4 +7,4 @@ RUN go mod download
 
 COPY . .
 
-CMD ["go", "run", "."]
+CMD ["go", "run", "./cmd/api"]

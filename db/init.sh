@@ -17,6 +17,14 @@ INSERT INTO users (login) VALUES
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    data BYTEA NOT NULL,
+    expiry TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expiry);
+
 EOSQL
 
 echo "Database: init complete"
