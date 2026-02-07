@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (login, password) VALUES
-    ('saal-kur', 'changeme'),
-    ('gaeudes', 'changeme'),
-    ('kevwang', 'changeme')
+    ('saal-kur', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia'),
+    ('gaeudes', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia'),
+    ('kevwang', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia')
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
