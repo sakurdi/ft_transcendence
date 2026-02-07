@@ -22,7 +22,7 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/session_get", UserHandler.SessionGetHandler(c))
 
 	mux.Post("/login", UserHandler.LoginHandler(c))
-
+	mux.Post("/register", UserHandler.RegisterHandler(c))
 
 	return mux
 }
