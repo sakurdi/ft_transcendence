@@ -2,11 +2,12 @@ package store
 
 import (
 	"context"
-	"errors"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"ft_transcendence/internal/auth"
 	"ft_transcendence/internal/models"
-    "ft_transcendence/internal/auth"
 )
 
 func GetUserLogin(db *pgxpool.Pool, ctx context.Context, id string) (string, error) {
@@ -31,7 +32,7 @@ func GetUserId(db *pgxpool.Pool, ctx context.Context, login string) (string, err
 	return id, err
 }
 
-func CheckDuplicateCreds(db *pgxpool.Pool, ctx context.Context, user models.UserLogin) (bool, error){
+func CheckDuplicateCreds(db *pgxpool.Pool, ctx context.Context, user models.UserRegistration) (bool, error) {
 
 	query := "SELECT EXISTS (SELECT 1 FROM users WHERE login = $1 OR email = $2);"
 	var res bool
@@ -42,11 +43,11 @@ func CheckDuplicateCreds(db *pgxpool.Pool, ctx context.Context, user models.User
 
 func RegisterUser(db *pgxpool.Pool, ctx context.Context, user models.UserRegistration) error {
 	query := "INSERT INTO users (login, email, password) VALUES ($1, $2, $3);"
-	passwordHash, err = auth.HashPassword(user.Password)
+	passwordHash, err := auth.HashPassword(user.Password)
 
-	if(err != nil){
+	if err != nil {
 		return fmt.Errorf("Hashing failed: %w", err)
 	}
-	_, err := db.Exec(ctx, query, user.Login, user.Mail, passwordHash)
+	_, err = db.Exec(ctx, query, user.Login, user.Mail, passwordHash)
 	return err
 }

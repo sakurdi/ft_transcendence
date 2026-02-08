@@ -2,14 +2,24 @@ package UserHandler
 
 import (
 	"encoding/json"
-	password "ft_transcendence/internal/auth"
+	"fmt"
+	"ft_transcendence/internal/auth"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
 	"io"
 	"net/http"
-	"fmt"
 )
+
+func SecretHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID := c.Session.GetString(r.Context(), "user_id")
+		username := c.Session.GetString(r.Context(), "username")
+		fmt.Fprintf(w, "[ID: %s] %s", userID, username)
+
+	}
+}
 
 func LoginHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -22,10 +32,10 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 
 		//fmt.Fprintf(w, "Recieved user: %v password: %v\n", userInfo.Login, userInfo.Password)
 
-		passwordHash, err := auth.GetUserPassword(c.DB, r.Context(), userInfo.Login)
+		passwordHash, err := store.GetUserPassword(c.DB, r.Context(), userInfo.Login)
 		//fmt.Fprintf(w, "passwordHah = %v | err = %v\n", passwordHash, err)
 
-		if err != nil || auth.CheckPasswordHash(userInfo.Password, passwordHash){
+		if err != nil || !auth.CheckPasswordHash(userInfo.Password, passwordHash) {
 			http.Error(w, "Invalid login or password", http.StatusUnauthorized)
 			return
 		}
@@ -36,21 +46,23 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 		}
 		userID, err := store.GetUserId(c.DB, r.Context(), userInfo.Login)
 		c.Session.Put(r.Context(), "user_id", userID)
+		c.Session.Put(r.Context(), "username", userInfo.Login)
+
 		//fmt.Fprintf(w, "User successfully logged in with session id: %v\n", c.Session.Get(r.Context(), "user_id"))
 
 	}
 }
 
-func RegisterHandler(c *config.Config) http.HandlerFunc{
-	return func(w http.ResponseWriter, r *http.Request){
-		
+func RegisterHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
 		var userInfo models.UserRegistration
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
-
-		if !auth.IsValidMail(userInfo.Mail) || len(userInfo.Password) <= 3 || len(userInfo.Login) <= 2{
+		fmt.Printf("Decoded User: %+v\n", userInfo)
+		if !auth.IsValidMail(userInfo.Mail) || len(userInfo.Password) <= 3 || len(userInfo.Login) <= 2 {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
@@ -69,8 +81,13 @@ func RegisterHandler(c *config.Config) http.HandlerFunc{
 			http.Error(w, "Failed to create user", http.StatusInternalServerError)
 			return
 		}
+
+		userID, err := store.GetUserId(c.DB, r.Context(), userInfo.Login)
+		c.Session.Put(r.Context(), "user_id", userID)
+		c.Session.Put(r.Context(), "username", userInfo.Login)
+
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, "Registered user %v", userInfo.Login)
+		fmt.Fprintf(w, "Registered user %v", userInfo.Login)
 
 	}
 }
@@ -85,11 +102,11 @@ func GetUserById(c *config.Config) http.HandlerFunc {
 		// 	http.Error(w, "User not found", http.StatusNotFound)
 		// 	return
 		// }
-		hash, err := password.HashPassword("123")
+		hash, err := auth.HashPassword("123")
 		if err != nil {
 
 		}
-		ret := password.CheckPasswordHash("123", hash)
+		ret := auth.CheckPasswordHash("123", hash)
 		fmt.Fprintf(w, "hash: %s\n hash compare: %v", hash, ret)
 	}
 }

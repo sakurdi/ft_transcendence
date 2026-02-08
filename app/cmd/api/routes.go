@@ -4,6 +4,7 @@ package main
 import (
 	"ft_transcendence/internal/config"
 	UserHandler "ft_transcendence/internal/handlers"
+	AppMiddleware "ft_transcendence/internal/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -23,6 +24,12 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Post("/login", UserHandler.LoginHandler(c))
 	mux.Post("/register", UserHandler.RegisterHandler(c))
+
+	mux.Group(func(r chi.Router) {
+		r.Use(AppMiddleware.Auth(c))
+
+		r.Get("/secret", UserHandler.SecretHandler(c))
+	})
 
 	return mux
 }
