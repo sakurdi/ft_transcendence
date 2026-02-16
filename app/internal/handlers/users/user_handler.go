@@ -1,4 +1,4 @@
-package UserHandler
+package users
 
 import (
 	"encoding/json"
@@ -11,13 +11,18 @@ import (
 	"net/http"
 )
 
-func SecretHandler(c *config.Config) http.HandlerFunc {
+func LogoutHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		err := c.Session.Destroy(r.Context())
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 
-		userID := c.Session.GetString(r.Context(), "user_id")
-		username := c.Session.GetString(r.Context(), "username")
-		fmt.Fprintf(w, "[ID: %s] %s", userID, username)
-
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "Logged out",
+		})
 	}
 }
 
@@ -48,8 +53,10 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		//fmt.Fprintf(w, "User successfully logged in with session id: %v\n", c.Session.Get(r.Context(), "user_id"))
-
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "Logged in",
+		})
 	}
 }
 
@@ -87,7 +94,10 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "Registered user %v", userInfo.Login)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "Registered successfully",
+		})
 
 	}
 }

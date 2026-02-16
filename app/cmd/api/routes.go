@@ -3,7 +3,8 @@ package main
 
 import (
 	"ft_transcendence/internal/config"
-	UserHandler "ft_transcendence/internal/handlers"
+	"ft_transcendence/internal/handlers/boards"
+	"ft_transcendence/internal/handlers/users"
 	AppMiddleware "ft_transcendence/internal/middleware"
 	"net/http"
 
@@ -18,17 +19,13 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
 
-	mux.Get("/test/{id}", UserHandler.GetUserById(c))
-	mux.Get("/session_new", UserHandler.SessionNewHandler(c))
-	mux.Get("/session_get", UserHandler.SessionGetHandler(c))
-
-	mux.Post("/login", UserHandler.LoginHandler(c))
-	mux.Post("/register", UserHandler.RegisterHandler(c))
+	mux.Post("/login", users.LoginHandler(c))
+	mux.Post("/register", users.RegisterHandler(c))
 
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
-
-		r.Get("/secret", UserHandler.SecretHandler(c))
+		r.Post("/logout", users.LogoutHandler(c))
+		r.Post("/board/new/{name}", boards.CreateBoardHandler(c))
 	})
 
 	return mux
