@@ -5,7 +5,7 @@ import (
 	"ft_transcendence/internal/auth"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/models"
-	userStore "ft_transcendence/internal/store/users"
+	store "ft_transcendence/internal/store/users"
 	"net/http"
 )
 
@@ -32,7 +32,7 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		passwordHash, err := userStore.GetUserPassword(c.DB, r.Context(), userInfo.Login)
+		passwordHash, err := store.GetUserPassword(c.DB, r.Context(), userInfo.Login)
 		if err != nil || !auth.CheckPasswordHash(userInfo.Password, passwordHash) {
 			http.Error(w, "Invalid login or password", http.StatusUnauthorized)
 			return
@@ -43,7 +43,7 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		userID, err := userStore.GetUserID(c.DB, r.Context(), userInfo.Login)
+		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
@@ -71,7 +71,7 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		exists, err := userStore.CheckDuplicateCreds(c.DB, r.Context(), userInfo)
+		exists, err := store.CheckDuplicateCreds(c.DB, r.Context(), userInfo)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
@@ -81,12 +81,12 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		if err := userStore.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
+		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
 			http.Error(w, "Failed to create user", http.StatusInternalServerError)
 			return
 		}
 
-		userID, err := userStore.GetUserID(c.DB, r.Context(), userInfo.Login)
+		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
