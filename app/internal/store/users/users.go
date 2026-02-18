@@ -10,44 +10,41 @@ import (
 	"ft_transcendence/internal/models"
 )
 
-func GetUserLogin(db *pgxpool.Pool, ctx context.Context, id string) (string, error) {
+func GetUserLogin(db *pgxpool.Pool, ctx context.Context, id int) (string, error) {
 	var login string
-	query := "SELECT login FROM users WHERE id=$1"
-	err := db.QueryRow(ctx, query, id).Scan(&login)
+	err := db.QueryRow(ctx, "SELECT login FROM users WHERE id=$1", id).Scan(&login)
 	return login, err
 }
 
 func GetUserPassword(db *pgxpool.Pool, ctx context.Context, login string) (string, error) {
 	var password string
-	query := "SELECT password FROM users WHERE login=$1"
-	err := db.QueryRow(ctx, query, login).Scan(&password)
+	err := db.QueryRow(ctx, "SELECT password FROM users WHERE login=$1", login).Scan(&password)
 	return password, err
-
 }
 
-func GetUserId(db *pgxpool.Pool, ctx context.Context, login string) (string, error) {
-	var id string
-	query := "SELECT id FROM users WHERE login=$1"
-	err := db.QueryRow(ctx, query, login).Scan(&id)
+func GetUserID(db *pgxpool.Pool, ctx context.Context, login string) (int, error) {
+	var id int
+	err := db.QueryRow(ctx, "SELECT id FROM users WHERE login=$1", login).Scan(&id)
 	return id, err
 }
 
 func CheckDuplicateCreds(db *pgxpool.Pool, ctx context.Context, user models.UserRegistration) (bool, error) {
-
-	query := "SELECT EXISTS (SELECT 1 FROM users WHERE login = $1 OR email = $2);"
-	var res bool
-	err := db.QueryRow(ctx, query, user.Login, user.Mail).Scan(&res)
-
-	return res, err
+	var exists bool
+	err := db.QueryRow(ctx,
+		"SELECT EXISTS (SELECT 1 FROM users WHERE login=$1 OR email=$2)",
+		user.Login, user.Mail,
+	).Scan(&exists)
+	return exists, err
 }
 
 func RegisterUser(db *pgxpool.Pool, ctx context.Context, user models.UserRegistration) error {
-	query := "INSERT INTO users (login, email, password) VALUES ($1, $2, $3);"
 	passwordHash, err := auth.HashPassword(user.Password)
-
 	if err != nil {
-		return fmt.Errorf("Hashing failed: %w", err)
+		return fmt.Errorf("hashing failed: %w", err)
 	}
-	_, err = db.Exec(ctx, query, user.Login, user.Mail, passwordHash)
+	_, err = db.Exec(ctx,
+		"INSERT INTO users (login, email, password) VALUES ($1, $2, $3)",
+		user.Login, user.Mail, passwordHash,
+	)
 	return err
 }

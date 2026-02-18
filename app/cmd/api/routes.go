@@ -22,10 +22,16 @@ func routes(c *config.Config) http.Handler {
 	mux.Post("/login", users.LoginHandler(c))
 	mux.Post("/register", users.RegisterHandler(c))
 
+	/* [PUBLIC] BOARDS */
+	mux.Get("/board/{board_name}", boards.GetBoardHandler(c))
+
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
 		r.Post("/logout", users.LogoutHandler(c))
-		r.Post("/board/new/{name}", boards.CreateBoardHandler(c))
+
+		/* [PROTECTED] BOARDS */
+		r.Post("/board/new", boards.CreateBoardHandler(c))
+
 	})
 
 	return mux
