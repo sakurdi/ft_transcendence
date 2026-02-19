@@ -38,7 +38,7 @@ services:
       - "1043:443"
     volumes:
       - ./certs:/etc/nginx/certs
-      - ./nginx/site:/site:ro
+      - ./nginx/site:/etc/nginx/html/:ro
     networks:
       - app_net
     depends_on:
