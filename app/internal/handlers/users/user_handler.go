@@ -62,7 +62,6 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 
 func RegisterHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("La\n")
 
 		var userInfo models.UserRegistration
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
