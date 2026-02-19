@@ -21,7 +21,7 @@ services:
     build: ./app
     container_name: app
     volumes:
-    - ./app:/app
+      - ./app:/app
     environment:
       DB_URL: postgres://user:pass@db:5432/appdb?sslmode=disable
     networks:
@@ -43,18 +43,17 @@ services:
     depends_on:
       - app
 
-    frontend:
-      build:
-        context: ./frontend
-      container_name: frontend
-      ports:
-        - "1234:1234"
-      volumes:
-        - ./frontend:/app
-        - /app/node_modules
-      networks:
-        - app_net
-
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app_net
 
 networks:
   app_net:

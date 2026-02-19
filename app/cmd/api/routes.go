@@ -19,18 +19,18 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
 
-	mux.Post("/login", users.LoginHandler(c))
-	mux.Post("/register", users.RegisterHandler(c))
+	mux.Post("/api/login", users.LoginHandler(c))
+	mux.Post("/api/register", users.RegisterHandler(c))
 
 	/* [PUBLIC] BOARDS */
-	mux.Get("/board/{board_name}", boards.GetBoardHandler(c))
+	mux.Get("/api/board/{board_name}", boards.GetBoardHandler(c))
 
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
-		r.Post("/logout", users.LogoutHandler(c))
+		r.Post("/api/logout", users.LogoutHandler(c))
 
 		/* [PROTECTED] BOARDS */
-		r.Post("/board/new", boards.CreateBoardHandler(c))
+		r.Post("/api/board/new", boards.CreateBoardHandler(c))
 
 	})
 
