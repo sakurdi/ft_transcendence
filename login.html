@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0f;
+    --surface: #18181a;
+    --border: #2a2a2e;
+    --accent: #e8ff47;
+    --text: #f0f0f0;
+    --muted: #666;
+    --error: #ff5c5c;
+    --success: #47ffb2;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 70% 20%, rgba(232,255,71,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 50% at 20% 80%, rgba(71,255,178,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2.5rem;
+    animation: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+  }
+
+  input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.875rem;
+    padding: 0.7rem 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+  }
+
+  button {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: #0e0e0f;
+    border: none;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    position: relative;
+  }
+
+  button:hover { opacity: 0.9; }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #0e0e0f;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn-text { transition: opacity 0.2s; }
+
+  .msg {
+    margin-top: 1rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    display: none;
+  }
+
+  .msg.error   { background: rgba(255,92,92,0.1); border: 1px solid rgba(255,92,92,0.3); color: var(--error); }
+  .msg.success { background: rgba(71,255,178,0.1); border: 1px solid rgba(71,255,178,0.3); color: var(--success); }
+
+  .api-url {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .api-url label { margin-bottom: 0.4rem; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">// auth</div>
+  <h1>Sign in</h1>
+  <p class="subtitle">Enter your credentials to continue.</p>
+
+  <div class="field">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="your_username" autocomplete="username">
+  </div>
+
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <div class="api-url field">
+    <label>API Endpoint</label>
+    <input type="text" id="apiUrl" value="http://localhost:1042/api/login" placeholder="https://your-api/login">
+  </div>
+
+  <button id="btn" onclick="login()">
+    <span class="btn-text">Sign in</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const apiUrl   = document.getElementById('apiUrl').value.trim();
+  const btn      = document.getElementById('btn');
+  const spinner  = document.getElementById('spinner');
+  const btnText  = btn.querySelector('.btn-text');
+  const msg      = document.getElementById('msg');
+
+  if (!username || !password) return showMsg('Fill in all fields.', 'error');
+  if (!apiUrl)                 return showMsg('Enter an API endpoint.', 'error');
+
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  spinner.style.display = 'block';
+  msg.style.display = 'none';
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      showMsg(`✓ ${data.message || 'Login successful'}`, 'success');
+    } else {
+      showMsg(data.message || data.error || `Error ${res.status}`, 'error');
+    }
+  } catch (err) {
+    showMsg('Could not reach the API. Check the URL or CORS.', 'error');
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = 'block';
+    spinner.style.display = 'none';
+  }
+}
+
+function showMsg(text, type) {
+  const msg = document.getElementById('msg');
+  msg.textContent = text;
+  msg.className = `msg ${type}`;
+  msg.style.display = 'block';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+</script>
+</body>
+</html>

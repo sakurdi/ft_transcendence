@@ -12,8 +12,8 @@ build:
 
 up:
 	docker compose up -d
-	@echo "HTTP:  http://localhost"
-	@echo "HTTPS: https://localhost"
+	@echo "HTTP:  http://localhost:1042"
+	@echo "HTTPS: https://localhost:1043"
 
 down:
 	docker compose down
@@ -33,3 +33,9 @@ app-rebuild:
 	docker compose up -d app
 
 rebuild: clean build up
+
+# curl -vk -X POST https://localhost:1043/register  -H "Content-Type: application/json" -d '{D                                                                                ✹ ✭g-test 
+#     "username": "Gabudes",
+#     "eMail": "gab@free.fr",
+#     "Password": "pipi"
+#   }'
