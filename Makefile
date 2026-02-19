@@ -32,7 +32,7 @@ app-rebuild:
 	docker compose build app
 	docker compose up -d app
 
-rebuild: clean build up
+rebuild: down clean build up
 
 # curl -vk -X POST https://localhost:1043/register  -H "Content-Type: application/json" -d '{D                                                                                ✹ ✭g-test 
 #     "username": "Gabudes",

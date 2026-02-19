@@ -30,8 +30,23 @@ services:
       db:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app_net
+
+
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     container_name: nginx
     ports:
       - "1042:80"
@@ -43,6 +58,7 @@ services:
       - app_net
     depends_on:
       - app
+      - frontend
 
 networks:
   app_net:
