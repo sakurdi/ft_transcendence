@@ -5,8 +5,11 @@ import (
 	"ft_transcendence/internal/auth"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/models"
-	store "ft_transcendence/internal/store/users"
+	"ft_transcendence/internal/store"
+	"ft_transcendence/internal/utils"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func LogoutHandler(c *config.Config) http.HandlerFunc {
@@ -15,18 +18,13 @@ func LogoutHandler(c *config.Config) http.HandlerFunc {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "Logged out",
-		})
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "Logged out"})
 	}
 }
 
 func LoginHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var userInfo models.UserLogin
-
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
@@ -51,10 +49,7 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "Logged in",
-		})
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "Logged in"})
 	}
 }
 
@@ -94,10 +89,14 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "Registered successfully",
-		})
+		utils.JSON(w, http.StatusCreated, map[string]string{"status": "Registered successfully"})
+	}
+}
+
+func GetHash(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		hash, _ := auth.HashPassword(chi.URLParam(r, "pass"))
+		utils.JSON(w, http.StatusOK, map[string]string{"status": hash})
 	}
 }

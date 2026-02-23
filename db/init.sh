@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (login, password, email) VALUES
-    ('saal-kur', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia', 'saal-kur@goat.com'),
-    ('gaeudes', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia', 'gaeudes@petitgoat.com'),
-    ('kevwang', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia', 'kevwang@midgoat.com')
+    ('saal-kur', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com'),
+    ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com'),
+    ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com')
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
@@ -49,9 +49,9 @@ CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    title VARCHAR(255),          -- only for thread-opening posts
+    title VARCHAR(255),          
     content TEXT NOT NULL,
-    parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE, -- NULL = thread OP, set = reply
+    parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -59,6 +59,30 @@ CREATE INDEX IF NOT EXISTS idx_posts_board_id ON posts(board_id);
 CREATE INDEX IF NOT EXISTS idx_posts_parent_id ON posts(parent_id);
 CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
 
+
+INSERT INTO boards (name, description, owner_id) VALUES
+    ('42', 'horrible ecole', 1),
+    ('League', 'Ligue des legendes', 1)
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, title, content) VALUES
+    ((SELECT id FROM boards WHERE name = '42'), 1, 'ecole de merde', 'daube'),
+    ((SELECT id FROM boards WHERE name = 'League'), 1, 'poppy', 'poppy')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id) VALUES
+    (
+        (SELECT id FROM boards WHERE name = '42'), 
+        2, 
+        'Je suis d''accord, c''est dur', 
+        (SELECT id FROM posts WHERE title = 'ecole de merde' LIMIT 1)
+    ),
+    (
+        (SELECT id FROM boards WHERE name = 'League'), 
+        3, 
+        'Poppy', 
+        (SELECT id FROM posts WHERE title = 'poppy' LIMIT 1)
+    );
 
 EOSQL
 
