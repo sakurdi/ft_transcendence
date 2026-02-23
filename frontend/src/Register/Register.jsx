@@ -1,13 +1,17 @@
 import {useState, useRef, forwardRef} from "react";
 import styles from './Register.module.css';
 
-function Entry_Error({child, error}) {
+function Entry_Error({child, errorText}) {
 	return (
 		<div className={styles.entryError}>
+			<ErrorText error/>
 			{child}
-			{error}
 		</div>
 	)
+}
+
+function ErrorText({errorText}) {
+	
 }
 
 export function EMail_Entry({refEntry}) {
