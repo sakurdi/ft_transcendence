@@ -1,15 +1,29 @@
-.Text_Entry_Div{
+.EntryError {
+	width:100%;
+	height: fit-content;
+	background-color: transparent;
+}
+
+.Error {
+	width: 100%;
+	text-overflow: clip;
+	height: max-content;
+	font-size: smaller;
+	color: red;
+}
+
+.Text_Entry_Div {
 	align-items: center;
 	display: flex;
-	margin: 15px;
-	border: 3px solid gray;
+	margin: 10px;
+	border: 3px solid rgb(105, 105, 105);
 	border-radius: 8px;
 	background-color: #ccc;
 	width: 200px;
 	height: 35px;
 }
 
-.Text_Entry{
+.Text_Entry {
 	width: 100%;
 	box-shadow: none;
 	border: none;
@@ -17,6 +31,10 @@
 	background-color:transparent;
 	margin-left: 7px;
 	margin-right: 7px;
+}
+
+.Text_Entry::placeholder {
+	color: gray;
 }
 
 .Text_Entry:focus{
@@ -45,20 +63,34 @@
 }
 
 .Button_Div {
-	align-items: center;
+	width: 90%;
+	margin: auto;
+	text-align: center;
+	font-weight: 700;
+	height: 32px;
+	
+	margin: 10px;
 }
 
 .Button {
-	width: auto;
-	text-align: center;
+	width: 100%;
+	border: 3px solid rgb(105, 105, 105);
+	border-radius: 8px;
+	background-color: white;
+	height: 100%;
+}
+
+.Button:hover {
+	background-color: rgb(192, 70, 70);
 }
 
 .Register {
 	position: relative;
 	align-items:center;
-	min-width: 120;
-	max-width: 400;
+	min-width: 120px;
+	max-width: 400px;
 	width: max-content;
 	height: auto;
-	background-color: #7a5d5d;
+	background-color: #62d21c;
+	padding: 10px;
 }
