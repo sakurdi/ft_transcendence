@@ -1,30 +1,40 @@
 .EntryError {
-	width:100%;
-	height: fit-content;
+	display: flex;
+	flex-direction: column;
+	width: 370px;
+	gap: 100px;
+	/* margin: 10px 30px;
+	margin-bottom: 30px;
+	padding-bottom: 30px; */
+	/* transform: rotate(90deg); */
 	background-color: transparent;
 }
 
 .Error {
-	width: 100%;
+	margin-left: 11px;
 	text-overflow: clip;
-	height: max-content;
+	height: 20px;
 	font-size: smaller;
 	color: red;
 }
 
 .Text_Entry_Div {
-	align-items: center;
+	position: relative;
 	display: flex;
-	margin: 10px;
+	align-items: center;
 	border: 3px solid rgb(105, 105, 105);
 	border-radius: 8px;
 	background-color: #ccc;
-	width: 200px;
+	box-sizing: border-box;
+	width: 300px;
 	height: 35px;
+	overflow: hidden;
 }
 
 .Text_Entry {
-	width: 100%;
+	/* flex: 1;
+	width:fit-content; */
+	width:100%;
 	box-shadow: none;
 	border: none;
 	outline: none;
@@ -41,23 +51,30 @@
 	outline: none;
 }
 
-.EMail_Entry{
-	margin-right: 3px;
+.EMail_Entry {
+	margin-right: 28px;
+	width: calc(100% - 24px);
 }
-.EMail_Entry + span:after{
-	align-content: space-around;
-	padding: 1px;
+
+.spanEMail {
+	position: absolute;
+	right: 5px;
+	width: 24px;
+    text-align: center;
+}
+
+.EMail_Entry + .spanEMail:after{
 	padding-right: 5px;
 	font-size: 16px;
 }
 
-.EMail_Entry:valid + span:after{
+.EMail_Entry:valid + .spanEMail:after{
 	font-size: 20px;
 	content: "✓";
 	color: green;
 }
 
-.EMail_Entry:invalid + span:after{
+.EMail_Entry:invalid + .spanEMail:after{
 	content: "✖";
 	color: rgb(160, 15, 15);
 }
@@ -68,7 +85,6 @@
 	text-align: center;
 	font-weight: 700;
 	height: 32px;
-	
 	margin: 10px;
 }
 
@@ -85,12 +101,13 @@
 }
 
 .Register {
-	position: relative;
-	align-items:center;
-	min-width: 120px;
-	max-width: 400px;
-	width: max-content;
-	height: auto;
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	align-items: center;
+	gap: 15px;
+	width: fit-content;
+	height: fit-content;
 	background-color: #62d21c;
-	padding: 10px;
+	padding: 20px 30px;
 }
