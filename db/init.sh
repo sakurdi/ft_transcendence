@@ -5,13 +5,17 @@ echo "Database: init script running"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
 
+-- CITEXT extension
 CREATE EXTENSION IF NOT EXISTS citext;
 
-CREATE TABLE IF NOT EXISTS boards (
+-- =========================
+-- USERS
+-- =========================
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 20),
-    description TEXT,
-    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    login VARCHAR(30) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -23,6 +27,9 @@ ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
 
+-- =========================
+-- SESSIONS
+-- =========================
 CREATE TABLE IF NOT EXISTS sessions (
     token TEXT PRIMARY KEY,
     data BYTEA NOT NULL,
@@ -33,26 +40,32 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expiry);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
 
+-- =========================
+-- BOARDS
+-- =========================
 CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
-    name CITEXT(50) UNIQUE NOT NULL,
+    name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 50),
     description TEXT,
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS board_moderators (
-    board_id INTEGER REFERENCES boards(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    added_at TIMESTAMP DEFAULT NOW(),
-    PRIMARY KEY (board_id, user_id)
-);
+CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
 
+INSERT INTO boards (name, description, owner_id) VALUES
+    ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
+    ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saal-kur'))
+ON CONFLICT (name) DO NOTHING;
+
+-- =========================
+-- POSTS
+-- =========================
 CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    title VARCHAR(255),          
+    title VARCHAR(255),
     content TEXT NOT NULL,
     parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()
@@ -60,32 +73,52 @@ CREATE TABLE IF NOT EXISTS posts (
 
 CREATE INDEX IF NOT EXISTS idx_posts_board_id ON posts(board_id);
 CREATE INDEX IF NOT EXISTS idx_posts_parent_id ON posts(parent_id);
-CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
 
-
-INSERT INTO boards (name, description, owner_id) VALUES
-    ('42', 'horrible ecole', 1),
-    ('League', 'Ligue des legendes', 1)
-ON CONFLICT (name) DO NOTHING;
-
-INSERT INTO posts (board_id, author_id, title, content) VALUES
-    ((SELECT id FROM boards WHERE name = '42'), 1, 'ecole de merde', 'daube'),
-    ((SELECT id FROM boards WHERE name = 'League'), 1, 'poppy', 'poppy')
+INSERT INTO posts (board_id, author_id, title, content)
+SELECT 
+    b.id,
+    u.id,
+    'nouveau cursus?',
+    'daube'
+FROM boards b
+JOIN users u ON u.login = 'saal-kur'
+WHERE b.name = '42'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO posts (board_id, author_id, content, parent_id) VALUES
-    (
-        (SELECT id FROM boards WHERE name = '42'), 
-        2, 
-        'Je suis d''accord, c''est dur', 
-        (SELECT id FROM posts WHERE title = 'ecole de merde' LIMIT 1)
-    ),
-    (
-        (SELECT id FROM boards WHERE name = 'League'), 
-        3, 
-        'Poppy', 
-        (SELECT id FROM posts WHERE title = 'poppy' LIMIT 1)
-    );
+INSERT INTO posts (board_id, author_id, title, content)
+SELECT 
+    b.id,
+    u.id,
+    'poppy',
+    'poppy'
+FROM boards b
+JOIN users u ON u.login = 'saal-kur'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+    b.id,
+    u.id,
+    'Je suis d''accord, c''est dur',
+    p.id
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN posts p ON p.title = 'ecole de merde'
+WHERE b.name = '42'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+    b.id,
+    u.id,
+    'Poppy',
+    p.id
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN posts p ON p.title = 'poppy'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
 
 EOSQL
 
