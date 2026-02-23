@@ -4,11 +4,14 @@ set -e
 echo "Database: init script running"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-CREATE TABLE IF NOT EXISTS users (
+
+CREATE EXTENSION IF NOT EXISTS citext;
+
+CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
-    login VARCHAR(30) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 20),
+    description TEXT,
+    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -32,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
 
 CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
+    name CITEXT(50) UNIQUE NOT NULL,
     description TEXT,
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at TIMESTAMP DEFAULT NOW()
