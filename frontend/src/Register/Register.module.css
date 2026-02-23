@@ -16,16 +16,20 @@
 	outline: none;
 	background-color:transparent;
 	margin-left: 7px;
+	margin-right: 7px;
 }
 
 .Text_Entry:focus{
 	outline: none;
 }
 
+.EMail_Entry{
+	margin-right: 3px;
+}
 .EMail_Entry + span:after{
 	align-content: space-around;
-	padding: 4px;
-	padding-right: 6px;
+	padding: 1px;
+	padding-right: 5px;
 	font-size: 16px;
 }
 
@@ -38,4 +42,23 @@
 .EMail_Entry:invalid + span:after{
 	content: "✖";
 	color: rgb(160, 15, 15);
+}
+
+.Button_Div {
+	align-items: center;
+}
+
+.Button {
+	width: auto;
+	text-align: center;
+}
+
+.Register {
+	position: relative;
+	align-items:center;
+	min-width: 120;
+	max-width: 400;
+	width: max-content;
+	height: auto;
+	background-color: #7a5d5d;
 }

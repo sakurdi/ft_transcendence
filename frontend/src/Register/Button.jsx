@@ -9,5 +9,6 @@ export function Button({text = "Count: "}) {
 			<button onClick = {handleClick}>
 				{text}
 			</button>
-		</div>	)
+		</div>
+	)
 }
