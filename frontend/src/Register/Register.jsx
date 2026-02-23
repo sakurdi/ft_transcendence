@@ -18,18 +18,29 @@ function ErrorText({errorText}) {
 	)
 }
 
-export function EMail_Entry({refEntry}) {
-	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
+const validEMailTrue = "✓";
+const validEMailFalse = "✖";
+export function EMail_Entry({refEntry, emailValidChar}) {
+	// const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
 
+	const emailValidStyle = ((emailValidChar) => {
+		if (emailValidChar === '')
+			return (styles.divValidEMail)
+		else if (emailValidChar === validEMailTrue)
+			return (styles.divValidEMailTrue)
+		else
+			return (styles.divValidEMailFalse)
+		})(emailValidChar)
+	
 	return (
 		<div className={styles.Text_Entry_Div}>
 			<input className={`${styles.Text_Entry} ${styles.EMail_Entry}`}
 				type="email"
 				placeholder="E-mail"
-				pattern={regexEmail}
+				// pattern={regexEmail}
 				ref={refEntry}
 			/>
-			<div className={styles.spanEMail}></div>
+			<div className={emailValidStyle}>{emailValidChar}</div>
 		</div>
 	)
 }
@@ -69,21 +80,22 @@ function Button({handleClick}) {
 	)
 }
 
-function checkEmail(email, setEmailError, setSuccessEmail) {
+function checkEmail(email, setEmailError, setValidEmailChar) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
-	const charWrongEmail = "✖";
-	const charValidEmail = "✖";
 
 	if (email === "") {
+		setValidEmailChar(validEMailFalse)
 		setEmailError("Email is empty")
 		console.log("Empty Email")
 		return false
 	}
 	else if (!email.match(regexEmail)) {
+		setValidEmailChar(validEMailFalse)
 		setEmailError("Email is not valid")
 		console.log("mail Doesnt match")
 		return false
 	}
+	setValidEmailChar(validEMailTrue)
 	setEmailError("")
 	console.log("Mail ok")
 	return true
@@ -117,7 +129,7 @@ function checkPassword(password, password2, setPasswordError) {
 		return false
 	}
 	if (password !== password2) {
-		setPasswordError("Password don't match")
+		setPasswordError("Passwords don't match")
 		console.log("no match password")
 		return false
 	}
@@ -128,6 +140,7 @@ function checkPassword(password, password2, setPasswordError) {
 
 export default function Register() {
 	const [emailError, setEmailError] = useState('');
+	const [emailValidChar, setValidEmailChar] = useState('');
 	const [usernameError, setUsernameError] = useState('');
 	const [passwordError, setPasswordError] = useState('');
 
@@ -143,7 +156,7 @@ export default function Register() {
 		const password1 = password1Ref.current.value
 		const password2 = password2Ref.current.value
 		
-		const validEmail = checkEmail(email, setEmailError)
+		const validEmail = checkEmail(email, setEmailError, setValidEmailChar)
 		const validUsername = checkUsername(username, setUsernameError)
 		const validPassword = checkPassword(password1, password2, setPasswordError)
 
@@ -153,6 +166,7 @@ export default function Register() {
 		}
 		console.log(email, username, password1, password2)
 		setSuccess(true)
+		
 	}
 
 	const setTextSuccess = (success) => {
@@ -166,7 +180,7 @@ export default function Register() {
 	return (
 		<div className={styles.Register}>
 			<Entry_Error errorText={emailError}>
-				<EMail_Entry refEntry={emailRef}/>
+				<EMail_Entry refEntry={emailRef} emailValidChar={emailValidChar}/>
 			</Entry_Error>
 			<Entry_Error errorText={usernameError}>
 				<UserName_Entry refEntry={usernameRef}/>

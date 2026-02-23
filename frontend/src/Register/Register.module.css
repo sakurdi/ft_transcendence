@@ -56,25 +56,22 @@
 	width: calc(100% - 24px);
 }
 
-.spanEMail {
+.divValidEMail, .divValidEMailTrue, .divValidEMailFalse{
 	position: absolute;
-	right: 5px;
+	right: 3px;
 	width: 24px;
     text-align: center;
-}
-
-.EMail_Entry + .spanEMail:after{
-	padding-right: 5px;
+	/* padding-right: 3px; */
 	font-size: 16px;
 }
 
-.EMail_Entry:valid + .spanEMail:after{
+.divValidEMailTrue {
 	font-size: 20px;
 	content: "✓";
 	color: green;
 }
 
-.EMail_Entry:invalid + .spanEMail:after{
+.divValidEMailFalse {
 	content: "✖";
 	color: rgb(160, 15, 15);
 }
