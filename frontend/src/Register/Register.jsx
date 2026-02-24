@@ -149,6 +149,30 @@ export default function Register() {
 	const password1Ref = useRef(null);
 	const password2Ref = useRef(null);
 	const [success, setSuccess] = useState(true);
+	const [jsonResponse, setjsonResponse] = useState('');
+
+	function fetchRegisterApi(email, username, password) {
+		fetch('https://localhost:1043/api/register', {
+				method: 'POST',
+				// headers: {
+				// 	'Accept': 'application/json',
+				// 	'Content-Type': 'application/json',
+				// },
+				body: JSON.stringify({
+					'username': username,
+					'Email': email,
+					'Password': password,
+				})
+			}).then(function(response) { return response.json(); })
+			.then(function(json) {
+				console.log(json)
+			});
+		// if (!response.ok) {//https://localhost:1043/api/register
+		// 	console.log("No ok")
+		// }
+		// var json = response.json()
+		// console.log(json)
+	}
 
 	function handleClick() {
 		const email = emailRef.current.value
@@ -166,28 +190,27 @@ export default function Register() {
 		}
 		console.log(email, username, password1, password2)
 		setSuccess(true)
-		
+		fetchRegisterApi(email, username, password1)
 	}
+
 
 	const setTextSuccess = (success) => {
 		return (success ? "Sucess" : "Failure")
 	}
-	// onKeyDown = (e) => {
-	// 	if (e.key === 'Enter')
-	// 		handleClick()
-	// }
 	
 	return (
 		<div className={styles.Register}>
 			<Entry_Error errorText={emailError}>
-				<EMail_Entry refEntry={emailRef} emailValidChar={emailValidChar}/>
+				<EMail_Entry refEntry={emailRef}
+					emailValidChar={emailValidChar}/>
 			</Entry_Error>
 			<Entry_Error errorText={usernameError}>
 				<UserName_Entry refEntry={usernameRef}/>
 			</Entry_Error>
 			<Entry_Error errorText={passwordError}>
 				<PassWord_Entry refEntry={password1Ref}/>
-				<PassWord_Entry refEntry={password2Ref} placeholder='Confirm Password'/>
+				<PassWord_Entry refEntry={password2Ref}
+					placeholder='Confirm Password'/>
 			</Entry_Error>
 			<Button handleClick={handleClick}/>
 			<div>
@@ -195,16 +218,4 @@ export default function Register() {
 			</div>
 		</div>
 	);
-	// return (
-	// 	<div className={styles.Register}>
-	// 		<EMail_Entry refEntry={emailRef}/>
-	// 		<UserName_Entry refEntry={usernameRef}/>
-	// 		<PassWord_Entry refEntry={password1Ref}/>
-	// 		<PassWord_Entry refEntry={password2Ref} placeholder='Confirm Password'/>
-	// 		<Button handleClick={handleClick}/>
-	// 		<div>
-	// 			{setTextSuccess(success)}
-	// 		</div>
-	// 	</div>
-	// );
 }
