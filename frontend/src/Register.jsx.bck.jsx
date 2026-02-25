@@ -1,95 +1,85 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import Button from "./components/Button"
+import TextInput, {EMailInput, PasswordInput} from "./components/TextInput"
+import {WrapError} from "./components/WrapError"
 import styles from './Register.module.css';
 
-function Entry_Error({children, errorText}) {
-	return (
-		<div className={styles.entryError}>
-			<ErrorText errorText={errorText}/>
-			{children}
-		</div>
-	)
-}
+// function Entry_Error({children, errorText}) {
+// 	return (
+// 		<div className={styles.entryError}>
+// 			<ErrorText errorText={errorText}/>
+// 			{children}
+// 		</div>
+// 	)
+// }
 
-function ErrorText({errorText}) {
-	return (
-		<div className={styles.Error}>
-			{errorText}
-		</div>
-	)
-}
+// function ErrorText({errorText}) {
+// 	return (
+// 		<div className={styles.Error}>
+// 			{errorText}
+// 		</div>
+// 	)
+// }
 
-const validEMailTrue = "✓";
-const validEMailFalse = "✖";
-export function EMail_Entry({refEntry, emailValidChar}) {
-	// const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
-
-	const emailValidStyle = ((emailValidChar) => {
-		if (emailValidChar === '')
-			return (styles.divValidEMail)
-		else if (emailValidChar === validEMailTrue)
-			return (styles.divValidEMailTrue)
-		else
-			return (styles.divValidEMailFalse)
-		})(emailValidChar)
+// const validEMailTrue = "✓";
+// const validEMailFalse = "✖";
+// export function EMail_Entry({refEntry, emailValidChar}) {
+// 	const emailValidStyle = ((emailValidChar) => {
+// 		if (emailValidChar === '')
+// 			return (styles.divValidEMail)
+// 		else if (emailValidChar === validEMailTrue)
+// 			return (styles.divValidEMailTrue)
+// 		else
+// 			return (styles.divValidEMailFalse)
+// 		})(emailValidChar)
 	
-	return (
-		<div className={styles.Text_Entry_Div}>
-			<input className={`${styles.Text_Entry} ${styles.EMail_Entry}`}
-				type="email"
-				placeholder="E-mail"
-				// pattern={regexEmail}
-				ref={refEntry}
-			/>
-			<div className={emailValidStyle}>{emailValidChar}</div>
-		</div>
-	)
-}
+// 	return (
+// 		<div className={styles.Text_Entry_Div}>
+// 			<input className={`${styles.Text_Entry} ${styles.EMail_Entry}`}
+// 				type="email"
+// 				placeholder="E-mail"
+// 				ref={refEntry}
+// 			/>
+// 			<div className={emailValidStyle}>{emailValidChar}</div>
+// 		</div>
+// 	)
+// }
 
-export function UserName_Entry({refEntry}) {
-	return (
-		<div className={styles.Text_Entry_Div}>
-			<input className={styles.Text_Entry}
-				type="text"
-				placeholder="Username"
-				ref={refEntry}
-			/>
-		</div>
-	)
-}
+// export function UserName_Entry({refEntry}) {
+// 	return (
+// 		<div className={styles.Text_Entry_Div}>
+// 			<input className={styles.Text_Entry}
+// 				type="text"
+// 				placeholder="Username"
+// 				ref={refEntry}
+// 			/>
+// 		</div>
+// 	)
+// }
 
-export function PassWord_Entry({refEntry, placeholder = "Password"}) {
-	return (
-		<div className={styles.Text_Entry_Div}>
-			<input className={styles.Text_Entry}
-				type="password"
-				placeholder={placeholder}
-				ref={refEntry}
-			/>
-		</div>
-	)
-}
+// export function PassWord_Entry({refEntry, placeholder = "Password"}) {
+// 	return (
+// 		<div className={styles.Text_Entry_Div}>
+// 			<input className={styles.Text_Entry}
+// 				type="password"
+// 				placeholder={placeholder}
+// 				ref={refEntry}
+// 			/>
+// 		</div>
+// 	)
+// }
 
-function Button({handleClick}) {
-	return (
-		<div className={styles.Button_Div}>
-			<button className={styles.Button}
-				onClick = {handleClick}>
-				Register
-			</button>
-		</div>
-	)
-}
-
-function RedirectOrError({condition, redirectPath, errorMsg}) {
-	if (condition === true) {
-	    throw redirect(redirectPath);
-	} else {
-		return (
-			<ErrorText errorText={errorMsg}/>
-		);
-	}
-}
+// function Button({handleClick}) {
+// 	return (
+// 		<div className={styles.Button_Div}>
+// 			<button className={styles.Button}
+// 				onClick = {handleClick}>
+// 				Register
+// 			</button>
+// 		</div>
+// 	)
+// }
 
 function checkEmail(email, setEmailError, setValidEmailChar) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
@@ -217,8 +207,10 @@ export default function Register() {
 				<PassWord_Entry refEntry={password2Ref}
 					placeholder='Confirm Password'/>
 			</Entry_Error>
-			<Button handleClick={handleClick}/>
+			<Button handleClick={handleClick} text="Register"/>
 			<ErrorText errorText={registerError}/>
 		</div>
 	);
 }
+
+

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Register from "./Register/Register";
+import Register from "./Register";
+import Login from "./Login";
 
 const Salut = () => {
 	return (
@@ -9,10 +10,11 @@ const Salut = () => {
 
 export default function App() {
   return (
-	<BrowserRouter>
+	<BrowserRouter future={{v7_relativeSplatPath: false}}>
 	  <Routes>
 		<Route path='/' element={<Register/>} />
 		<Route path='/register' element={<Register/>} />
+		<Route path='/login' element={<Login/>} />
 		<Route path='/salut' element={<Salut/>} />
 	  </Routes>
 	</BrowserRouter>

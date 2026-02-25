@@ -1,0 +1,11 @@
+.Register {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	align-items: center;
+	gap: 15px;
+	width: fit-content;
+	height: fit-content;
+	background-color: #62d21c;
+	padding: 20px 30px;
+}

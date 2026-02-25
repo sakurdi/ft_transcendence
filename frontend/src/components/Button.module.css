@@ -1,0 +1,20 @@
+.Button_Div {
+	width: 90%;
+	margin: auto;
+	text-align: center;
+	font-weight: 700;
+	height: 32px;
+	margin: 10px;
+}
+
+.Button {
+	width: 100%;
+	border: 3px solid rgb(105, 105, 105);
+	border-radius: 8px;
+	background-color: white;
+	height: 100%;
+}
+
+.Button:hover {
+	background-color: rgb(192, 70, 70);
+}

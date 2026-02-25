@@ -1,0 +1,56 @@
+.TextInput_Div {
+	position: relative;
+	display: flex;
+	align-items: center;
+	border: 3px solid rgb(105, 105, 105);
+	border-radius: 8px;
+	background-color: #ccc;
+	box-sizing: border-box;
+	width: 300px;
+	height: 35px;
+	overflow: hidden;
+}
+
+.TextInput {
+	/* flex: 1;
+	width:fit-content; */
+	width:100%;
+	box-shadow: none;
+	border: none;
+	outline: none;
+	background-color:transparent;
+	margin-left: 7px;
+	margin-right: 7px;
+}
+
+.TextInput::placeholder {
+	color: gray;
+}
+
+.TextInput:focus{
+	outline: none;
+}
+
+.EMailInput {
+	margin-right: 28px;
+	width: calc(100% - 24px);
+}
+
+.EMailInputValid, .EMailInputValidTrue, .EMailInputValidFalse{
+	position: absolute;
+	right: 3px;
+	width: 24px;
+    text-align: center;
+	font-size: 16px;
+}
+
+.EMailInputValidTrue {
+	font-size: 20px;
+	content: "✓";
+	color: green;
+}
+
+.EMailInputValidFalse {
+	content: "✖";
+	color: rgb(160, 15, 15);
+}
