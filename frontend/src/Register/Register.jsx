@@ -1,4 +1,5 @@
-import {useState, useRef, forwardRef} from "react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from './Register.module.css';
 
 function Entry_Error({children, errorText}) {
@@ -80,6 +81,16 @@ function Button({handleClick}) {
 	)
 }
 
+function RedirectOrError({condition, redirectPath, errorMsg}) {
+	if (condition === true) {
+	    throw redirect(redirectPath);
+	} else {
+		return (
+			<ErrorText errorText={errorMsg}/>
+		);
+	}
+}
+
 function checkEmail(email, setEmailError, setValidEmailChar) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
 
@@ -139,6 +150,7 @@ function checkPassword(password, password2, setPasswordError) {
 }
 
 export default function Register() {
+	const navigate = useNavigate();
 	const [emailError, setEmailError] = useState('');
 	const [emailValidChar, setValidEmailChar] = useState('');
 	const [usernameError, setUsernameError] = useState('');
@@ -148,33 +160,9 @@ export default function Register() {
 	const usernameRef = useRef(null);
 	const password1Ref = useRef(null);
 	const password2Ref = useRef(null);
-	const [success, setSuccess] = useState(true);
-	const [jsonResponse, setjsonResponse] = useState('');
 
-	async function fetchRegisterApi(email, username, password) {
-		try {
-			// const response = await fetch('https://localhost:1043/api/register', {
-			const response = await fetch('/api/register', {
-				method: 'POST',
-				body: JSON.stringify({
-					'username': username,
-					'Email': email,
-					'Password': password,
-				})
-			})
-			if (!response.ok) {
-				throw (`Response status: ${response.status}`);
-				throw new Error(`Response status: ${response.status}`);
-			}
-			const responseJSON = await response.json();
-			console.log(responseJSON)
-		} catch (error) {
-			console.log(error)
-			setSuccess(false)
-			return (false)
-		}
-		return (true);
-	}
+	const [success, setSuccess] = useState(false);
+	const [registerError, setRegisterError] = useState('');
 
 	function handleClick() {
 		const email = emailRef.current.value
@@ -190,15 +178,31 @@ export default function Register() {
 			return
 		}
 		console.log(email, username, password1, password2)
-		const SuccessAPI = fetchRegisterApi(email, username, password1)
-		setSuccess(SuccessAPI)
+		try {
+			fetch('/api/register', {
+				method: 'POST',
+				body: JSON.stringify({
+					'username': username,
+					'Email': email,
+					'Password': password1,
+				})
+				})
+			.then((response) => response.json())
+			.then((data) => {
+				setSuccess(data.success)
+				if (data.success) {
+					navigate("/salut");
+				}
+				else
+					setRegisterError(data.context)
+			})
+		} catch (error) {
+			console.log(error)
+			setSuccess(false)
+			setRegisterError("Fetch error")
+		}
 	}
 
-
-	const setTextSuccess = (success) => {
-		return (success ? "Sucess" : "Failure")
-	}
-	
 	return (
 		<div className={styles.Register}>
 			<Entry_Error errorText={emailError}>
@@ -214,9 +218,7 @@ export default function Register() {
 					placeholder='Confirm Password'/>
 			</Entry_Error>
 			<Button handleClick={handleClick}/>
-			<div>
-				{success ? "Sucess" : "Failure"}
-			</div>
+			<ErrorText errorText={registerError}/>
 		</div>
 	);
 }
