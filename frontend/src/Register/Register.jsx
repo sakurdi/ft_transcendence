@@ -151,27 +151,29 @@ export default function Register() {
 	const [success, setSuccess] = useState(true);
 	const [jsonResponse, setjsonResponse] = useState('');
 
-	function fetchRegisterApi(email, username, password) {
-		fetch('https://localhost:1043/api/register', {
+	async function fetchRegisterApi(email, username, password) {
+		try {
+			// const response = await fetch('https://localhost:1043/api/register', {
+			const response = await fetch('/api/register', {
 				method: 'POST',
-				// headers: {
-				// 	'Accept': 'application/json',
-				// 	'Content-Type': 'application/json',
-				// },
 				body: JSON.stringify({
 					'username': username,
 					'Email': email,
 					'Password': password,
 				})
-			}).then(function(response) { return response.json(); })
-			.then(function(json) {
-				console.log(json)
-			});
-		// if (!response.ok) {//https://localhost:1043/api/register
-		// 	console.log("No ok")
-		// }
-		// var json = response.json()
-		// console.log(json)
+			})
+			if (!response.ok) {
+				throw (`Response status: ${response.status}`);
+				throw new Error(`Response status: ${response.status}`);
+			}
+			const responseJSON = await response.json();
+			console.log(responseJSON)
+		} catch (error) {
+			console.log(error)
+			setSuccess(false)
+			return (false)
+		}
+		return (true);
 	}
 
 	function handleClick() {
@@ -185,12 +187,11 @@ export default function Register() {
 		const validPassword = checkPassword(password1, password2, setPasswordError)
 
 		if (!validEmail || !validUsername || !validPassword) {
-			setSuccess(false)
 			return
 		}
 		console.log(email, username, password1, password2)
-		setSuccess(true)
-		fetchRegisterApi(email, username, password1)
+		const SuccessAPI = fetchRegisterApi(email, username, password1)
+		setSuccess(SuccessAPI)
 	}
 
 
@@ -214,7 +215,7 @@ export default function Register() {
 			</Entry_Error>
 			<Button handleClick={handleClick}/>
 			<div>
-				{setTextSuccess(success)}
+				{success ? "Sucess" : "Failure"}
 			</div>
 		</div>
 	);
