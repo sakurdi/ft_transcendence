@@ -18,16 +18,17 @@ type registerResonseJSON struct {
 
 func LogoutHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := c.Session.Destroy(r.Context())
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		responseJSON := registerResonseJSON{false, ""}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "Logged out",
-		})
+		if err := c.Session.Destroy(r.Context()); err != nil {
+			responseJSON.Context = "Internal Server Error"
+		} else {
+			responseJSON.Context = "Logged out"
+			responseJSON.Success = true;
+		}
+		json.NewEncoder(w).Encode(responseJSON)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -36,8 +37,6 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 		responseJSON := registerResonseJSON{false, ""}
 		var userInfo models.UserLogin
 
-		fmt.Println("Here")
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
 			responseJSON.Context = "Invalid request"
@@ -60,6 +59,7 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 		}
 		// fmt.Printf("Recieved user: %v password: %v\n", userInfo.Login, userInfo.Password)
 		json.NewEncoder(w).Encode(responseJSON)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -68,7 +68,6 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 		responseJSON := registerResonseJSON{false, ""}
 
 		var userInfo models.UserRegistration
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
 			// http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -91,6 +90,7 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 			responseJSON.Success = true
 		}
 		json.NewEncoder(w).Encode(responseJSON)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

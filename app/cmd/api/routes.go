@@ -21,6 +21,8 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Post("/login", users.LoginHandler(c))
 	mux.Post("/register", users.RegisterHandler(c))
+	// mux.Post("/logout", users.LogoutHandler(c))
+	// mux.Get("/logout", users.LogoutHandler(c))
 
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
