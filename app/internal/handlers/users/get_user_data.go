@@ -19,7 +19,7 @@ type userDataResonseJSON struct {
 
 func GetUserData(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		responseJSON := userDataResonseJSON{false, "", {}}
+		responseJSON := userDataResonseJSON{false, "", models.UserInfo{}}
 		w.Header().Set("Content-Type", "application/json")
 		
 		username := c.Session.GetString(r.Context(), "username")
