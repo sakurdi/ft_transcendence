@@ -51,3 +51,10 @@ func RegisterUser(db *pgxpool.Pool, ctx context.Context, user models.UserRegistr
 	_, err = db.Exec(ctx, query, user.Login, user.Mail, passwordHash)
 	return err
 }
+
+func GetUserInfo(db *pgxpool.Pool, ctx context.Context, login string) (models.UserInfo, error) {
+	var userInfo models.UserInfo;
+	query := "SELECT login, email, id, created_at FROM users WHERE login=$1"
+	err := db.QueryRow(ctx, query, login).Scan(&userInfo.Login, &userInfo.EMail, &userInfo.Id, &userInfo.Created)
+	return userInfo, err
+}

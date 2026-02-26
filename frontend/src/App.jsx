@@ -1,10 +1,45 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
+import Logout from "./Logout";
+import {ButtonLink} from "./components/Button";
+import { useEffect, useState } from "react";
 
-const Salut = () => {
+const Home = () => {
 	return (
-		<div>Salut</div>
+		<>
+			<ButtonLink text="Home"/>
+			<ButtonLink link="/login" text="Login"/>
+			<ButtonLink link="/register" text="Register"/>
+			<ButtonLink link="/logout" text="Logout"/>
+			<ButtonLink link="/ShowSession" text="ShowSession"/>
+		</>
+	)
+}
+
+const ShowSession = () => {
+
+	const [userInfo, setUserInfo] = useState({
+		username: '',
+		email: '',
+		id: '',
+		created_at: '',
+	})
+
+	useEffect(() => {
+		try {
+			const response = fetch("api/user", {method: 'GET',} )
+			if (!response.ok)
+				throw new Error(response.status)
+			const data = response.json()
+			console.log(data)
+		} catch (err) {
+			console.log(err.message)
+		}
+	})
+
+	return (
+		<div>{userInfo.username}</div>
 	)
 }
 
@@ -12,10 +47,11 @@ export default function App() {
   return (
 	<BrowserRouter future={{v7_relativeSplatPath: false}}>
 	  <Routes>
-		<Route path='/' element={<Register/>} />
+		<Route path='/' element={<Home/>} />
 		<Route path='/register' element={<Register/>} />
 		<Route path='/login' element={<Login/>} />
-		<Route path='/salut' element={<Salut/>} />
+		<Route path='/logout' element={<Logout/>} />
+		<Route path='/ShowSession' element={<ShowSession/>} />
 	  </Routes>
 	</BrowserRouter>
 	);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./components/Button"
-import TextInput, {EMailInput, EMailInputVerify, PasswordInput} from "./components/TextInput"
+import TextInput, {EMailInputVerify, PasswordInput} from "./components/TextInput"
 import WrapError, {ErrorText} from "./components/WrapError"
 import styles from './Register.module.css';
 
@@ -87,7 +87,7 @@ export default function Register() {
 
 	const [registerError, setRegisterError] = useState('');
 
-	async function handleClick() {	
+	async function onClick() {	
 		const validEmail = checkEmail(values.email,
 			(errEmail) => {setError("email", errEmail)})
 		const validUsername = checkUsername(values.username,
@@ -99,7 +99,7 @@ export default function Register() {
 		}
 		console.log(values.email, values.username, values.password1, values.password2)
 		try {
-			await fetch('/api/register', {
+			const response = await fetch('/api/register', {
 				method: 'POST',
 				body: JSON.stringify({
 					'username': values.username,
@@ -107,14 +107,11 @@ export default function Register() {
 					'Password': values.password1,
 				})
 			})
-			.then((response) => response.json())
-			.then((data) => {
-				if (data.success) {
-					navigate("/salut");
-				}
-				else
-					setRegisterError(data.context)
-			})
+			const data = await response.json()
+			if (data.success)
+				navigate("/")
+			else
+				setRegisterError(data.context)
 		} catch (error) {
 			console.log(error)
 			setRegisterError("Fetch error")
@@ -147,7 +144,7 @@ export default function Register() {
 					placeholder="Confirm password"
 				/>
 			</WrapError>
-			<Button handleClick={handleClick} text="Register"/>
+			<Button onClick={onClick} text="Register"/>
 			<ErrorText errorText={registerError}/>
 		</div>
 	);

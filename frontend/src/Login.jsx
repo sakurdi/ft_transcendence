@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./components/Button"
-import TextInput, {EMailInput, EMailInputVerify, PasswordInput} from "./components/TextInput"
-import WrapError, {ErrorText} from "./components/WrapError"
+import TextInput, {PasswordInput} from "./components/TextInput"
+import {ErrorText} from "./components/WrapError"
 import styles from './Register.module.css';
 
 export default function Login() {
@@ -17,25 +17,22 @@ export default function Login() {
 		setValuesInt(prev => ({...prev, [field]: value}))
 	}
 
-	async function handleClick() {
+	async function onClick() {
 		console.log(values.username, values.password)
 		try {
-			await fetch('/api/login', {
+			const response = await fetch('/api/login', {
 				method: 'POST',
 				body: JSON.stringify({
 					'username': values.username,
 					'password': values.password
 				})
 			})
-			.then((response) => response.json())
-			.then((data) => {
-				console.log(data)
-				if (data.success) {
-					navigate("/salut");
-				}
-				else
-					setLoginError(data.context)
-			})
+			const data = await response.json()
+			console.log(data)
+			if (data.success)
+				navigate("/")
+			else
+				setLoginError(data.context)
 		} catch (error) {
 			console.log(error)
 			setLoginError("Fetch error")
@@ -52,7 +49,7 @@ export default function Login() {
 				value={values.password}
 				onChange={(password) => setValue("password", password)}
 			/>
-			<Button handleClick={handleClick} text="Login"/>
+			<Button onClick={onClick} text="Login"/>
 			<ErrorText errorText={loginError}/>
 		</div>
 	)
