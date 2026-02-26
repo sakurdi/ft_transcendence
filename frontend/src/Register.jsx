@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./components/Button"
 import TextInput, {EMailInput, EMailInputVerify, PasswordInput} from "./components/TextInput"
@@ -106,7 +106,7 @@ export default function Register() {
 					'Email': values.email,
 					'Password': values.password1,
 				})
-				})
+			})
 			.then((response) => response.json())
 			.then((data) => {
 				if (data.success) {

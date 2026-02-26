@@ -11,6 +11,11 @@ import (
 	"net/http"
 )
 
+type registerResonseJSON struct {
+	Success bool `json:"success"`
+	Context string `json:"context"`
+}
+
 func LogoutHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := c.Session.Destroy(r.Context())
@@ -28,41 +33,34 @@ func LogoutHandler(c *config.Config) http.HandlerFunc {
 
 func LoginHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		responseJSON := registerResonseJSON{false, ""}
 		var userInfo models.UserLogin
 
-		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
-			return
-		}
-
-		//fmt.Fprintf(w, "Recieved user: %v password: %v\n", userInfo.Login, userInfo.Password)
-
-		passwordHash, err := store.GetUserPassword(c.DB, r.Context(), userInfo.Login)
-		//fmt.Fprintf(w, "passwordHah = %v | err = %v\n", passwordHash, err)
-
-		if err != nil || !auth.CheckPasswordHash(userInfo.Password, passwordHash) {
-			http.Error(w, "Invalid login or password", http.StatusUnauthorized)
-			return
-		}
-		renew := c.Session.RenewToken(r.Context())
-		if renew != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		userID, err := store.GetUserId(c.DB, r.Context(), userInfo.Login)
-		c.Session.Put(r.Context(), "user_id", userID)
-		c.Session.Put(r.Context(), "username", userInfo.Login)
-
+		fmt.Println("Here")
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "Logged in",
-		})
+		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
+			responseJSON.Context = "Invalid request"
+		} else if passwordHash, err := store.GetUserPassword(c.DB, r.Context(), userInfo.Login);
+				err != nil || !auth.CheckPasswordHash(userInfo.Password, passwordHash) {
+			responseJSON.Context = "Invalid login or password";
+			// fmt.Printf("Recieved user: %v password: %v\n", userInfo.Login, userInfo.Password)
+			//fmt.Fprintf(w, "passwordHah = %v | err = %v\n", passwordHash, err)
+		} else if renew := c.Session.RenewToken(r.Context());
+				renew != nil {
+			responseJSON.Context = "Internal Server Error";
+		} else if userID, err := store.GetUserId(c.DB, r.Context(), userInfo.Login);
+				err != nil {
+			responseJSON.Context = "Internal Server Error";
+		} else {
+			c.Session.Put(r.Context(), "user_id", userID)
+			c.Session.Put(r.Context(), "username", userInfo.Login)
+			responseJSON.Context = "Loged in successfully"
+			responseJSON.Success = true
+		}
+		// fmt.Printf("Recieved user: %v password: %v\n", userInfo.Login, userInfo.Password)
+		json.NewEncoder(w).Encode(responseJSON)
 	}
-}
-
-type registerResonseJSON struct {
-	Success bool `json:"success"`
-	Context string `json:"context"`
 }
 
 func RegisterHandler(c *config.Config) http.HandlerFunc {
