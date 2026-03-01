@@ -7,6 +7,7 @@ import (
 	"ft_transcendence/internal/models"
 	store "ft_transcendence/internal/store"
 	"ft_transcendence/internal/ws"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,11 +32,17 @@ func DMSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		senderID := middleware.GetUserID(c, r)
 		recipientID, _ := strconv.Atoi(chi.URLParam(r, "userID"))
+		log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
 		room := ws.DMRoom(senderID, recipientID)
 
-		history, err := store.GetMessages(c.DB, r.Context(), senderID, recipientID, 50)
-		if err == nil {
-			_ = history
+		onConnect := func(conn *ws.Conn) {
+			history, err := store.GetMessages(c.DB, r.Context(), senderID, recipientID, 50)
+			if err != nil {
+				log.Printf("dm: history error: %v", err)
+				return
+			}
+			data, _ := json.Marshal(ws.Event{Type: "history", Data: history})
+			conn.Write(data)
 		}
 
 		onMessage := func(conn *ws.Conn, data []byte) {
@@ -55,12 +62,9 @@ func DMSocket(c *config.Config) http.HandlerFunc {
 				return
 			}
 
-			c.Hub.Broadcast(room, ws.Event{
-				Type: "new_message",
-				Data: msg,
-			})
+			c.Hub.Broadcast(room, ws.Event{Type: "new_message", Data: msg})
 		}
 
-		c.Hub.Serve(w, r, room, nil, onMessage)
+		c.Hub.Serve(w, r, room, onConnect, onMessage)
 	}
 }

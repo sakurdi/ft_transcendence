@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 const BASE = "https://localhost:1043/api"
 const WS   = "wss://localhost:1043"
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ── api ───────────────────────────────────────────────────────────────────────
 
 async function api(path, options = {}) {
     const res = await fetch(`${BASE}${path}`, {
@@ -20,59 +20,46 @@ function timestamp() {
     return new Date().toLocaleTimeString()
 }
 
-// ── Log component ─────────────────────────────────────────────────────────────
-
-function Log({ entries }) {
-    const ref = useRef(null)
-
-    useEffect(() => {
-        if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
-    }, [entries])
-
-    const colors = {
-        recv: "text-emerald-700",
-        sent: "text-sky-700",
-        err:  "text-red-600",
-        info: "text-stone-400",
-    }
-
-    return (
-        <div
-            ref={ref}
-            className="h-40 overflow-y-auto bg-stone-50 border border-stone-200 rounded p-3 font-mono text-xs space-y-0.5"
-        >
-            {entries.length === 0
-                ? <p className="text-stone-300">no events yet</p>
-                : entries.map((e, i) => (
-                    <p key={i} className={colors[e.type] ?? "text-stone-600"}>
-                        [{e.time}] {e.msg}
-                    </p>
-                ))
-            }
-        </div>
-    )
-}
-
-// ── useLog hook ───────────────────────────────────────────────────────────────
+// ── useLog ────────────────────────────────────────────────────────────────────
 
 function useLog() {
     const [entries, setEntries] = useState([])
-
     function push(msg, type = "info") {
         setEntries(prev => [...prev, { msg, type, time: timestamp() }])
     }
-
     return { entries, push }
 }
 
-// ── useSocket hook ────────────────────────────────────────────────────────────
+// ── useAuth ───────────────────────────────────────────────────────────────────
+
+function useAuth() {
+    const [user, setUser] = useState(null)
+
+    async function login(username, password) {
+        const { ok, body } = await api("/login", {
+            method: "POST",
+            body: JSON.stringify({ username, password }),
+        })
+        if (ok) setUser({ username })
+        return { ok, body }
+    }
+
+    async function logout() {
+        const res = await api("/logout", { method: "POST" })
+        if (res.ok) setUser(null)
+        return res
+    }
+
+    return { user, login, logout }
+}
+
+// ── useSocket ─────────────────────────────────────────────────────────────────
 
 function useSocket(logPush) {
     const ref = useRef(null)
 
     function connect(url, onMessage) {
         if (ref.current) ref.current.close()
-
         const ws = new WebSocket(url)
         ws.onopen    = ()  => logPush(`connected to ${url}`, "info")
         ws.onclose   = ()  => logPush("disconnected", "info")
@@ -81,7 +68,6 @@ function useSocket(logPush) {
             logPush(`← ${e.data}`, "recv")
             if (onMessage) onMessage(JSON.parse(e.data))
         }
-
         ref.current = ws
     }
 
@@ -102,11 +88,42 @@ function useSocket(logPush) {
     }
 
     useEffect(() => () => ref.current?.close(), [])
-
     return { connect, disconnect, send }
 }
 
-// ── Section wrapper ───────────────────────────────────────────────────────────
+// ── Log ───────────────────────────────────────────────────────────────────────
+
+function Log({ entries }) {
+    const ref = useRef(null)
+    useEffect(() => {
+        if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
+    }, [entries])
+
+    const colors = {
+        recv: "text-emerald-700",
+        sent: "text-sky-700",
+        err:  "text-red-600",
+        info: "text-stone-400",
+    }
+
+    return (
+        <div
+            ref={ref}
+            className="h-36 overflow-y-auto bg-stone-50 border border-stone-200 rounded p-3 font-mono text-xs space-y-0.5"
+        >
+            {entries.length === 0
+                ? <p className="text-stone-300">no events yet</p>
+                : entries.map((e, i) => (
+                    <p key={i} className={colors[e.type] ?? "text-stone-600"}>
+                        [{e.time}] {e.msg}
+                    </p>
+                ))
+            }
+        </div>
+    )
+}
+
+// ── primitives ────────────────────────────────────────────────────────────────
 
 function Section({ title, children }) {
     return (
@@ -123,15 +140,14 @@ function Row({ children }) {
     return <div className="flex flex-wrap items-center gap-2">{children}</div>
 }
 
-// ── Input / Button primitives ─────────────────────────────────────────────────
-
-function Input({ placeholder, value, onChange, type = "text", className = "" }) {
+function Input({ placeholder, value, onChange, onKeyDown, type = "text", className = "" }) {
     return (
         <input
             type={type}
             placeholder={placeholder}
             value={value}
             onChange={e => onChange(e.target.value)}
+            onKeyDown={onKeyDown}
             className={`border border-stone-200 rounded px-3 py-1.5 text-sm bg-stone-50 outline-none focus:border-stone-400 font-mono w-40 ${className}`}
         />
     )
@@ -140,7 +156,6 @@ function Input({ placeholder, value, onChange, type = "text", className = "" }) 
 function Btn({ onClick, children, variant = "default" }) {
     const styles = {
         default: "bg-stone-900 text-white hover:bg-stone-700",
-        danger:  "bg-white text-red-600 border border-red-200 hover:bg-red-50",
         ghost:   "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50",
     }
     return (
@@ -155,38 +170,41 @@ function Btn({ onClick, children, variant = "default" }) {
 
 // ── Auth section ──────────────────────────────────────────────────────────────
 
-function AuthSection() {
+function AuthSection({ auth, onLogin }) {
     const { entries, push } = useLog()
     const [username, setUsername] = useState("saal-kur")
     const [password, setPassword] = useState("password")
 
-    async function login() {
-        const { ok, body } = await api("/login", {
-            method: "POST",
-            body: JSON.stringify({ username, password }),
-        })
-        push(ok ? `logged in: ${body}` : `error: ${body}`, ok ? "recv" : "err")
+    async function handleLogin() {
+        const { ok, body } = await auth.login(username, password)
+        push(ok ? `logged in as ${username}` : `error: ${body}`, ok ? "recv" : "err")
+        if (ok && onLogin) onLogin()
     }
 
-    async function logout() {
-        const { ok, body } = await api("/logout", { method: "POST" })
-        push(ok ? `logged out: ${body}` : `error: ${body}`, ok ? "info" : "err")
+    async function handleLogout() {
+        const { ok, body } = await auth.logout()
+        push(ok ? "logged out" : `error: ${body}`, ok ? "info" : "err")
     }
 
     return (
         <Section title="Auth">
             <Row>
+                <span className="text-xs font-mono text-stone-400">
+                    {auth.user ? `signed in as ${auth.user.username}` : "not signed in"}
+                </span>
+            </Row>
+            <Row>
                 <Input placeholder="username" value={username} onChange={setUsername} />
                 <Input placeholder="password" type="password" value={password} onChange={setPassword} />
-                <Btn onClick={login}>Login</Btn>
-                <Btn onClick={logout} variant="ghost">Logout</Btn>
+                <Btn onClick={handleLogin}>Login</Btn>
+                <Btn onClick={handleLogout} variant="ghost">Logout</Btn>
             </Row>
             <Log entries={entries} />
         </Section>
     )
 }
 
-// ── Board socket section ──────────────────────────────────────────────────────
+// ── Board socket ──────────────────────────────────────────────────────────────
 
 function BoardSection() {
     const { entries, push } = useLog()
@@ -197,9 +215,7 @@ function BoardSection() {
         <Section title="Board Socket — new thread notifications">
             <Row>
                 <Input placeholder="board ID" value={boardID} onChange={setBoardID} />
-                <Btn onClick={() => socket.connect(`${WS}/ws/board/${boardID}`)}>
-                    Connect
-                </Btn>
+                <Btn onClick={() => socket.connect(`${WS}/ws/board/${boardID}`)}>Connect</Btn>
                 <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
             </Row>
             <Log entries={entries} />
@@ -207,7 +223,7 @@ function BoardSection() {
     )
 }
 
-// ── Thread socket section ─────────────────────────────────────────────────────
+// ── Thread socket ─────────────────────────────────────────────────────────────
 
 function ThreadSection() {
     const { entries, push } = useLog()
@@ -218,9 +234,7 @@ function ThreadSection() {
         <Section title="Thread Socket — new reply notifications">
             <Row>
                 <Input placeholder="thread ID" value={threadID} onChange={setThreadID} />
-                <Btn onClick={() => socket.connect(`${WS}/ws/thread/${threadID}`)}>
-                    Connect
-                </Btn>
+                <Btn onClick={() => socket.connect(`${WS}/ws/thread/${threadID}`)}>Connect</Btn>
                 <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
             </Row>
             <Log entries={entries} />
@@ -228,7 +242,7 @@ function ThreadSection() {
     )
 }
 
-// ── Create post section ───────────────────────────────────────────────────────
+// ── Create post ───────────────────────────────────────────────────────────────
 
 function CreatePostSection() {
     const { entries, push } = useLog()
@@ -253,9 +267,9 @@ function CreatePostSection() {
         <Section title="Create Post">
             <Row>
                 <Input placeholder="board ID"  value={boardID}  onChange={setBoardID} />
-                <Input placeholder="title"      value={title}    onChange={setTitle} className="w-48" />
-                <Input placeholder="content"    value={content}  onChange={setContent} className="w-48" />
-                <Input placeholder="parent ID"  value={parentID} onChange={setParentID} />
+                <Input placeholder="title"     value={title}    onChange={setTitle}    className="w-48" />
+                <Input placeholder="content"   value={content}  onChange={setContent}  className="w-48" />
+                <Input placeholder="parent ID" value={parentID} onChange={setParentID} />
                 <Btn onClick={createPost}>Post</Btn>
             </Row>
             <Log entries={entries} />
@@ -263,9 +277,9 @@ function CreatePostSection() {
     )
 }
 
-// ── DM section ────────────────────────────────────────────────────────────────
+// ── DM ────────────────────────────────────────────────────────────────────────
 
-function DMSection() {
+function DMSection({ auth }) {
     const { entries, push } = useLog()
     const socket = useSocket(push)
     const [userID,   setUserID]   = useState("2")
@@ -278,7 +292,15 @@ function DMSection() {
         if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
     }, [messages])
 
-    // keep handler ref current so the socket always calls the latest version
+    // auto-connect when user logs in
+    useEffect(() => {
+        if (auth.user) connectDM()
+        else {
+            socket.disconnect()
+            setMessages([])
+        }
+    }, [auth.user])
+
     handlerRef.current = function(event) {
         if (event.type === "history") {
             setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
@@ -318,8 +340,12 @@ function DMSection() {
                     : messages.map((m, i) => m && (
                         <div key={m.id ?? i} className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-mono font-medium text-stone-500">
-                                    user:{m.sender_id}
+                                <span className={`text-xs font-mono font-medium ${
+                                    m.sender_id === auth.user?.id
+                                        ? "text-sky-600"
+                                        : "text-stone-500"
+                                }`}>
+                                    {auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
                                 </span>
                                 <span className="text-xs text-stone-300">
                                     {m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
@@ -345,29 +371,29 @@ function DMSection() {
             </Row>
         </Section>
     )
-}// ── Test page ─────────────────────────────────────────────────────────────────
+}
+
+// ── App ───────────────────────────────────────────────────────────────────────
 
 function TestPage() {
+    const auth = useAuth()
+
     return (
         <div className="max-w-2xl mx-auto px-6 py-10 space-y-4">
             <div className="mb-8">
                 <p className="text-xs font-mono uppercase tracking-widest text-stone-400">
                     ft_transcendence
                 </p>
-                <h1 className="text-2xl font-bold text-stone-900 mt-1">
-                    WebSocket Test
-                </h1>
+                <h1 className="text-2xl font-bold text-stone-900 mt-1">WebSocket Test</h1>
             </div>
-            <AuthSection />
+            <AuthSection auth={auth} />
             <BoardSection />
             <ThreadSection />
             <CreatePostSection />
-            <DMSection />
+            <DMSection auth={auth} />
         </div>
     )
 }
-
-// ── App ───────────────────────────────────────────────────────────────────────
 
 export default function App() {
     return (
