@@ -5,6 +5,7 @@ import (
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/handlers/boards"
 	"ft_transcendence/internal/handlers/users"
+	wshandler "ft_transcendence/internal/handlers/websocket"
 	AppMiddleware "ft_transcendence/internal/middleware"
 	"net/http"
 
@@ -28,12 +29,17 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/api/board/{boardName}/threads", boards.GetThreadsHandler(c))
 	mux.Get("/api/thread/{postID}/replies", boards.GetRepliesHandler(c))
 
+	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
+	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
+
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
 
 		r.Post("/api/logout", users.LogoutHandler(c))
 		r.Post("/api/board/new", boards.CreateBoardHandler(c))
 		r.Post("/api/board/{boardID}/post", boards.CreatePostHandler(c))
+
+		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))

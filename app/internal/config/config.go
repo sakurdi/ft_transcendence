@@ -1,6 +1,7 @@
 package config
 
 import (
+	"ft_transcendence/internal/ws"
 	"net/http"
 	"time"
 
@@ -10,8 +11,9 @@ import (
 )
 
 type Config struct {
-	DB	*pgxpool.Pool
-	Session	*scs.SessionManager
+	DB      *pgxpool.Pool
+	Session *scs.SessionManager
+	Hub     *ws.Hub
 }
 
 func InitConfig(db *pgxpool.Pool) *Config {
@@ -24,7 +26,8 @@ func InitConfig(db *pgxpool.Pool) *Config {
 	sessionManager.Cookie.Secure = true
 
 	return &Config{
-		DB:	db,
+		DB:      db,
 		Session: sessionManager,
+		Hub:     ws.NewHub(),
 	}
 }

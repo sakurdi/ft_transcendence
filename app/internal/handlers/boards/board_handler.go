@@ -6,6 +6,8 @@ import (
 	"ft_transcendence/internal/middleware"
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
+	"ft_transcendence/internal/ws"
+	"log"
 
 	"ft_transcendence/internal/utils"
 	"net/http"
@@ -112,10 +114,22 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
+		post, err := store.GetPost(c.DB, r.Context(), id)
+		if err != nil {
+			log.Printf("ws: failed to get post %d: %v", id, err)
+		} else if body.ParentID != nil {
+			room := ws.ThreadRoom(*body.ParentID)
+			log.Printf("ws: broadcasting new_reply to %s", room)
+			c.Hub.Broadcast(room, ws.Event{Type: "new_reply", Data: post})
+		} else {
+			room := ws.BoardRoom(boardID)
+			log.Printf("ws: broadcasting new_thread to %s", room)
+			c.Hub.Broadcast(room, ws.Event{Type: "new_thread", Data: post})
+		}
+
 		utils.JSON(w, http.StatusCreated, map[string]int{"id": id})
 	}
 }
-
 func DeletePostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)

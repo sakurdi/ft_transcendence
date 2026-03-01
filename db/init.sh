@@ -74,6 +74,21 @@ CREATE TABLE IF NOT EXISTS posts (
 CREATE INDEX IF NOT EXISTS idx_posts_board_id ON posts(board_id);
 CREATE INDEX IF NOT EXISTS idx_posts_parent_id ON posts(parent_id);
 
+CREATE TABLE dm_messages (
+    id           SERIAL PRIMARY KEY,
+    sender_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    recipient_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    content      TEXT NOT NULL,
+    created_at   TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_dm_conversation ON dm_messages (
+    LEAST(sender_id, recipient_id),
+    GREATEST(sender_id, recipient_id),
+    created_at DESC
+);
+
+
 INSERT INTO posts (board_id, author_id, title, content)
 SELECT 
     b.id,
@@ -119,6 +134,9 @@ JOIN users u ON u.login = 'gaeudes'
 JOIN posts p ON p.title = 'poppy'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
+
+
+
 
 EOSQL
 
