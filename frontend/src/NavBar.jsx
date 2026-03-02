@@ -4,6 +4,8 @@ import {useState, useEffect} from "react"
 
 import { IsLoggedIn } from "./utils/Utils"
 
+import styles from "./NavBar.module.css"
+
 function NavBarUser() {
 	const [username, setUsername] = useState('')
 
@@ -24,19 +26,19 @@ function NavBarUser() {
 	}, [])
 
 	return (
-		<div>
+		<>
 			<ButtonLink
 				text={username}
 				link={"/user/" + username}
 			/>
 			<LogoutButton/>
-		</div>
+		</>
 	)
 }
 
 function NavBarLogin() {
 	return (
-		<div>
+		<>
 			<ButtonLink
 				text="Login"
 				link="/login"
@@ -45,7 +47,7 @@ function NavBarLogin() {
 				text="Register"
 				link="/register"
 			/>
-		</div>
+		</>
 	)
 }
 
@@ -65,7 +67,7 @@ export default function NavBar() {
 	}
 
 	return (
-		<div>
+		<div className={styles.NavBar}>
 			<ButtonLink text="Home"
 				link="/"
 			/>
