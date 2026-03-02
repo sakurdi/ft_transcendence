@@ -100,3 +100,19 @@ func GetHash(c *config.Config) http.HandlerFunc {
 		utils.JSON(w, http.StatusOK, map[string]string{"status": hash})
 	}
 }
+
+func LoginPing(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID := c.Session.GetInt(r.Context(), "user_id")
+		username := c.Session.GetString(r.Context(), "username")
+		if userID == 0 || username == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]any{
+			"id":       userID,
+			"username": username,
+		})
+	}
+}

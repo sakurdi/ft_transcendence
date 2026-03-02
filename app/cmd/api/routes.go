@@ -32,6 +32,8 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
+	mux.Get("/api/me", users.LoginPing((c)))
+
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
 
