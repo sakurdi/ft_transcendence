@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
 import Logout from "./Logout";
+import ShowSession from "./ShowSession";
 import {ButtonLink} from "./components/Button";
-import { useEffect, useState } from "react";
 
 const Home = () => {
 	return (
@@ -17,31 +17,7 @@ const Home = () => {
 	)
 }
 
-const ShowSession = () => {
 
-	const [userInfo, setUserInfo] = useState({
-		username: '',
-		email: '',
-		id: '',
-		created_at: '',
-	})
-
-	useEffect(() => {
-		try {
-			const response = fetch("api/user", {method: 'GET',} )
-			if (!response.ok)
-				throw new Error(response.status)
-			const data = response.json()
-			console.log(data)
-		} catch (err) {
-			console.log(err.message)
-		}
-	})
-
-	return (
-		<div>{userInfo.username}</div>
-	)
-}
 
 export default function App() {
   return (

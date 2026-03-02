@@ -26,9 +26,11 @@ func GetUserData(c *config.Config) http.HandlerFunc {
 		fmt.Printf("Found: %v\n", username)
 		userData, err := store.GetUserInfo(c.DB, r.Context(), username)
 		if (err != nil) {
-			responseJSON.Context = "caca"
+			responseJSON.Context = "Error"
+		} else {
+			responseJSON.success = true;
+			responseJSON.UserInfo = userData
 		}
-		responseJSON.UserInfo = userData
 		json.NewEncoder(w).Encode(responseJSON)
 		w.WriteHeader(http.StatusOK)
 	}

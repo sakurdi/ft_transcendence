@@ -23,7 +23,7 @@ export function ButtonLink({
 	
 	const onClick = () => {
 		navigate(link)
-		console.log(link)
+		// console.log(link)
 	}
 
 	return (
