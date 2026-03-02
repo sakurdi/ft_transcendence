@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type UserLogin struct{
 
 	Login string	`json:"username"`
@@ -19,5 +21,5 @@ type UserInfo struct {
 	Login string	`json:"username"`
 	EMail string	`json:"email"`
 	Id string		`json:"id"`
-	Created string `json:"created_at"`
+	Created time.Time `json:"created_at"`
 }

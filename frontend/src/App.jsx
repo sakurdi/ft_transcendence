@@ -1,13 +1,16 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
-import Logout from "./Logout";
+import LogoutPage from "./Logout";
 import ShowSession from "./ShowSession";
+import UserPage from "./UserPage";
 import {ButtonLink} from "./components/Button";
+import NavBar from "./NavBar";
 
 const Home = () => {
 	return (
 		<>
+			<NavBar/>
 			<ButtonLink text="Home"/>
 			<ButtonLink link="/login" text="Login"/>
 			<ButtonLink link="/register" text="Register"/>
@@ -26,7 +29,8 @@ export default function App() {
 		<Route path='/' element={<Home/>} />
 		<Route path='/register' element={<Register/>} />
 		<Route path='/login' element={<Login/>} />
-		<Route path='/logout' element={<Logout/>} />
+		<Route path='/logout' element={<LogoutPage/>} />
+		<Route path="/user/:username" element={<UserPage />} />
 		<Route path='/ShowSession' element={<ShowSession/>} />
 	  </Routes>
 	</BrowserRouter>

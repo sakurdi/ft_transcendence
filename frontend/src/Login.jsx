@@ -31,17 +31,18 @@ export default function Login() {
 				const errorBody = await response.text(); // or response.text()
 				console.log("Status:", response.status);
 				console.log("Error body:", errorBody);	
-				throw ('pipi')
+				throw (errorBody)
 			}
 			const data = await response.json()
 			console.log(data)
+			navigate("/")
 			if (data.success)
 				navigate("/")
 			else
 				setLoginError(data.context)
 		} catch (error) {
 			console.log(error)
-			setLoginError("Fetch error")
+			setLoginError(error)
 		}
 	}
 	return (

@@ -41,7 +41,7 @@ export default function ShowSession() {
 		setFetchStatus(prev => ({...prev, ["context"]: context}))
 	}, setUserInfo)
 	
-	setFetchStatus(prev => ({...prev, ["context"]: context}))
+	// setFetchStatus(prev => ({...prev, ["context"]: context}))
 	return (
 		<>
 			<div>{userInfo.username}</div>

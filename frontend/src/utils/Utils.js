@@ -1,4 +1,6 @@
 
 
-export async function IsLogedIn() {
+export function IsLoggedIn() {
+	return true;
+	return false;
 }
