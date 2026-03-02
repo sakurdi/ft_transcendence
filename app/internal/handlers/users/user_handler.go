@@ -2,13 +2,14 @@ package users
 
 import (
 	"encoding/json"
-	"fmt"
 	"ft_transcendence/internal/auth"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/models"
-	store "ft_transcendence/internal/store/users"
-	"io"
+	"ft_transcendence/internal/store"
+	"ft_transcendence/internal/utils"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type registerResonseJSON struct {
@@ -94,41 +95,11 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
-func GetUserById(c *config.Config) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// idStr := chi.URLParam(r, "id")
-
-		// login, err := store.GetUserLogin(c.DB, r.Context(), idStr)
-
-		// if err != nil {
-		// 	http.Error(w, "User not found", http.StatusNotFound)
-		// 	return
-		// }
-		hash, err := auth.HashPassword("123")
-		if err != nil {
-
-		}
-		ret := auth.CheckPasswordHash("123", hash)
-		fmt.Fprintf(w, "hash: %s\n hash compare: %v", hash, ret)
-	}
-}
-
-func SessionNewHandler(c *config.Config) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c.Session.Put(r.Context(), "Test", "Test session message")
-		fmt.Fprintf(w, "%v created", c.Session.Get(r.Context(), "Test"))
-	}
-}
-
-func SessionGetHandler(c *config.Config) http.HandlerFunc {
+func GetHash(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		msg := c.Session.GetString(r.Context(), "Test")
-		if msg != "" {
-			io.WriteString(w, msg)
-		} else {
-			http.Error(w, "Session not found", 404)
-		}
+		hash, _ := auth.HashPassword(chi.URLParam(r, "pass"))
+		utils.JSON(w, http.StatusOK, map[string]string{"status": hash})
 	}
 }
 

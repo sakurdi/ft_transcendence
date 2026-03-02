@@ -4,6 +4,13 @@ set -e
 echo "Database: init script running"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+
+-- CITEXT extension
+CREATE EXTENSION IF NOT EXISTS citext;
+
+-- =========================
+-- USERS
+-- =========================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     login VARCHAR(30) UNIQUE NOT NULL,
@@ -13,13 +20,16 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (login, password, email) VALUES
-    ('saal-kur', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia', 'saal-kur@goat.com'),
-    ('gaeudes', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia', 'gaeudes@petitgoat.com'),
-    ('kevwang', 'fjgCbJasuSfnpEGTR1P4LeWmL7oBWubQu3XzFsM8ral8TtYfd30Ia', 'kevwang@midgoat.com')
+    ('saal-kur', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com'),
+    ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com'),
+    ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com')
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
 
+-- =========================
+-- SESSIONS
+-- =========================
 CREATE TABLE IF NOT EXISTS sessions (
     token TEXT PRIMARY KEY,
     data BYTEA NOT NULL,
@@ -30,35 +40,85 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expiry);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
 
+-- =========================
+-- BOARDS
+-- =========================
 CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
+    name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 50),
     description TEXT,
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS board_moderators (
-    board_id INTEGER REFERENCES boards(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    added_at TIMESTAMP DEFAULT NOW(),
-    PRIMARY KEY (board_id, user_id)
-);
+CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
 
+INSERT INTO boards (name, description, owner_id) VALUES
+    ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
+    ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saal-kur'))
+ON CONFLICT (name) DO NOTHING;
+
+-- =========================
+-- POSTS
+-- =========================
 CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    title VARCHAR(255),          -- only for thread-opening posts
+    title VARCHAR(255),
     content TEXT NOT NULL,
-    parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE, -- NULL = thread OP, set = reply
+    parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_board_id ON posts(board_id);
 CREATE INDEX IF NOT EXISTS idx_posts_parent_id ON posts(parent_id);
-CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
 
+INSERT INTO posts (board_id, author_id, title, content)
+SELECT 
+    b.id,
+    u.id,
+    'nouveau cursus?',
+    'daube'
+FROM boards b
+JOIN users u ON u.login = 'saal-kur'
+WHERE b.name = '42'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, title, content)
+SELECT 
+    b.id,
+    u.id,
+    'poppy',
+    'poppy'
+FROM boards b
+JOIN users u ON u.login = 'saal-kur'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+    b.id,
+    u.id,
+    'Je suis d''accord, c''est dur',
+    p.id
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN posts p ON p.title = 'ecole de merde'
+WHERE b.name = '42'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+    b.id,
+    u.id,
+    'Poppy',
+    p.id
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN posts p ON p.title = 'poppy'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
 
 EOSQL
 
