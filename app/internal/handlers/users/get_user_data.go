@@ -28,7 +28,7 @@ func GetUserData(c *config.Config) http.HandlerFunc {
 		if (err != nil) {
 			responseJSON.Context = "Error"
 		} else {
-			responseJSON.success = true;
+			responseJSON.Success = true;
 			responseJSON.UserInfo = userData
 		}
 		json.NewEncoder(w).Encode(responseJSON)
