@@ -27,12 +27,6 @@ export default function Login() {
 					'password': values.password
 				})
 			})
-			if (!response.ok) {
-				const errorBody = await response.text(); // or response.text()
-				console.log("Status:", response.status);
-				console.log("Error body:", errorBody);	
-				throw ('pipi')
-			}
 			const data = await response.json()
 			console.log(data)
 			if (data.success)
