@@ -39,10 +39,10 @@ export default function LogoutPage() {
 			const data = await response.json()
 			console.log(data)
 			navigate("/");
-			// if (data.success)
-			// 	navigate("/");
-			// else
-			// 	setLogoutError(data.context)
+			if (data.success)
+				navigate("/");
+			else
+				setLogoutError(data.context)
 		} catch (error) {
 			console.log(error.message)
 			setLogoutError("Fetch error")
