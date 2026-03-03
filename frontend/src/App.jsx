@@ -387,9 +387,9 @@ function TestPage() {
                 <h1 className="text-2xl font-bold text-stone-900 mt-1">WebSocket Test</h1>
             </div>
             <AuthSection auth={auth} />
-            <BoardSection />
+            {/* <BoardSection />
             <ThreadSection />
-            <CreatePostSection />
+            <CreatePostSection /> */}
             <DMSection auth={auth} />
         </div>
     )

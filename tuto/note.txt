@@ -1,0 +1,5 @@
+docker run --rm -v $(pwd):/app -w /app node:22-alpine npm create vite@latest frontend -- --template react
+
+docker system prune
+docker system prune -a
+docker volumes prune
