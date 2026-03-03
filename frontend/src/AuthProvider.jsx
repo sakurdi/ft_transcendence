@@ -2,7 +2,11 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-export default function AuthProvider( { children } ) {
+const useAuth = () => useContext(AuthContext);
+export default useAuth
+
+
+export function AuthProvider( { children } ) {
 	const [user, setUser] = useState(null)
 
 	const getUser = async () => {
@@ -18,6 +22,7 @@ export default function AuthProvider( { children } ) {
 		} catch (err) {
 			console.log(err)
 			setUser(null)
+			throw (err)
 		}
 	}
 
@@ -69,9 +74,16 @@ export default function AuthProvider( { children } ) {
 
 	}
 
+	useEffect(() => {
+		try {
+			getUser();
+		} catch (err) {
+			console.log("Setup getUser error: " + err)
+		}
+	}, [])
 
 	return (
-		<AuthContext.Provider userValue = {{user, login, register, logout}}>
+		<AuthContext.Provider value = {{user, login, register, logout}}>
 			{children}
 		</AuthContext.Provider>
 	)
