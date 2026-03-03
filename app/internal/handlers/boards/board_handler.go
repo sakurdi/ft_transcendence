@@ -189,6 +189,7 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 
 func RemoveModHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
@@ -206,9 +207,37 @@ func RemoveModHandler(c *config.Config) http.HandlerFunc {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
-
 		if err := store.RemoveModerator(c.DB, r.Context(), boardID, targetID); err != nil {
-			http.Error(w, "Failed to remove moderator", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func UpdateBoardHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		var body models.BoardCreate
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+		if err := store.UpdateBoard(c.DB, r.Context(), boardID, body); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func DeleteBoardHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		if err := store.DeleteBoard(c.DB, r.Context(), boardID); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)

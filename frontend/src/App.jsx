@@ -301,14 +301,14 @@ function DMSection({ auth }) {
         }
     }, [auth.user])
 
-    handlerRef.current = function(event) {
-        if (event.type === "history") {
-            setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
-        }
-        if (event.type === "new_message" && event.data) {
-            setMessages(prev => [...prev, event.data])
-        }
+handlerRef.current = function(event) {
+    if (event.type === "history") {
+        setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
     }
+    if (event.type === "new_message" && event.data) {
+        setMessages(prev => [...prev, event.data])
+    }
+}
 
     function connectDM() {
         setMessages([])

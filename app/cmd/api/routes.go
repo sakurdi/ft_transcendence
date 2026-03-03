@@ -44,6 +44,14 @@ func routes(c *config.Config) http.Handler {
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
 		r.Group(func(r chi.Router) {
+			r.Use(AppMiddleware.RequireBoardAdmin(c))
+			r.Put("/api/board/{boardID}", boards.UpdateBoardHandler(c))
+			r.Delete("/api/board/{boardID}", boards.DeleteBoardHandler(c))
+			r.Post("/api/board/{boardID}/mod/{userID}", boards.AddModHandler(c))
+			r.Delete("/api/board/{boardID}/mod/{userID}", boards.RemoveModHandler(c))
+		})
+
+		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))
 			r.Delete("/api/board/{boardID}/post/{postID}", boards.DeletePostHandler(c))
 		})

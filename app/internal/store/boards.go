@@ -61,3 +61,16 @@ func RemoveModerator(db *pgxpool.Pool, ctx context.Context, boardID, userID int)
 	)
 	return err
 }
+
+func UpdateBoard(db *pgxpool.Pool, ctx context.Context, boardID int, board models.BoardCreate) error {
+	_, err := db.Exec(ctx,
+		"UPDATE boards SET name=$1, description=$2 WHERE id=$3",
+		board.Name, board.Description, boardID,
+	)
+	return err
+}
+
+func DeleteBoard(db *pgxpool.Pool, ctx context.Context, boardID int) error {
+	_, err := db.Exec(ctx, "DELETE FROM boards WHERE id=$1", boardID)
+	return err
+}
