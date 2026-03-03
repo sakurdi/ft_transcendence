@@ -11,12 +11,11 @@ import NavBar from "./NavBar";
 const Home = () => {
 	return (
 		<>
-			<NavBar/>
-			<ButtonLink text="Home"/>
-			<ButtonLink link="/login" text="Login"/>
-			<ButtonLink link="/register" text="Register"/>
-			<ButtonLink link="/logout" text="Logout"/>
-			<ButtonLink link="/ShowSession" text="ShowSession"/>
+			<ButtonLink>Home</ButtonLink>
+			<ButtonLink link="/login">Login</ButtonLink>
+			<ButtonLink link="/register">Register</ButtonLink>
+			<ButtonLink link="/logout">Logout</ButtonLink>
+			<ButtonLink link="/ShowSession">ShowSession</ButtonLink>
 		</>
 	)
 }
@@ -27,7 +26,9 @@ export default function App() {
   return (
 	<AuthProvider>
 		<BrowserRouter future={{v7_relativeSplatPath: false}}>
+			<NavBar/>
 			<Routes>
+
 				<Route path='/' element={<Home/>} />
 				<Route path='/register' element={<Register/>} />
 				<Route path='/login' element={<Login/>} />

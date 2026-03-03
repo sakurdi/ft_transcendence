@@ -145,7 +145,9 @@ export default function Register() {
 					onEnter={onSubmit}
 				/>
 			</WrapError>
-			<Button onClick={onSubmit} text="Register"/>
+			<Button onClick={onSubmit}>
+				Register
+			</Button>
 			<ErrorText errorText={registerError}/>
 		</div>
 	);

@@ -1,23 +1,27 @@
 import styles from "./Button.module.css";
 import { useNavigate } from "react-router-dom";
 
+const defaultClassNameButton = "border-3 bg-gaqua"
+
 export default function Button({
 		onClick,
-		text = "Default Button"
+		children = "Default Button",
+		defaultClassName = {defaultClassNameButton},
+		className = ""
 }) {
 	return (
-		<div className={styles.Button_Div}>
-			<button className={styles.Button}
-				onClick = {onClick}>
-				{text}
-			</button>
-		</div>
+		<button className = {`${defaultClassName} ${className}`}
+			onClick = {onClick}>
+			{children}
+		</button>
 	)
 }
 
 export function ButtonLink({
 		link = "/",
-		text = "Default ButtonLink"
+		children = "Default ButtonLink",
+		defaultClassName = {defaultClassNameButton},
+		className = ""
 }) {
 	const navigate = useNavigate()
 	
@@ -27,9 +31,10 @@ export function ButtonLink({
 	}
 
 	return (
-		<Button
-			onClick={onClick}
-			text={text}
-		/>
+		<Button onClick={onClick}
+			className={className}
+			defaultClassName={defaultClassName}>
+				{children}
+		</Button>
 	)
 }

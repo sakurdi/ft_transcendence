@@ -12,10 +12,9 @@ function NavBarUser() {
 
 	return (
 		<>
-			<ButtonLink
-				text={user.username}
-				link={"/user/" + user.username}
-			/>
+			<ButtonLink link={"/user/" + user.username}>
+				{user.username}
+			</ButtonLink>
 			<LogoutButton/>
 		</>
 	)
@@ -24,14 +23,12 @@ function NavBarUser() {
 function NavBarLogin() {
 	return (
 		<>
-			<ButtonLink
-				text="Login"
-				link="/login"
-			/>
-			<ButtonLink
-				text="Register"
-				link="/register"
-			/>
+			<ButtonLink link="/login">
+				Login
+			</ButtonLink>
+			<ButtonLink link="/register">
+				Register
+			</ButtonLink>
 		</>
 	)
 }
@@ -39,7 +36,7 @@ function NavBarLogin() {
 export default function NavBar() {
 	const userHandle = useAuth()
 
-	const AccountHandle = (loggedIn) => {
+	const NavBarHandle = (loggedIn) => {
 		if (loggedIn) {
 			console.log("Logged In")
 			return <NavBarUser/>;
@@ -50,12 +47,16 @@ export default function NavBar() {
 	}
 
 	return (
-		<div className={styles.NavBar}>
-			<ButtonLink text="Home"
-				link="/"
-			/>
-			{AccountHandle(userHandle.user)}
-		</div>
+		<header>
+			<nav className="flex items-center h-20">
+				<ButtonLink link="/">
+					Home
+				</ButtonLink>
+				<div className="ml-auto flex gap-5">
+					{NavBarHandle(userHandle.user)}
+				</div>
+			</nav>
+		</header>
 	)
-	// <AccountHandle loggedIn={loggedIn}/>
 }
+

@@ -52,7 +52,9 @@ export default function Login() {
 				onChange={(password) => setValue("password", password)}
 				onEnter={onSubmit}
 			/>
-			<Button onClick={onSubmit} text="Login"/>
+			<Button onClick={onSubmit}>
+				Login
+			</Button>
 			<ErrorText errorText={loginError}/>
 		</div>
 	)

@@ -19,7 +19,7 @@ export function LogoutButton() {
 	}
 
 	return (
-		<Button onClick={onClick} text="Logout"/>
+		<Button onClick={onClick}>Logout</Button>
 	)
 }
 
@@ -49,7 +49,7 @@ export default function LogoutPage() {
 
 	return (
 		<>
-			<Button onClick={onClick} text="Logout"/>
+			<Button onClick={onClick}>Logout</Button>
 			<ErrorText errorText={logoutError}/>
 		</>
 	)
