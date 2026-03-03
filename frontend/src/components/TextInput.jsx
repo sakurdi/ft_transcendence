@@ -7,13 +7,29 @@ export default function TextInput ({
 	placeholder = "",
 	type = "text",
 	className,
+	onEnter = undefined,
 	children,
 }) {
+	const getOnEnter_ = (onEnter) => {
+		if (onEnter !== undefined) {
+			return (
+				(e) => {
+					if (e.key === "Enter")
+						onEnter();
+				}
+			)
+		} else {
+			return ( (e) => {} )
+		}
+	}
+	const onEnter_ = getOnEnter_(onEnter)
 	if (className === undefined)
 		className = styles.TextInput
+	
 	return (
 		<div className={styles.TextInput_Div}>
 			<input className={className}
+				onKeyDown={(e) => {onEnter_(e)}}
 				type={type}
 				placeholder={placeholder}
 				value={value}
@@ -97,13 +113,15 @@ export function EMailInput({
 export function PasswordInput({
 	value,
 	onChange,
-	placeholder = "Password"
+	placeholder = "Password",
+	onEnter = undefined
 }) {
 	return (
 		<TextInput
 			value={value}
 			onChange={onChange}
 			placeholder={placeholder}
+			onEnter={onEnter}
 			type="password"
 		/>
 	)

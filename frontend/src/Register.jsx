@@ -98,7 +98,7 @@ export default function Register() {
 		}, []
 	)
 
-	async function onClick() {	
+	async function onSubmit() {	
 		const validEmail = checkEmail(values.email,
 			(errEmail) => {setError("email", errEmail)})
 		const validUsername = checkUsername(values.username,
@@ -142,9 +142,10 @@ export default function Register() {
 					value={values.password2}
 					onChange={(password) => setValue("password2", password)}
 					placeholder="Confirm password"
+					onEnter={onSubmit}
 				/>
 			</WrapError>
-			<Button onClick={onClick} text="Register"/>
+			<Button onClick={onSubmit} text="Register"/>
 			<ErrorText errorText={registerError}/>
 		</div>
 	);

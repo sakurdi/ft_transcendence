@@ -30,7 +30,7 @@ export default function Login() {
 			}
 		}, []
 	)
-	async function onClick() {
+	async function onSubmit() {
 		console.log(values.username, values.password)
 		try {
 			await userHandle.login(values.username, values.password)
@@ -50,8 +50,9 @@ export default function Login() {
 			<PasswordInput
 				value={values.password}
 				onChange={(password) => setValue("password", password)}
+				onEnter={onSubmit}
 			/>
-			<Button onClick={onClick} text="Login"/>
+			<Button onClick={onSubmit} text="Login"/>
 			<ErrorText errorText={loginError}/>
 		</div>
 	)
