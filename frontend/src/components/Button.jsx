@@ -1,12 +1,11 @@
 import styles from "./Button.module.css";
 import { useNavigate } from "react-router-dom";
-{/* <button class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold
-	hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"></button> */}
+
 const defaultClassNameButton = "font-semibold p-2\
 	rounded-lg bg-g_aqua\
-	border border-4 border-g_seagreen-300\
-	hover:bg-g_aqua-300\
-	margin"
+	border border-4 border-g_aqua-500\
+	hover:bg-g_aqua-400\
+	m-2"
 
 export default function Button({
 		onClick,
@@ -18,7 +17,7 @@ export default function Button({
 		<button className = {`${defaultClassName} ${className}`}
 			onClick = {onClick}>
 			{children}
-		</button>
+		</button> 
 	)
 }
 
@@ -32,7 +31,6 @@ export function ButtonLink({
 	
 	const onClick = () => {
 		navigate(link)
-		// console.log(link)
 	}
 
 	return (

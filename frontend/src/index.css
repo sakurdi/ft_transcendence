@@ -1,12 +1,4 @@
-/* @import "tailwindcss"; */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* @theme {
-	--color-gshadowgrey: #221F21;
-	--color-gglaucous: #728BB4;
-	--color-glinen: #F7ECE1;
-	--color-gseagreen: #03B5AA;
-	--color-gaqua: #A8DCD9;
-} */
