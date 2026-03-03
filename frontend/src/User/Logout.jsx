@@ -5,7 +5,7 @@ import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";
 import Loading from "../components/Loading";
 
-export function LogoutButton() {
+export function LogoutButton({ className, variant = "primary", size = "md" }) {
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
@@ -22,17 +22,11 @@ export function LogoutButton() {
 		}
 	}
 	return (
-		<Button onClick={logout}>
+		<Button onClick={logout} className={className} variant={variant} size={size}>
 			Logout
 		</Button>
 	)
-	return (
-		<ButtonLink link = "/logout">
-			Logout
-		</ButtonLink>
-	)
 }
-
 
 export default function Logout() {
 	const navigate = useNavigate() 
