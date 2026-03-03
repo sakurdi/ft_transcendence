@@ -1,35 +1,20 @@
 import {ButtonLink} from "./components/Button"
 import { LogoutButton } from "./Logout"
 import {useState, useEffect} from "react"
+import useAuth from "./AuthProvider"
 
-import { IsLoggedIn } from "./utils/Utils"
 
 import styles from "./NavBar.module.css"
 
 function NavBarUser() {
-	const [username, setUsername] = useState('')
-
-	useEffect(() => {
-		async function getUserName() {
-			const response = await fetch("/api/user", {method: 'GET',} )
-
-			console.log(response)
-			if (!response.ok)
-				return
-			const data = await response.json()
-			console.log(data)
-			if (data.success === false)
-				return
-			setUsername(data.userinfo.username)
-		}
-		getUserName()
-	}, [])
+	const userHandle = useAuth()
+	const user = userHandle.user
 
 	return (
 		<>
 			<ButtonLink
-				text={username}
-				link={"/user/" + username}
+				text={user.username}
+				link={"/user/" + user.username}
 			/>
 			<LogoutButton/>
 		</>
@@ -52,9 +37,7 @@ function NavBarLogin() {
 }
 
 export default function NavBar() {
-	const [loggedIn, setLoggedIn] = useState(false)
-	
-	useEffect(() => {setLoggedIn(IsLoggedIn())}, [])
+	const userHandle = useAuth()
 
 	const AccountHandle = (loggedIn) => {
 		if (loggedIn) {
@@ -71,7 +54,7 @@ export default function NavBar() {
 			<ButtonLink text="Home"
 				link="/"
 			/>
-			{AccountHandle(loggedIn)}
+			{AccountHandle(userHandle.user)}
 		</div>
 	)
 	// <AccountHandle loggedIn={loggedIn}/>

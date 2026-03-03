@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
@@ -19,6 +19,7 @@ export function AuthProvider( { children } ) {
 			if (data.success == false)
 				throw (data.context)
 			setUser(data.userinfo)
+			console.log(data.userinfo)
 		} catch (err) {
 			console.log(err)
 			setUser(null)
@@ -71,15 +72,17 @@ export function AuthProvider( { children } ) {
 			throw (data.context)
 		console.log(data)
 		setUser(null)
-
 	}
 
 	useEffect(() => {
-		try {
-			getUser();
-		} catch (err) {
-			console.log("Setup getUser error: " + err)
+		const getUserInit = async () => {
+			try {
+				await getUser();
+			} catch (err) {
+				console.log("Setup getUser error: " + err)
+			}
 		}
+		getUserInit()
 	}, [])
 
 	return (

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./components/Button"
 import TextInput, {EMailInputVerify, PasswordInput} from "./components/TextInput"
 import WrapError, {ErrorText} from "./components/WrapError"
 import styles from './Register.module.css';
+import useAuth from "./AuthProvider";
 
 function checkEmail(email, setEmailError) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
@@ -64,6 +65,8 @@ function checkPassword(password, password2, setPasswordError) {
 }
 
 export default function Register() {
+	const userHandle = useAuth()
+
 	const navigate = useNavigate();
 
 	const [values, setValuesInt] = useState({
@@ -87,6 +90,14 @@ export default function Register() {
 
 	const [registerError, setRegisterError] = useState('');
 
+	useEffect(() => { 
+			if (userHandle.user) {
+				console.log("User is already registerd")
+				navigate('/')
+			}
+		}, []
+	)
+
 	async function onClick() {	
 		const validEmail = checkEmail(values.email,
 			(errEmail) => {setError("email", errEmail)})
@@ -99,22 +110,11 @@ export default function Register() {
 		}
 		console.log(values.email, values.username, values.password1, values.password2)
 		try {
-			const response = await fetch('/api/register', {
-				method: 'POST',
-				body: JSON.stringify({
-					'username': values.username,
-					'Email': values.email,
-					'Password': values.password1,
-				})
-			})
-			const data = await response.json()
-			if (data.success || true)
-				navigate("/")
-			else
-				setRegisterError(data.context)
+			await userHandle.register(values.username, values.email, values.password1)
+			navigate('/')
 		} catch (error) {
 			console.log(error)
-			setRegisterError("Fetch error")
+			setRegisterError(error)
 		}
 	}
 

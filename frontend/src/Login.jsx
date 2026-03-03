@@ -1,45 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./components/Button"
 import TextInput, {PasswordInput} from "./components/TextInput"
 import {ErrorText} from "./components/WrapError"
 import styles from './Register.module.css';
+import useAuth from "./AuthProvider";
+
 
 export default function Login() {
+	const userHandle = useAuth()
+	
 	const navigate = useNavigate()
+	
 	const [values, setValuesInt] = useState({
 		username: '',
 		password: '',
 	})
+	
 	const [loginError, setLoginError] = useState('');
 
 	const setValue = (field, value) => {
 		setValuesInt(prev => ({...prev, [field]: value}))
 	}
 
+	useEffect(() => { 
+			if (userHandle.user) {
+				console.log("User is already logged in")
+				navigate('/')
+			}
+		}, []
+	)
 	async function onClick() {
 		console.log(values.username, values.password)
 		try {
-			const response = await fetch('/api/login', {
-				method: 'POST',
-				body: JSON.stringify({
-					'username': values.username,
-					'password': values.password
-				})
-			})
-			if (!response.ok) {
-				const errorBody = await response.text(); // or response.text()
-				console.log("Status:", response.status);
-				console.log("Error body:", errorBody);	
-				throw (errorBody)
-			}
-			const data = await response.json()
-			console.log(data)
-			navigate("/")
-			if (data.success)
-				navigate("/")
-			else
-				setLoginError(data.context)
+			await userHandle.login(values.username, values.password)
+			navigate('/')
 		} catch (error) {
 			console.log(error)
 			setLoginError(error)

@@ -1,20 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./components/Button"
 import {ErrorText} from "./components/WrapError"
+import useAuth from "./AuthProvider";
 
 
 export function LogoutButton() {
+	const userHandle = useAuth()
+	const navigate = useNavigate() 
+
 	async function onClick() {
 		try {
-			const response = await fetch('/api/logout', {method: 'POST'})
-			if (!response.ok) {
-				throw new Error("Error: 40X")
-			}
-			const data = await response.json()
-			console.log(data)
-			if (data.success)
-				navigate("/");
+			userHandle.logout()
+			navigate("/");
 		} catch (error) {
 			console.log(error.message)
 		}
@@ -26,28 +24,28 @@ export function LogoutButton() {
 }
 
 export default function LogoutPage() {
+	const userHandle = useAuth()
 	const navigate = useNavigate()
 
 	var [logoutError, setLogoutError] = useState('')
 
 	async function onClick() {
 		try {
-			const response = await fetch('/api/logout', {method: 'POST'})
-			if (!response.ok) {
-				throw new Error("Error: 40X")
-			}
-			const data = await response.json()
-			console.log(data)
+			userHandle.logout()
 			navigate("/");
-			if (data.success)
-				navigate("/");
-			else
-				setLogoutError(data.context)
 		} catch (error) {
 			console.log(error.message)
 			setLogoutError("Fetch error")
 		}
 	}
+
+	useEffect(() => { 
+			if (!userHandle.user) {
+				console.log("Not logged in")
+				navigate('/')
+			}
+		}, []
+	)
 
 	return (
 		<>
