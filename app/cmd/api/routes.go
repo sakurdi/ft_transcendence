@@ -41,6 +41,14 @@ func routes(c *config.Config) http.Handler {
 
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
+		r.Post("/api/friends/{friendUsername}", users.FriendHandler(c))
+		r.Delete("/api/friends/{friendUsername}", users.UnfriendHandler(c))
+		r.Get("/api/friends", users.GetFriendsHandler(c))
+
+		r.Post("/api/friends/request/{friendUsername}", users.SendFriendRequestHandler(c))
+		r.Post("/api/friends/request/{friendUsername}/accept", users.AcceptFriendRequestHandler(c))
+		r.Get("/api/friends/requests", users.GetFriendRequestHandler(c))
+
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))
 			r.Delete("/api/board/{boardID}/post/{postID}", boards.DeletePostHandler(c))

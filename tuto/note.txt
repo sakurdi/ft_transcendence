@@ -3,3 +3,7 @@ docker run --rm -v $(pwd):/app -w /app node:22-alpine npm create vite@latest fro
 docker system prune
 docker system prune -a
 docker volumes prune
+
+Base de données -> Modèle -> Store -> Handler -> Route -> React
+
+https://medium.com/@cosmicray001/handling-database-transactions-in-go-with-rollback-and-commit-e35c1830b825

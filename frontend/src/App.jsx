@@ -172,8 +172,8 @@ function Btn({ onClick, children, variant = "default" }) {
 
 function AuthSection({ auth, onLogin }) {
     const { entries, push } = useLog()
-    const [username, setUsername] = useState("saal-kur")
-    const [password, setPassword] = useState("password")
+    const [username, setUsername] = useState("kevwang")
+    const [password, setPassword] = useState("1234")
 
     async function handleLogin() {
         const { ok, body } = await auth.login(username, password)
@@ -323,14 +323,126 @@ function DMSection({ auth }) {
         if (e.key === "Enter") sendMessage()
     }
 
+    const [friends, setFriends] = useState([]);
+    const [newFriendId, setNewFriendId] = useState("");
+	const [friendRequests, setFriendRequests] = useState([]);
+
+
+    const addFriend = async () => {
+        const res = await api(`/friends/${newFriendId}`, { method: "POST" });
+        if (res.ok) {
+            setNewFriendId("");
+        }
+    };
+
+    const removeFriend = async () => {
+        const res = await api(`/friends/${newFriendId}`, { method: "DELETE" });
+        if (res.ok) {
+            setNewFriendId("");
+			getFriends();
+        }
+    };
+
+	const getFriends = async () => {
+		const res = await api("/friends");
+		if (res.ok) {
+			const friends = JSON.parse(res.body);
+			// console.log("Friends:", friends);
+			setFriends(Array.isArray(friends) ? friends : []);
+		}
+	}
+
+	const sendRequest = async () => {
+		const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
+		if (res.ok) {
+			setNewFriendId("");
+		}
+	};
+
+	const acceptRequest = async (requestID) => {
+		if (!requestID)
+			return;
+		const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+		if (res.ok) {
+			getFriends();
+			getFriendRequests();
+		}
+	};
+
+	const getFriendRequests = async () => {
+		const res = await api("/friends/requests");
+		if (res.ok) {
+			const requests = JSON.parse(res.body);
+			setFriendRequests(Array.isArray(requests) ? requests : []);
+		}
+	}
+
     return (
+		<>
         <Section title="DM Socket">
+			<Row>
+                <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />
+                <Btn onClick={addFriend}>Add Friend</Btn>
+            </Row>
+
+			<Row>
+                <Input placeholder="User ID to remove" value={newFriendId} onChange={setNewFriendId} />
+                <Btn onClick={removeFriend}>Remove Friend</Btn>
+            </Row>
+
+			<Row>
+				<Btn onClick={getFriends}>Refresh Friends</Btn>
+			</Row>
+			<div>
+				<h3>Friends List:</h3>
+				<ul>
+					{friends && friends.length === 0 ? (
+						<li className="text-stone-400">No friend</li>
+					) : (
+						friends.map(friend => (
+							<li key={friend.id}>
+								{friend.username} (ID: {friend.id})
+							</li>
+						))
+					)}
+				</ul>
+			</div>
+
+			<Row>
+				<Input placeholder="Username to send request" value={newFriendId} onChange={setNewFriendId} />
+				<Btn onClick={sendRequest}>Send Request</Btn>
+			</Row>
+
+
+			<Row>
+				<Input placeholder="Username to accept" value={newFriendId} onChange={setNewFriendId} />
+				<Btn onClick={() => acceptRequest(newFriendId)}>Accept Request</Btn>
+			</Row>
+
+			<Row>
+				<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
+			</Row>
+			<div>
+				<h3>Friend Requests:</h3>
+				<ul>
+					{friendRequests && friendRequests.length === 0 ? (
+						<li>No friend request</li>
+					) : (
+						friendRequests.map(request => (
+							<li key={request.id}>
+								Request from {request.username} (ID: {request.from_user_id})
+								<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
+							</li>
+						))
+					)}
+				</ul>
+			</div>
+
             <Row>
                 <Input placeholder="recipient user ID" value={userID} onChange={setUserID} />
                 <Btn onClick={connectDM}>Connect</Btn>
                 <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
             </Row>
-
             <div
                 ref={msgsRef}
                 className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
@@ -370,6 +482,7 @@ function DMSection({ auth }) {
                 <Btn onClick={sendMessage}>Send</Btn>
             </Row>
         </Section>
+		</>
     )
 }
 

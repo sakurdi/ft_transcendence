@@ -10,6 +10,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"ft_transcendence/internal/middleware"
+	// "ft_transcendence/internal/ws"
+	// // "log"
+	// "strconv"
 )
 
 func LogoutHandler(c *config.Config) http.HandlerFunc {
@@ -98,5 +103,116 @@ func GetHash(c *config.Config) http.HandlerFunc {
 
 		hash, _ := auth.HashPassword(chi.URLParam(r, "pass"))
 		utils.JSON(w, http.StatusOK, map[string]string{"status": hash})
+	}
+}
+
+
+func FriendHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		friendUsername := chi.URLParam(r, "friendUsername")
+		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
+
+		if err != nil {
+			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			return
+		}
+		if userID == friendID {
+			http.Error(w, "Cannot add yourself as a friend", http.StatusBadRequest)
+			return
+		}
+		if err := store.AddFriend(c.DB, r.Context(), userID, friendID); err != nil {
+			http.Error(w, "Failed to add friend", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "friend added"})
+	}
+}
+
+func UnfriendHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		friendUsername := chi.URLParam(r, "friendUsername")
+		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
+		if err != nil {
+			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			return
+		}
+		if userID == friendID {
+			http.Error(w, "Cannot remove yourself as a friend", http.StatusBadRequest)
+			return
+		}
+		if err := store.DeleteFriend(c.DB, r.Context(), userID, friendID); err != nil {
+			http.Error(w, "Failed to remove friend", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "friend removed"})
+	}
+}
+
+func GetFriendsHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		friends, err := store.GetFriends(c.DB, r.Context(), userID)
+		if err != nil {
+			http.Error(w, "Failed to get friends", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, friends)
+	}
+}
+
+func SendFriendRequestHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		friendUsername := chi.URLParam(r, "friendUsername")
+		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
+		if err != nil {
+			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			return
+		}
+		if userID == friendID {
+			http.Error(w, "Cannot add yourself as a friend", http.StatusBadRequest)
+			return
+		}
+		if err := store.SendFriendRequest(c.DB, r.Context(), userID, friendID); err != nil {
+			http.Error(w, "Failed to send request", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "Request sent"})
+	}
+}
+
+func AcceptFriendRequestHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		friendUsername := chi.URLParam(r, "friendUsername")
+		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
+		if err != nil {
+			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			return
+		}
+		if userID == friendID {
+			http.Error(w, "Cannot accept your own friend request", http.StatusBadRequest)
+			return
+		}
+
+		if err := store.AcceptFriendRequest(c.DB, r.Context(), userID, friendID); err != nil {
+			http.Error(w, "Failed to accept request", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "Friend added"})
+	}
+}
+
+func GetFriendRequestHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		requests, err := store.GetPendingFriendRequests(c.DB, r.Context(), userID)
+		if err != nil {
+			http.Error(w, "Failed to get requests", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, requests)
 	}
 }

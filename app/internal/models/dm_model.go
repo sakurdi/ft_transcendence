@@ -9,3 +9,16 @@ type DMMessage struct {
 	Content     string    `json:"content"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+type Friend struct {
+	ID 			int       `json:"id"`
+	Username    string    `json:"username"`
+}
+
+type FriendRequest struct {
+	ID        int         `json:"id"`
+	FromUserID int        `json:"from_user_id"`
+	ToUserID   int        `json:"to_user_id"`
+	Status     string     `json:"status"`
+	Username  string      `json:"username"`
+}
