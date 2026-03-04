@@ -243,3 +243,17 @@ func DeleteBoardHandler(c *config.Config) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func GetBoardModTeamHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		members, err := store.GetBoardTeam(c.DB, r.Context(), boardID)
+		if err != nil {
+			log.Printf("GetBoardModTeamHandler error: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, members)
+	}
+}

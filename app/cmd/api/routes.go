@@ -34,6 +34,8 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/api/me", users.LoginPing((c)))
 
+	mux.Get("/api/board/{boardID}/members", boards.GetBoardModTeamHandler(c))
+
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
 

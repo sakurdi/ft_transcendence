@@ -51,7 +51,16 @@ CREATE TABLE IF NOT EXISTS boards (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS board_moderators (
+    board_id INTEGER REFERENCES boards(id) ON DELETE CASCADE,
+    user_id  INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    added_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (board_id, user_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
+CREATE INDEX IF NOT EXISTS idx_board_moderators_board ON board_moderators(board_id);
+CREATE INDEX IF NOT EXISTS idx_board_moderators_user ON board_moderators(user_id);
 
 INSERT INTO boards (name, description, owner_id) VALUES
     ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
