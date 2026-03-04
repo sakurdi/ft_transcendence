@@ -31,7 +31,8 @@ func ThreadSocket(c *config.Config) http.HandlerFunc {
 func DMSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		senderID := middleware.GetUserID(c, r)
-		recipientID, _ := strconv.Atoi(chi.URLParam(r, "userID"))
+		recipientUsername := chi.URLParam(r, "username")
+		recipientID, _ := store.GetUserID(c.DB, r.Context(), recipientUsername)
 		log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
 		room := ws.DMRoom(senderID, recipientID)
 

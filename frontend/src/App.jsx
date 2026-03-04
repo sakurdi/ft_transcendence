@@ -310,9 +310,9 @@ function DMSection({ auth }) {
         }
     }
 
-    function connectDM() {
+    const connectDM = async (username) => {
         setMessages([])
-        socket.connect(`${WS}/ws/dm/${userID}`, (event) => handlerRef.current(event))
+        socket.connect(`${WS}/ws/dm/${username}`, (event) => handlerRef.current(event))
     }
 
     function sendMessage() {
@@ -335,8 +335,16 @@ function DMSection({ auth }) {
         }
     };
 
-    const removeFriend = async () => {
-        const res = await api(`/friends/${newFriendId}`, { method: "DELETE" });
+    // const removeFriend = async () => {
+    //     const res = await api(`/friends/${newFriendId}`, { method: "DELETE" });
+    //     if (res.ok) {
+    //         setNewFriendId("");
+	// 		getFriends();
+    //     }
+    // };
+
+	 const removeFriend = async (username) => {
+        const res = await api(`/friends/${username}`, { method: "DELETE" });
         if (res.ok) {
             setNewFriendId("");
 			getFriends();
@@ -369,6 +377,15 @@ function DMSection({ auth }) {
 		}
 	};
 
+	const declineRequest = async (requestID) => {
+		if (!requestID)
+			return;
+		const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+		if (res.ok) {
+			getFriendRequests();
+		}
+	};
+
 	const getFriendRequests = async () => {
 		const res = await api("/friends/requests");
 		if (res.ok) {
@@ -376,6 +393,15 @@ function DMSection({ auth }) {
 			setFriendRequests(Array.isArray(requests) ? requests : []);
 		}
 	}
+
+	const checkProfil = async (username) => {
+		const res = await api(`/users/${username}`);
+		if (res.ok) {
+			const user = JSON.parse(res.body);
+			alert(`Check profile of ${username}: ${JSON.stringify(user)}`);
+		}
+	};
+
 
     return (
 		<>
@@ -402,6 +428,9 @@ function DMSection({ auth }) {
 						friends.map(friend => (
 							<li key={friend.id}>
 								{friend.username} (ID: {friend.id})
+								<Btn onClick={() => connectDM(friend.username)}>Chat</Btn>
+								<Btn onClick={() => checkProfil(friend.username)}>Profile</Btn>
+								<Btn onClick={() => removeFriend(friend.username)}>Unfriend</Btn>
 							</li>
 						))
 					)}
@@ -432,6 +461,7 @@ function DMSection({ auth }) {
 							<li key={request.id}>
 								Request from {request.username} (ID: {request.from_user_id})
 								<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
+								<Btn onClick={() => declineRequest(request.username)}>Decline</Btn>
 							</li>
 						))
 					)}
@@ -439,8 +469,8 @@ function DMSection({ auth }) {
 			</div>
 
             <Row>
-                <Input placeholder="recipient user ID" value={userID} onChange={setUserID} />
-                <Btn onClick={connectDM}>Connect</Btn>
+                <Input placeholder="recipient username" value={userID} onChange={setUserID} />
+                <Btn onClick={() => connectDM(userID)}>Connect</Btn>
                 <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
             </Row>
             <div

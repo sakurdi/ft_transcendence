@@ -65,6 +65,9 @@ func DeleteFriend(db *pgxpool.Pool, ctx context.Context, userID, friendID int) e
          OR    (user_id=$2 AND friend_id=$1)`,
         userID, friendID,
     )
+	if err != nil {
+		return err
+	}
 
 	_, err = db.Exec(ctx,
 		`DELETE FROM friend_requests 
@@ -99,7 +102,31 @@ func GetFriends(db *pgxpool.Pool, ctx context.Context, userID int) ([]models.Fri
 }
 
 func SendFriendRequest(db *pgxpool.Pool, ctx context.Context, fromUserID, toUserID int) error {
-	_, err := db.Exec(ctx,
+	
+	var exist bool;
+	err := db.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM friend_requests
+							WHERE (from_user_id=$1 AND to_user_id=$2) 
+			   				OR (from_user_id=$2 AND to_user_id=$1))`, fromUserID, toUserID,
+	).Scan(&exist)
+	if err != nil {
+		return err
+	}
+	if exist {
+		return nil
+	}
+
+	var status string;
+	err = db.QueryRow(ctx,
+		`SELECT status FROM friend_requests 
+		 WHERE (from_user_id=$1 AND to_user_id=$2) 
+		 OR    (from_user_id=$2 AND to_user_id=$1)`, fromUserID, toUserID,
+	).Scan(&status)
+	if err == nil && status == "accepted" {
+		return AddFriend(db, ctx, fromUserID, toUserID)
+	}
+
+
+	_, err = db.Exec(ctx,
 		"INSERT INTO friend_requests (from_user_id, to_user_id, status) VALUES ($1, $2, 'pending') ON CONFLICT DO NOTHING",
 		fromUserID, toUserID,
 	)
@@ -139,12 +166,18 @@ func AcceptFriendRequest(db *pgxpool.Pool, ctx context.Context, userID, friendID
 	return tx.Commit(ctx)
 }
 
-func DeclineFriendRequest(db *pgxpool.Pool, ctx context.Context, requestID int) error {
-	_, err := db.Exec(ctx,
-		"UPDATE friend_requests SET status='declined' WHERE id=$1 AND status='pending'",
-		requestID,
+func DeclineFriendRequest(db *pgxpool.Pool, ctx context.Context, userID, friendID int) error {
+	result, err := db.Exec(ctx,
+		"UPDATE friend_requests SET status='declined' WHERE from_user_id=$1 AND to_user_id=$2 AND status='pending'",
+		friendID, userID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("no pending request found")
+	}
+	return nil
 }
 
 func GetUsernameFromDB(db *pgxpool.Pool, ctx context.Context, userID int) string {
@@ -178,4 +211,13 @@ func GetPendingFriendRequests(db *pgxpool.Pool, ctx context.Context, userID int)
 		requests = append(requests, req)
 	}
 	return requests, rows.Err()
+}
+
+func GetUserProfile(db *pgxpool.Pool, ctx context.Context, username string) (models.UserProfile, error) {
+	var profile models.UserProfile
+	err := db.QueryRow(ctx, "SELECT login FROM users WHERE login=$1", username).Scan(&profile.Username)
+	if err != nil {
+		return models.UserProfile{}, err
+	}
+	return profile, nil
 }

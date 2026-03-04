@@ -205,6 +205,28 @@ func AcceptFriendRequestHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
+func DeclineFriendRequestHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		friendUsername := chi.URLParam(r, "friendUsername")
+		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
+		if err != nil {
+			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			return
+		}
+		if userID == friendID {
+			http.Error(w, "Cannot decline your own friend request", http.StatusBadRequest)
+			return
+		}
+
+		if err := store.DeclineFriendRequest(c.DB, r.Context(), userID, friendID); err != nil {
+			http.Error(w, "Failed to decline request", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "Friend request declined"})
+	}
+}
+
 func GetFriendRequestHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
@@ -214,5 +236,23 @@ func GetFriendRequestHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		utils.JSON(w, http.StatusOK, requests)
+	}
+}
+
+func GetUserProfileHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		username := chi.URLParam(r, "username")
+		_, err := store.GetUserID(c.DB, r.Context(), username)
+		if err != nil {
+			http.Error(w, "Failed to get user profile", http.StatusInternalServerError)
+			return
+		}
+		if _, err := store.GetUserProfile(c.DB, r.Context(), username); err != nil {
+			http.Error(w, "Failed to get user profile", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, models.UserProfile{
+			Username: username,
+			Profil: "photo placeholder"})
 	}
 }

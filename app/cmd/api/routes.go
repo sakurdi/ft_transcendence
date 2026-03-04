@@ -39,7 +39,7 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/api/board/new", boards.CreateBoardHandler(c))
 		r.Post("/api/board/{boardID}/post", boards.CreatePostHandler(c))
 
-		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
+		r.Get("/ws/dm/{username}", wshandler.DMSocket(c))
 
 		r.Post("/api/friends/{friendUsername}", users.FriendHandler(c))
 		r.Delete("/api/friends/{friendUsername}", users.UnfriendHandler(c))
@@ -47,7 +47,10 @@ func routes(c *config.Config) http.Handler {
 
 		r.Post("/api/friends/request/{friendUsername}", users.SendFriendRequestHandler(c))
 		r.Post("/api/friends/request/{friendUsername}/accept", users.AcceptFriendRequestHandler(c))
+		r.Post("/api/friends/request/{friendUsername}/decline", users.DeclineFriendRequestHandler(c))
 		r.Get("/api/friends/requests", users.GetFriendRequestHandler(c))
+
+		r.Get("/api/users/{username}", users.GetUserProfileHandler(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))
