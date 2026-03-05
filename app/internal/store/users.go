@@ -215,9 +215,23 @@ func GetPendingFriendRequests(db *pgxpool.Pool, ctx context.Context, userID int)
 
 func GetUserProfile(db *pgxpool.Pool, ctx context.Context, username string) (models.UserProfile, error) {
 	var profile models.UserProfile
-	err := db.QueryRow(ctx, "SELECT login FROM users WHERE login=$1", username).Scan(&profile.Username)
+	err := db.QueryRow(ctx, "SELECT login, avatar_url FROM users WHERE login=$1", username).Scan(&profile.Username, &profile.AvatarURL)
 	if err != nil {
 		return models.UserProfile{}, err
 	}
 	return profile, nil
+}
+
+func UpdateAvatar(db *pgxpool.Pool, ctx context.Context, userID int, avatarURL string) error {
+	_, err := db.Exec(ctx, "UPDATE users SET avatar_url=$1 WHERE id=$2", avatarURL, userID)
+	return err
+}
+
+func GetAvatarURL(db *pgxpool.Pool, ctx context.Context, username string) string {
+	var avatarURL string
+	err := db.QueryRow(ctx, "SELECT avatar_url FROM users WHERE login=$1", username).Scan(&avatarURL)
+	if err != nil {
+		return "/api/uploads/avatars/default.jpg"
+	}
+	return avatarURL
 }

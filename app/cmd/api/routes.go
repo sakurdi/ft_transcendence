@@ -29,6 +29,8 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/api/board/{boardName}/threads", boards.GetThreadsHandler(c))
 	mux.Get("/api/thread/{postID}/replies", boards.GetRepliesHandler(c))
 
+	mux.Get("/api/uploads/avatars/{fileName}", users.ServeAvatar(c))
+
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
@@ -51,6 +53,8 @@ func routes(c *config.Config) http.Handler {
 		r.Get("/api/friends/requests", users.GetFriendRequestHandler(c))
 
 		r.Get("/api/users/{username}", users.GetUserProfileHandler(c))
+
+		// r.Post("/api/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))

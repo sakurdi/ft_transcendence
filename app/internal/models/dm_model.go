@@ -13,6 +13,7 @@ type DMMessage struct {
 type Friend struct {
 	ID 			int       `json:"id"`
 	Username    string    `json:"username"`
+	AvatarURL   string    `json:"avatar_url"`
 }
 
 type FriendRequest struct {
@@ -24,6 +25,6 @@ type FriendRequest struct {
 }
 
 type UserProfile struct {
-	Username string `json:"username"`
-	Profil   string `json:"profil"`
+	Username 	string    `json:"username"`
+	AvatarURL   string    `json:"avatar_url"`
 }

@@ -394,17 +394,38 @@ function DMSection({ auth }) {
 		}
 	}
 
+	const [profilUser, setProfilUser] = useState(null);
+
 	const checkProfil = async (username) => {
 		const res = await api(`/users/${username}`);
 		if (res.ok) {
 			const user = JSON.parse(res.body);
-			alert(`Check profile of ${username}: ${JSON.stringify(user)}`);
+			setProfilUser(user);
 		}
 	};
 
 
     return (
 		<>
+		{profilUser && (
+			<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+				onClick={() => setProfilUser(null)}>
+
+				<div className="bg-white rounded-xl p-6 shadow-xl flex flex-col items-center gap-3 w-64"
+					onClick={e => e.stopPropagation()}>
+
+					<img src={profilUser.avatar_url || "/api/uploads/avatars/default.png"}
+						alt="avatar123"
+						className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+
+					<p className="font-bold text-stone-800 text-lg">{profilUser.username}</p>
+
+					<Btn onClick={() => setProfilUser(null)} variant="ghost">Close</Btn>
+					
+				</div>
+			</div>
+		)}
+
         <Section title="DM Socket">
 			<Row>
                 <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />

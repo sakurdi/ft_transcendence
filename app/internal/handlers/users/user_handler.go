@@ -15,6 +15,8 @@ import (
 	// "ft_transcendence/internal/ws"
 	// // "log"
 	// "strconv"
+	"path/filepath"
+	"os"
 )
 
 func LogoutHandler(c *config.Config) http.HandlerFunc {
@@ -253,6 +255,19 @@ func GetUserProfileHandler(c *config.Config) http.HandlerFunc {
 		}
 		utils.JSON(w, http.StatusOK, models.UserProfile{
 			Username: username,
-			Profil: "photo placeholder"})
+			AvatarURL: store.GetAvatarURL(c.DB, r.Context(), username),
+		})
+	}
+}
+
+func ServeAvatar(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fileName := chi.URLParam(r, "fileName")
+		filePath := filepath.Join("/app/uploads/avatars", fileName)
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+		http.ServeFile(w, r, filePath)
 	}
 }
