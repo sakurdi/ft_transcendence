@@ -3,7 +3,7 @@ set -e
 
 echo "Database: init script running"
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
 -- CITEXT extension
 CREATE EXTENSION IF NOT EXISTS citext;

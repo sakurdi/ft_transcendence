@@ -7,6 +7,8 @@ import ShowSession from "./ShowSession";
 import UserPage from "./UserPage";
 import {ButtonLink} from "./components/Button";
 import NavBar from "./NavBar";
+import CreateBoard from "./Board/CreateBoard";
+import DisplayBoard from "./Board/DisplayBoard";
 
 const Home = () => {
 	return (
@@ -16,6 +18,7 @@ const Home = () => {
 			<ButtonLink link="/register">Register</ButtonLink>
 			<ButtonLink link="/logout">Logout</ButtonLink>
 			<ButtonLink link="/ShowSession">ShowSession</ButtonLink>
+			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
 		</>
 	)
 }
@@ -28,13 +31,14 @@ export default function App() {
 		<BrowserRouter future={{v7_relativeSplatPath: false}}>
 			<NavBar/>
 			<Routes>
-
 				<Route path='/' element={<Home/>} />
 				<Route path='/register' element={<Register/>} />
 				<Route path='/login' element={<Login/>} />
 				<Route path='/logout' element={<LogoutPage/>} />
 				<Route path="/user/:username" element={<UserPage />} />
 				<Route path='/ShowSession' element={<ShowSession/>} />
+				<Route path='/createBoard' element={<CreateBoard/>} />
+				<Route path='/board/:boardid' element={<DisplayBoard/>} />
 			</Routes>
 		</BrowserRouter>
 	</AuthProvider>
