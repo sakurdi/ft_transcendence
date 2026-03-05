@@ -15,8 +15,11 @@ import (
 	// "ft_transcendence/internal/ws"
 	// // "log"
 	// "strconv"
-	"path/filepath"
-	"os"
+
+    "io"
+    "os"
+    "path/filepath"
+    "fmt"
 )
 
 func LogoutHandler(c *config.Config) http.HandlerFunc {
@@ -269,5 +272,42 @@ func ServeAvatar(c *config.Config) http.HandlerFunc {
 			return
 		}
 		http.ServeFile(w, r, filePath)
+	}
+}
+
+func UploadAvatarHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+
+		r.ParseMultipartForm(1 << 20) 
+
+		file, handler, err := r.FormFile("avatar")
+		if err != nil {
+			http.Error(w, "Error retrieving file", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		ext := filepath.Ext(handler.Filename)
+		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+			http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
+			return
+		}
+
+		fileName := fmt.Sprintf("user_%d%s", userID, ext)
+		savePath := filepath.Join("/app/uploads/avatars", fileName)
+		
+		dst, err := os.Create(savePath)
+		if err != nil {
+			http.Error(w, "Error saving file", http.StatusInternalServerError)
+			return
+		}
+		defer dst.Close()
+		io.Copy(dst, file)
+
+		avatarURL := "/api/uploads/avatars/" + fileName
+		store.UpdateAvatar(c.DB, r.Context(), userID, avatarURL)
+
+		utils.JSON(w, http.StatusOK, map[string]string{"avatar_url": avatarURL})
 	}
 }

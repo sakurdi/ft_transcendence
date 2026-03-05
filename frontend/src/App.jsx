@@ -405,6 +405,53 @@ function DMSection({ auth }) {
 	};
 
 
+	function ProfileAvatar() {
+    const [file, setFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState("/api/uploads/avatars/default.png");
+
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile)); 
+    };
+
+    const uploadAvatar = async () => {
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("avatar", file);
+        const res = await fetch(`/api/uploads/avatar/${file.name}`, {
+            method: "POST",
+            body: formData,
+            credentials: "include" 
+        });
+
+        if (res.ok) {
+            // const data = await res.json();
+            // setPreviewUrl(data.avatar_url);
+			setPreviewUrl(null);
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center border rounded bg-white w-64">
+            <img src={previewUrl} 
+                className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+
+            <input type="file" 
+                accept="image/png, image/jpeg, image/jpg" 
+                onChange={handleFileChange} 
+                className="text-xs"/>
+
+            <button onClick={uploadAvatar}
+                className="bg-sky-600 text-white rounded">
+                Upload
+            </button>
+        </div>
+    );
+}
+
+
     return (
 		<>
 		{profilUser && (
@@ -421,10 +468,12 @@ function DMSection({ auth }) {
 					<p className="font-bold text-stone-800 text-lg">{profilUser.username}</p>
 
 					<Btn onClick={() => setProfilUser(null)} variant="ghost">Close</Btn>
-					
+
 				</div>
 			</div>
 		)}
+
+		<ProfileAvatar />
 
         <Section title="DM Socket">
 			<Row>

@@ -54,7 +54,7 @@ func routes(c *config.Config) http.Handler {
 
 		r.Get("/api/users/{username}", users.GetUserProfileHandler(c))
 
-		// r.Post("/api/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
+		r.Post("/api/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))
