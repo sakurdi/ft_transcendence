@@ -38,7 +38,7 @@ export default function App() {
 				<Route path="/user/:username" element={<UserPage />} />
 				<Route path='/ShowSession' element={<ShowSession/>} />
 				<Route path='/createBoard' element={<CreateBoard/>} />
-				<Route path='/board/:boardid' element={<DisplayBoard/>} />
+				<Route path='/board/:boardName' element={<DisplayBoard/>} />
 			</Routes>
 		</BrowserRouter>
 	</AuthProvider>

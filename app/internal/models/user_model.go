@@ -20,6 +20,6 @@ type UserRegistration struct{
 type UserInfo struct {
 	Login string	`json:"username"`
 	EMail string	`json:"email"`
-	Id string		`json:"id"`
+	Id int32		`json:"id"`
 	Created time.Time `json:"created_at"`
 }

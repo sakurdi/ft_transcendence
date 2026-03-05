@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/Button"
 import TextInput from  "../components/TextInput"
 import useAuth from "../AuthProvider";
+import WrapError from "../components/WrapError";
 
 // type BoardCreate struct {
 // 	Name        string `json:"name"`
@@ -12,8 +13,16 @@ import useAuth from "../AuthProvider";
 
 export default function CreateBoard() {
 	const navigate = useNavigate()
+	const userHandler = useAuth()
+
+	useEffect(() => {
+		if (!userHandler.user)
+			navigate('/');
+	}, [])
+
 	const [boardName, setBoardName] = useState("")
 	const [boardDescription, setBoardDescription] = useState("")
+	const [error, setError] = useState("")
 	
 	const _CreateBoard = async () => {
 		try {
@@ -32,14 +41,15 @@ export default function CreateBoard() {
 			if (data.success == false)
 				throw (data.context)
 			console.log(data)
-			navigate("/board/" + data.id);
+			navigate("/board/" + boardName);
 		} catch (error) {
 			console.log(error)
+			setError(error)
 		}
 	}
 
 	return (
-		<div>
+		<div>	
 			<h1>New Board</h1>
 			<TextInput value = {boardName}
 				onChange = {setBoardName}
@@ -47,9 +57,11 @@ export default function CreateBoard() {
 			<TextInput value = {boardDescription}
 				onChange = {setBoardDescription}
 				placeHolder = "Description"/>
-			<Button onClick={_CreateBoard}>
-				Confirm
-			</Button>
+			<WrapError errorText={error}>
+				<Button onClick={_CreateBoard}>
+					Confirm
+				</Button>
+			</WrapError>
 		</div>
 	)
 }

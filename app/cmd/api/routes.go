@@ -42,6 +42,8 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/board/new", boards.CreateBoardHandler(c))
 		r.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
 
+		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
+
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))
 			r.Delete("/board/{boardID}/post/{postID}", boards.DeletePostHandler(c))

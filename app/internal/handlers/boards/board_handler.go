@@ -48,6 +48,26 @@ func GetBoardHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
+func IsModHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		boardName := chi.URLParam(r, "boardName")
+
+		board, err := store.GetBoard(c.DB, r.Context(), boardName)
+		if err != nil {
+			http.Error(w, "Board not found", http.StatusNotFound)
+			return
+		}
+
+		isMod, err := store.IsBoardMod(c.DB, r.Context(), board.ID, userID)
+		if err != nil || !isMod {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		utils.JSON(w, http.StatusOK, isMod)
+	}
+}
+
 func GetThreadsHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		boardName := chi.URLParam(r, "boardName")
