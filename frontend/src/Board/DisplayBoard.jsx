@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Button, {ButtonLink} from "../components/Button";
-import useAuth from "../UserHandle/AuthProvider";
+import useAuth from "../User/AuthProvider";
 import DisplayPost from "./DisplayPost";
 import DisplayThreads from "./DisplayThreads";
 

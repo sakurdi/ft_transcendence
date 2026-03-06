@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./UserHandle/AuthProvider";
-import Register from "./UserHandle/Register";
-import Login from "./UserHandle/Login";
-import LogoutPage from "./UserHandle/Logout";
-import ShowSession from "./UserHandle/ShowSession";
-import UserPage from "./UserHandle/UserPage";
+import { AuthProvider } from "./User/AuthProvider";
+import Register from "./User/Register";
+import Login from "./User/Login";
+import LogoutPage from "./User/Logout";
+import ShowSession from "./User/ShowSession";
+import UserPage from "./User/UserPage";
 
 import {ButtonLink} from "./components/Button";
 import NavBar from "./NavBar";

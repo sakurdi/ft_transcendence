@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigation } from "react-dom"
-import useAuth from "../UserHandle/AuthProvider";
+import useAuth from "../User/AuthProvider";
 
 
 export default function DisplayThreads({board, privilegeLvl}) {

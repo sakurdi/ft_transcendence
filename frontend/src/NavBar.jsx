@@ -1,6 +1,6 @@
 import {ButtonLink} from "./components/Button"
-import { LogoutButton } from "./UserHandle/Logout"
-import useAuth from "./UserHandle/AuthProvider"
+import { LogoutButton } from "./User/Logout"
+import useAuth from "./User/AuthProvider"
 
 function NavBarUser() {
 	const userHandle = useAuth()

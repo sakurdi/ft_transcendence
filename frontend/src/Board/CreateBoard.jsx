@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button"
 import TextInput from  "../components/TextInput"
-import useAuth from "../UserHandle/AuthProvider";
+import useAuth from "../User/AuthProvider";
 import WrapError from "../components/WrapError";
 
 // type BoardCreate struct {

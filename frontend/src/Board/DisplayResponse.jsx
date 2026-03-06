@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import useAuth from "../UserHandle/AuthProvider";
+import useAuth from "../User/AuthProvider";
 
 // type Post struct {
 // 	ID        int       `json:"id"`
