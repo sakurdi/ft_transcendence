@@ -5,6 +5,8 @@ import useAuth from "../User/AuthProvider";
 import DisplayPost from "./DisplayPost";
 import DisplayThreads from "./DisplayThreads";
 
+import TextEdit from "../components/TextEdit";
+
 // type Board struct {
 // 	ID          int       `json:"id"`
 // 	Name        string    `json:"name"`
@@ -41,18 +43,7 @@ function DisplayBoardDescription({board, privilegeLvl}) {
 			saveEdit(description)
 			setEdit(false)
 		}
-		return (
-		<>
-			{edit
-				? <textarea value={description} onChange={e => setDescription(e.target.value)} />
-				: <p>{description}</p>
-			}
-			{edit
-				? <><Button onClick={discardEdit}> Discard </Button>
-					<Button onClick={saveEdit}> Save </Button></>
-				:	<Button onClick={() => setEdit(true)}> Edit </Button>
-			}
-		</>)
+		return (<TextEdit baseValue={description}/>)
 	}
 }
 
