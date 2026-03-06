@@ -17,16 +17,38 @@ import (
 func BoardSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
-		c.Hub.Serve(w, r, ws.BoardRoom(boardID), nil, nil)
+		c.Hub.Serve(w, r, ws.BoardRoom(boardID), nil, nil, nil)
 	}
 }
 
 func ThreadSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		postID, _ := strconv.Atoi(chi.URLParam(r, "postID"))
-		c.Hub.Serve(w, r, ws.ThreadRoom(postID), nil, nil)
+		c.Hub.Serve(w, r, ws.ThreadRoom(postID), nil, nil, nil)
 	}
 }
+
+// func CheckPresence(c *config.Config) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+
+// 		// senderID := middleware.GetUserID(c, r)
+// 		// recipientUsername := chi.URLParam(r, "username")
+// 		// recipientID, _ := store.GetUserID(c.DB, r.Context(), recipientUsername)
+// 		// log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
+// 		// room := ws.DMRoom(senderID, recipientID)
+// 		room := "global"
+
+// 		onConnect := func(conn *ws.Conn) {
+// 			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "is online"})
+// 		}
+
+// 		onDisconnect := func(conn *ws.Conn) {
+// 			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "is offline"})
+// 		}
+
+// 		c.Hub.Serve(w, r, room, onConnect, nil, onDisconnect)
+// 	}
+// }
 
 func DMSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -48,9 +70,15 @@ func DMSocket(c *config.Config) http.HandlerFunc {
 
 		onMessage := func(conn *ws.Conn, data []byte) {
 			var incoming struct {
+				Type    string `json:"type"`
 				Content string `json:"content"`
 			}
-			if err := json.Unmarshal(data, &incoming); err != nil || incoming.Content == "" {
+			if err := json.Unmarshal(data, &incoming); err != nil {
+				return
+			}
+
+			if incoming.Type == "typing" {
+				c.Hub.Broadcast(room, ws.Event{Type: "typing", Data: "is typing..."})
 				return
 			}
 
@@ -66,6 +94,6 @@ func DMSocket(c *config.Config) http.HandlerFunc {
 			c.Hub.Broadcast(room, ws.Event{Type: "new_message", Data: msg})
 		}
 
-		c.Hub.Serve(w, r, room, onConnect, onMessage)
+		c.Hub.Serve(w, r, room, onConnect, onMessage, nil)
 	}
 }

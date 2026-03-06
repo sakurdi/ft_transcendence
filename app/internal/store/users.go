@@ -28,6 +28,14 @@ func GetUserID(db *pgxpool.Pool, ctx context.Context, login string) (int, error)
 	return id, err
 }
 
+
+// func GetUserLogin(db *pgxpool.Pool, ctx context.Context, id int) (int, error) {
+// 	var login string
+// 	err := db.QueryRow(ctx, "SELECT login FROM users WHERE id=$1", id).Scan(&login)
+// 	return login, err
+// }
+
+
 func CheckDuplicateCreds(db *pgxpool.Pool, ctx context.Context, user models.UserRegistration) (bool, error) {
 	var exists bool
 	err := db.QueryRow(ctx,

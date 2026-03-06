@@ -315,6 +315,11 @@ function DMSection({ auth }) {
         socket.connect(`${WS}/ws/dm/${username}`, (event) => handlerRef.current(event))
     }
 
+	function isTyping(e) {
+		setMessage(e);
+		socket.send({type: "typing", content: e });
+	}
+
     function sendMessage() {
         if (socket.send({ content: message })) setMessage("")
     }
@@ -575,7 +580,7 @@ function DMSection({ auth }) {
                 <Input
                     placeholder="message"
                     value={message}
-                    onChange={setMessage}
+                    onChange={isTyping}
                     onKeyDown={handleKey}
                     className="w-72"
                 />

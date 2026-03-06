@@ -56,6 +56,8 @@ func routes(c *config.Config) http.Handler {
 
 		r.Post("/api/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
 
+		// r.Get("/ws/presence", wshandler.CheckPresence(c))
+
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))
 			r.Delete("/api/board/{boardID}/post/{postID}", boards.DeletePostHandler(c))

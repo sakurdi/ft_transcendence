@@ -75,6 +75,7 @@ func (h *Hub) Serve(
 	room string,
 	onConnect func(c *Conn),
 	onMessage func(c *Conn, data []byte),
+	onDisconnect func(c *Conn),
 ) {
 	raw, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -85,6 +86,9 @@ func (h *Hub) Serve(
 	h.subscribe(room, c)
 	defer func() {
 		h.unsubscribe(room, c)
+		if onDisconnect != nil {
+			onDisconnect(c)
+		}
 		raw.Close()
 	}()
 
