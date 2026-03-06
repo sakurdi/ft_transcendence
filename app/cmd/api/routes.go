@@ -29,10 +29,13 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/api/board/{boardName}/threads", boards.GetThreadsHandler(c))
 	mux.Get("/api/thread/{postID}/replies", boards.GetRepliesHandler(c))
 
+
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
-	mux.Get("/api/me", users.LoginPing((c)))
+	mux.Get("/api/user/me", users.LoginPing((c)))
+	mux.Get("/api/user/{username}", users.GetUserInfo((c)))
+
 
 	mux.Get("/api/board/{boardID}/members", boards.GetBoardModTeamHandler(c))
 

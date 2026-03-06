@@ -116,3 +116,19 @@ func LoginPing(c *config.Config) http.HandlerFunc {
 		})
 	}
 }
+
+func GetUserInfo(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if _, err := store.GetUserID(c.DB, r.Context(), chi.URLParam(r, "username")); err != nil {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return 
+		}
+		info, err := store.GetUserInfo(c.DB, r.Context(), chi.URLParam(r, "username"));
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return 
+		}
+		utils.JSON(w, http.StatusOK, info)
+	}
+}
