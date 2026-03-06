@@ -19,9 +19,9 @@ export function AuthProvider( { children } ) {
 			if (data.success == false)
 				throw (data.context)
 			setUser(data.userinfo)
-			console.log(data.userinfo)
+			// console.log(data.userinfo)
 		} catch (err) {
-			console.log(err)
+			// console.log(err)
 			setUser(null)
 			throw (err)
 		}
@@ -70,7 +70,7 @@ export function AuthProvider( { children } ) {
 		const data = await response.json()
 		if (data.success == false)
 			throw (data.context)
-		console.log(data)
+		// console.log(data)
 		setUser(null)
 	}
 
@@ -79,7 +79,7 @@ export function AuthProvider( { children } ) {
 			try {
 				await getUser();
 			} catch (err) {
-				console.log("Setup getUser error: " + err)
+				// console.log("Setup getUser error: " + err)
 			}
 		}
 		getUserInit()

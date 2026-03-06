@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Button, {ButtonLink} from "../components/Button";
-import TextInput from "../components/TextInput";
-import useAuth from "../AuthProvider";
+import useAuth from "../UserHandle/AuthProvider";
+import DisplayPost from "./DisplayPost";
+import DisplayThreads from "./DisplayThreads";
 
 // type Board struct {
 // 	ID          int       `json:"id"`
@@ -12,15 +13,100 @@ import useAuth from "../AuthProvider";
 // 	CreatedAt   time.Time `json:"created_at"`
 // }
 
+const getStrTimeDate = (dateISO) => {
+	const dateAPI = new Date(dateISO);
+	
+	const time = dateAPI.toLocaleTimeString("fr-FR")
+	const date = dateAPI.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric", year: "2-digit"})
+	// console.log(time," | ", date)
+	return (time + " " + date)
+}
 
+function DisplayBoardDescription({board, privilegeLvl}) {
+	const [edit, setEdit] = useState(false)
+	const [oldDescription, setOldDescription] = useState(board.description)
+	const [description, setDescription] = useState(board.description)
+	
+	if (!description || description.lenght == 0){
+		return (<></>)
+	}	else if (privilegeLvl != 3) {
+		return (<p>{description}</p>)
+	} else {
+		const saveEdit = () => {
+			// console.log(description)	// TODO
+			setEdit(false)
+		}
+		const discardEdit = () => {
+			setDescription(oldDescription)
+			saveEdit(description)
+			setEdit(false)
+		}
+		return (
+		<>
+			{edit
+				? <textarea value={description} onChange={e => setDescription(e.target.value)} />
+				: <p>{description}</p>
+			}
+			{edit
+				? <><Button onClick={discardEdit}> Discard </Button>
+					<Button onClick={saveEdit}> Save </Button></>
+				:	<Button onClick={() => setEdit(true)}> Edit </Button>
+			}
+		</>)
+	}
+}
+
+export function DisplayBoardHeader({board, privilegeLvl}) {
+	const baseOwnerName = "<undefined>"
+	const [ownerName, setOwnerName] = useState(baseOwnerName)
+
+	const DisplayBoardOwner = (ownerName, privilegeLvl) => {
+		if (ownerName === baseOwnerName) return <a>{baseOwnerName}</a>
+		// console.log(privilegeLvl)
+		const url = "/user/" + (privilegeLvl == 3 ? "me" : ownerName )
+		return (
+			<a onClick={ () => navigate(url) }>{ownerName}</a>
+		)
+	}
+
+	useEffect(() => {
+		const fetfchOwnerName = async () => {
+			// const response = await fetch("/api/board/" + boardname + "/ismod");
+			// if (!response.ok == false)
+			// 	return
+			// const data = await response.json()
+			// if (data.success == false)
+			// 	return
+			setOwnerName("Ca faut le faire") // TODO
+		}
+		fetfchOwnerName()
+	}, [])
+
+	return (<header>
+		<h1>{board.name}</h1>
+		<div>
+			<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
+			<time dateTime= {board.created_at}>
+				{getStrTimeDate(board.created_at)}
+			</time>
+		</div>
+		<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
+	</header>)
+}
+
+function _displayBoard({board, privilegeLvl}) {
+	return (<section>
+		<DisplayBoardHeader board={board}
+			privilegeLvl={privilegeLvl}/>
+	</section>)
+}
 
 export default function DisplayBoard() {
 	const userHandle = useAuth()
 	const navigate = useNavigate()
 	const { boardName } = useParams()
 	const [loading, setLoading] = useState(true)
-	const [isMod, setIsMod] = useState(false)
-	const [isAdmin, setIsAdmin] = useState(false)
+	const [privilegeLvl, setPrivilegeLvl] = useState(0);
 	const [board, setBoard] = useState({
 		id: undefined,
 		name: undefined,
@@ -41,7 +127,7 @@ export default function DisplayBoard() {
 					throw (data.context)
 				return true;
 			} catch (error) {
-				console.log(error)
+				// console.log(error)
 				return false;
 			}
 		}
@@ -52,20 +138,21 @@ export default function DisplayBoard() {
 				if (!response.ok) {
 					throw (await response.text())
 				}
-				console.log(response)
+				// console.log(response)
 				const data = await response.json()
 				if (data.success == false)
 					throw (data.context)
-				console.log(data)
+				// console.log(data)
 				setBoard(data)
 				if (userHandle.user) {
+					setPrivilegeLvl(1)
 					const user = userHandle.user
 					if (user.id == data.owner_id) {
-						setIsAdmin(true)
+						setPrivilegeLvl(3)
 					} else {
 						const isMod = await checkIsMod(data.name) 
 						if (isMod) {
-							setIsMod(true)
+							setPrivilegeLvl(2)
 						}
 					}
 				}
@@ -84,24 +171,10 @@ export default function DisplayBoard() {
 	if (!board.id) {
 		return ("Pas de board")
 	}
-	if (isAdmin) {
-		return "Admin view"
-	}
-	if (isMod) {
-		return "Mod View"
-	}
-	if (userHandle.user) {
-		return "User View"
-	}
-	return "NoUser View"
-	return (
-		<div>
-			DisplayBoard !
-			{board.id}<br/>
-			{board.name}<br/>
-			{board.description}<br/>
-			{board.owner_id}<br/>
-			{board.created_at}<br/>
-		</div>
+	return (<>
+		<_displayBoard board = {board}
+			privilegeLvl = {privilegeLvl}/>
+		<DisplayThreads board={board} privilegeLvl = {privilegeLvl}/>
+		</>
 	)
 }

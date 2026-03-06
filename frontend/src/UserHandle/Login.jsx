@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "./components/Button"
-import TextInput, {PasswordInput} from "./components/TextInput"
-import {ErrorText} from "./components/WrapError"
+import Button from "../components/Button"
+import TextInput, {PasswordInput} from "../components/TextInput"
+import {ErrorText} from "../components/WrapError"
 import styles from './Register.module.css';
 import useAuth from "./AuthProvider";
 

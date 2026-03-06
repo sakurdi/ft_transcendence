@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "./components/Button"
-import {ErrorText} from "./components/WrapError"
+import Button from "../components/Button"
+import {ErrorText} from "../components/WrapError"
 import useAuth from "./AuthProvider";
 
 

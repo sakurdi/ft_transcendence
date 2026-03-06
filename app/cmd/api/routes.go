@@ -24,7 +24,7 @@ func routes(c *config.Config) http.Handler {
 	// mux.Post("/logout", users.LogoutHandler(c))
 	// mux.Get("/logout", users.LogoutHandler(c))
 
-	mux.Get("/user", users.GetUserDataHandler(c))
+	mux.Get("/user/", users.GetUserDataHandler(c))
 
 	mux.Get("/password/{pass}", users.GetHash(c))
 
@@ -58,3 +58,4 @@ func routes(c *config.Config) http.Handler {
 
 	return mux
 }
+
