@@ -19,6 +19,8 @@ type UserRegistration struct{
 type UserInfo struct{
 	
 	Login string `json:"username"`
+	Password string `json:"-"`
+	Email string `json:"-"`
 	Avatar string `json:"avatar_url"`
 	Creation_date time.Time `json:"member_since"`
 }

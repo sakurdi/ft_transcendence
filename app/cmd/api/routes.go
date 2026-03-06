@@ -29,13 +29,14 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/api/board/{boardName}/threads", boards.GetThreadsHandler(c))
 	mux.Get("/api/thread/{postID}/replies", boards.GetRepliesHandler(c))
 
+	mux.Put(/api/)
+
 
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
 	mux.Get("/api/user/me", users.LoginPing((c)))
 	mux.Get("/api/user/{username}", users.GetUserInfo((c)))
-
 
 	mux.Get("/api/board/{boardID}/members", boards.GetBoardModTeamHandler(c))
 
@@ -47,6 +48,9 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/api/board/{boardID}/post", boards.CreatePostHandler(c))
 
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
+
+		r.Put("/api/user/{username}", users.UpdateUserInfo(c))
+
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardAdmin(c))

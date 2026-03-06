@@ -132,3 +132,20 @@ func GetUserInfo(c *config.Config) http.HandlerFunc {
 		utils.JSON(w, http.StatusOK, info)
 	}
 }
+
+func UpdateUserInfo(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// verifier si l'utilisateur est admin
+		if 	username := c.Session.GetString(r.Context(), "username"); username !=  chi.URLParam(r, "username"){
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return 
+		}
+		var userInfo models.UserInfo
+		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+		
+	}
+}
