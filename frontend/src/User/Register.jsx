@@ -1,59 +1,33 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button"
-import TextInput, {EMailInputVerify, PasswordInput} from "../components/TextInput"
-import styles from './Register.module.css';
+import TextInput, { EMailInputVerify, PasswordInput } from "../components/TextInput"
 import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";
 import Loading from "../components/Loading";
 import Card from "../components/Card"
 
-function checkEmail(email, pushError) {
-	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
+function validate(values, pushError) {
+	const regexEmail = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+	const regexUsername = /^[a-zA-Z0-9_]{3,}$/;
 
-	if (email === "") {
-		pushError("Email cannot be empty")
-		return false
+	if (!values.email || !regexEmail.test(values.email)) {
+		pushError("Please enter a valid email address");
+		return false;
 	}
-	else if (!email.match(regexEmail)) {
-		pushError("Email is not valid")
-		return false
+	if (!values.username || !regexUsername.test(values.username)) {
+		pushError("Username must be at least 3 characters and contain only letters, numbers, and '_'");
+		return false;
 	}
-	return true
-}
-
-function checkUsername(username, pushError) {
-	const regexUsername = "[a-zA-Z0-9_]{3,}"
-
-	if (username === "") {
-		pushError("Username cannot be empty")
-		return false
+	if (!values.password1 || values.password1.length < 4) {
+		pushError("Password must be at least 4 characters");
+		return false;
 	}
-	if (username.length <= 2) {
-		pushError("Username needs to be a least 3 characters")
-		return false
+	if (values.password1 !== values.password2) {
+		pushError("Passwords do not match");
+		return false;
 	}
-	if (!username.match(regexUsername)) {
-		pushError("Username must only contain letters, numbers and '_'")
-		return false
-	}
-	return true
-}
-
-function checkPassword(password, password2, pushError) {
-	if (password === "") {
-		pushError("Password cannot be empty")
-		return false
-	}
-	if (password.length <= 3) {
-		pushError("Password needs to be a least 4 characters")
-		return false
-	}
-	if (password !== password2) {
-		pushError("Passwords don't match")
-		return false
-	}
-	return true
+	return true;
 }
 
 export default function Register() {
@@ -61,94 +35,75 @@ export default function Register() {
 	const notifHandle = useNotif()
 	const navigate = useNavigate();
 
-	const [values, setValuesInt] = useState({
+	const [values, setValues] = useState({
 		email: '',
 		username: '',
 		password1: '',
 		password2: '',
 	})
-	
 
 	const setValue = (field, value) => {
-		setValuesInt(prev => ({...prev, [field]: value}))
+		setValues(prev => ({ ...prev, [field]: value }))
 	}
 
-	useEffect(() => { 
+	useEffect(() => {
 		if (userHandle.loading) return
 		if (userHandle.user) {
-			notifHandle.pushSuccess("You are already logged in")
 			navigate('/')
 		}
-	}, [userHandle.loading])
-	if (userHandle.loading) return <Loading/>
-	
+	}, [userHandle.loading, userHandle.user])
 
-	function handleEnter(event) {
-		if (event.key == "Enter") {
-			const form = event.target.form;
-			const index = [...form].indexOf(event.target);
-			form[index + 1].focus();
-			event.preventDefault()
+	if (userHandle.loading) return <Loading />
+
+	async function onSubmit() {
+		if (!validate(values, notifHandle.pushError)) {
+			setValues(prev => ({ ...prev, password1: '', password2: '' }));
+			return;
 		}
-	}
 
-	async function onSubmit() {	
-		const validPassword = checkPassword(values.password1, values.password2, notifHandle.pushError)
-		const validUsername = checkUsername(values.username, notifHandle.pushError)
-		const validEmail = checkEmail(values.email, notifHandle.pushError)
-
-		if (!validEmail || !validUsername || !validPassword) {
-			setValue("password1", "")
-			setValue("password2", "")
-			return
-		}
 		try {
 			await userHandle.register(values.username, values.email, values.password1)
-
-			notifHandle.pushSuccess(`Logged in as ${values.username}`)
+			notifHandle.pushSuccess(`Welcome, ${values.username}!`);
 			navigate('/')
 		} catch (error) {
 			notifHandle.pushError(error)
-			setValue("password1", "")
-			setValue("password2", "")
+			setValues(prev => ({ ...prev, password1: '', password2: '' }));
 		}
 	}
 
 	return (
-		<Card className="flex flex-col items"
-			title="Create Account" 
-			description="Join our community today! Please fill in your details below."
-		>
-		<form className="flex flex-col gap-4 items-center" onSubmit= {(e) => {e.preventDefault(); onSubmit()}}>
-			<EMailInputVerify
-				value={values.email}
-				oldOnChange={(email) => setValue("email", email)}
-				onKeypress={handleEnter}
-			/>
-			<TextInput
-				value={values.username}
-				onChange={(username) => setValue("username", username)}
-				placeholder="Username"
-				onKeypress={handleEnter}
-
-			/>
-			<PasswordInput
-				value={values.password1}
-				onChange={(password) => setValue("password1", password)}
-				onKeypress={handleEnter}
-			/>
-			<PasswordInput
-				value={values.password2}
-				onChange={(password) => setValue("password2", password)}
-				placeholder="Confirm password"
-				onEnter={onSubmit}
-
-			/>
-			<Button type="submit" className="w-full">
-				Register
-			</Button>
-		</form>
-		</Card>
+		<div className="flex justify-center">
+			<div className="w-full max-w-md">
+				<Card
+					title="Create Account"
+					description="Join our community today! Please fill in your details below."
+				>
+					<form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); onSubmit() }}>
+						<EMailInputVerify
+							value={values.email}
+							oldOnChange={(email) => setValue("email", email)}
+						/>
+						<TextInput
+							value={values.username}
+							onChange={(username) => setValue("username", username)}
+							placeholder="Username"
+						/>
+						<PasswordInput
+							value={values.password1}
+							onChange={(password) => setValue("password1", password)}
+						/>
+						<PasswordInput
+							value={values.password2}
+							onChange={(password) => setValue("password2", password)}
+							placeholder="Confirm password"
+						/>
+						<Button type="submit" className="w-full mt-2" variant="primary">
+							Register
+						</Button>
+					</form>
+				</Card>
+			</div>
+		</div>
 	);
 }
 
