@@ -91,12 +91,11 @@ export default function Register() {
 	const [registerError, setRegisterError] = useState('');
 
 	useEffect(() => { 
-			if (userHandle.user) {
-				// console.log("User is already registerd")
-				navigate('/')
-			}
-		}, []
-	)
+		if (userHandle.user) {
+			navigate('/')
+		}
+	}, [])
+
 	function handleEnter(event) {
 		if (event.key == "Enter") {
 			const form = event.target.form;

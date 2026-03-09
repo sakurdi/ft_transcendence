@@ -8,6 +8,7 @@ import DisplayThreads from "./DisplayThreads";
 import { apiGet } from "../Utils/api";
 
 import TextEdit from "../components/TextEdit";
+import CreatePost from "./CreateThread";
 
 // type Board struct {
 // 	ID          int       `json:"id"`
@@ -73,23 +74,20 @@ export function DisplayBoardHeader({board, privilegeLvl}) {
 		fetfchOwnerName()
 	}, [])
 
-	return (<header>
-		<h1>{board.name}</h1>
-		<div>
-			<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
-			<time dateTime= {board.created_at}>
-				{getStrTimeDate(board.created_at)}
-			</time>
-		</div>
-		<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
-	</header>)
-}
-
-function _displayBoard({board, privilegeLvl}) {
-	return (<section>
-		<DisplayBoardHeader board={board}
-			privilegeLvl={privilegeLvl}/>
-	</section>)
+	return (
+		<section>
+			<header>
+				<h1>{board.name}</h1>
+				<div>
+					<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
+					<time dateTime= {board.created_at}>
+						{getStrTimeDate(board.created_at)}
+					</time>
+				</div>
+				<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
+			</header>
+		</section>
+	)
 }
 
 export default function DisplayBoard() {
@@ -126,7 +124,7 @@ export default function DisplayBoard() {
 				if (!response.ok) {
 					throw (response.status)
 				}
-				console.log(response.json)
+				// console.log(response.json)
 				setBoard(response.json)
 				if (userHandle.user) {
 					setPrivilegeLvl(1)
@@ -155,10 +153,11 @@ export default function DisplayBoard() {
 	if (!board.id) {
 		return ("Pas de board")
 	}
-	return (<>
-		<_displayBoard board = {board}
-			privilegeLvl = {privilegeLvl}/>
+	return (
+	<>
+		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl}/>
 		<DisplayThreads board = {board} privilegeLvl = {privilegeLvl}/>
-		</>
+		{privilegeLvl != 0 && <CreatePost board={board}/>}
+	</>
 	)
 }

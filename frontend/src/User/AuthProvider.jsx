@@ -15,9 +15,9 @@ export function AuthProvider( { children } ) {
 		const res = await apiGet("/user/me")
 		if (!res.ok) {
 			setUser(null)
-			console.log(response.status)
+			// console.log(response.status)
 		} else {
-			console.log(res.json)
+			// console.log(res.json)
 			setUser(res.json)
 		}
 	}

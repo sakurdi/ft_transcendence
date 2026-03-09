@@ -42,7 +42,7 @@ export default function Login() {
 	}
 
 	async function onSubmit() {
-		console.log(values.username, values.password)
+		// console.log(values.username, values.password)
 		try {
 			await userHandle.login(values.username, values.password)
 			navigate('/')
