@@ -8,40 +8,16 @@ export default function TextInput ({
 	type = "text",
 	className,
 	onEnter = undefined,
+	onKeypress = undefined,
 	children,
-	onKeypress = undefined
 }) {
-	const getOnKeyPress = (onKeypress, onEnter) => {
-		return (e) => {
-			if (onKeypress)
-				onKeypress(e)
-			if (e.key == "Enter" && onEnter != undefined)
-				onEnter()
-		}
-	}
-
-	const getOnEnter_ = (onEnter) => {
-		if (onEnter !== undefined) {
-			return (
-				(e) => {
-					if (e.key === "Enter")
-						onEnter();
-					
-				}
-			)
-		} else {
-			return ( (e) => {} )
-		}
-	}
-	const onEnter_ = getOnEnter_(onEnter)
 	if (className === undefined)
 		className = styles.TextInput
 	
 	return (
 		<div className={styles.TextInput_Div}>
 			<input className={className}
-				// onKeyDown={(e) => {onEnter_(e)}}
-				onKeyDown={(e) => {getOnKeyPress(onKeypress, onEnter)(e)}}
+				onKeyDown={(e) => {onKeypress?.(e); e.key == "Enter" && onEnter?.()}}
 				type={type}
 				placeholder={placeholder}
 				value={value}
@@ -55,7 +31,9 @@ export default function TextInput ({
 export function EMailInputVerify({
 	value,
 	oldOnChange,
-	placeholder = "Email"
+	placeholder = "Email",
+	onEnter = undefined,
+	onKeypress = undefined,
 }) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
 	const validEMailTrue = "✓";
@@ -91,7 +69,9 @@ export function EMailInputVerify({
 				value={value}
 				onChange={onChange}
 				placeholder={placeholder}
-				type="email">
+				type="email"
+				onEnter={onEnter}
+				onKeypress={onKeypress}>
 			<div className={styleValidEMail}>{charValidEMail}</div>
 		</TextInput>
 	)
@@ -101,13 +81,17 @@ export function EMailInput({
 	value,
 	onChange,
 	placeholder = "Email",
-	verifyEmail = true
+	verifyEmail = true,
+	onEnter = undefined,
+	onKeypress = undefined,
 }) {
 	if (verifyEmail === true) {
 		return (<EMailInputVerify
 					value={value}
 					onChange={onChange}
-					placeholder={placeholder}/>
+					placeholder={placeholder}
+					onEnter={onEnter}
+					onKeypress={onKeypress}/>
 			)
 	}
 	else {
@@ -117,6 +101,8 @@ export function EMailInput({
 				onChange={onChange}
 				type="email"
 				placeholder={placeholder}
+				onEnter={onEnter}
+				onKeypress={onKeypress}
 			/>
 		)
 	}
@@ -126,7 +112,8 @@ export function PasswordInput({
 	value,
 	onChange,
 	placeholder = "Password",
-	onEnter = undefined
+	onEnter = undefined,
+	onKeypress = undefined
 }) {
 	return (
 		<TextInput
@@ -134,6 +121,7 @@ export function PasswordInput({
 			onChange={onChange}
 			placeholder={placeholder}
 			onEnter={onEnter}
+			onKeypress={onKeypress}
 			type="password"
 		/>
 	)

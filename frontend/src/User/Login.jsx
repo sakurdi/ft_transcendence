@@ -36,7 +36,6 @@ export default function Login() {
 		if (event.key == "Enter") {
 			const form = event.target.form;
 			const index = [...form].indexOf(event.target);
-			console.log(`Index: ${index}`)
 			form[index + 1].focus();
 			event.preventDefault()
 		}
@@ -54,20 +53,19 @@ export default function Login() {
 	}
 
 	return (
-		<form className={styles.Register} onSubmit={e => { e.preventDefault();}}>
+		<form className={styles.Register} onSubmit={e => { e.preventDefault(); onSubmit()}}>
 			<TextInput
 				value={values.username}
 				onChange={(username) => setValue("username", username)}
 				placeholder="Login"
-				onKeypress={ handleEnter }
+				onKeypress={handleEnter}
 				/>
 			<PasswordInput
 				value={values.password}
 				onChange={(password) => setValue("password", password)}
-				onKeypress={ handleEnter }
-				// onEnter={onSubmit}
+				onEnter= {onSubmit}
 			/>
-			<Button onClick={onSubmit}>
+			<Button type="submit">
 				Login
 			</Button>
 			<ErrorText errorText={loginError}/>

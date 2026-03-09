@@ -97,16 +97,14 @@ export default function Register() {
 			}
 		}, []
 	)
-
-	// function handleEnter(event) {
-	// 	if (event.key == "Enter") {
-	// 		const form = event.target.form;
-	// 		const index = [...form].indexOf(event.target);
-	// 		console.log(`Index: ${index}`)
-	// 		form[index + 1].focus();
-	// 		event.preventDefault()
-	// 	}
-	// }
+	function handleEnter(event) {
+		if (event.key == "Enter") {
+			const form = event.target.form;
+			const index = [...form].indexOf(event.target);
+			form[index + 1].focus();
+			event.preventDefault()
+		}
+	}
 
 	async function onSubmit() {	
 		const validEmail = checkEmail(values.email,
@@ -129,11 +127,12 @@ export default function Register() {
 	}
 
 	return (
-		<div className={styles.Register}>
+		<form className={styles.Register} onSubmit= {(e) => {e.preventDefault(); onSubmit()}}>
 			<WrapError errorText={errors.email}>
 				<EMailInputVerify
 					value={values.email}
 					oldOnChange={(email) => setValue("email", email)}
+					onKeypress={handleEnter}
 				/>
 			</WrapError>
 			<WrapError errorText={errors.username}>
@@ -141,12 +140,14 @@ export default function Register() {
 					value={values.username}
 					onChange={(username) => setValue("username", username)}
 					placeholder="Username"
+					onKeypress={handleEnter}
 				/>
 			</WrapError>
 			<WrapError errorText={errors.password}>
 				<PasswordInput
 					value={values.password1}
 					onChange={(password) => setValue("password1", password)}
+					onKeypress={handleEnter}
 				/>
 				<PasswordInput
 					value={values.password2}
@@ -155,11 +156,11 @@ export default function Register() {
 					onEnter={onSubmit}
 				/>
 			</WrapError>
-			<Button onClick={onSubmit}>
+			<Button type="submit">
 				Register
 			</Button>
 			<ErrorText errorText={registerError}/>
-		</div>
+		</form>
 	);
 }
 

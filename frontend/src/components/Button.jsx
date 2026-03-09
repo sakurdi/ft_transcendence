@@ -11,11 +11,13 @@ export default function Button({
 		onClick,
 		children = "Default Button",
 		defaultClassName = defaultClassNameButton,
-		className = ""
+		className = "",
+		type = "button"
 }) {
 	return (
 		<button className = {`${defaultClassName} ${className}`}
-			onClick = {onClick}>
+			onClick = {onClick}
+			type={type}>
 			{children}
 		</button> 
 	)

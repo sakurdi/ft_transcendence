@@ -44,7 +44,7 @@ export function AuthProvider( { children } ) {
 			})
 		})
 		if (!response.ok) {
-			throw (await response.status())
+			throw (await response.status)
 		}
 		await getUser()
 	}
