@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import {apiGet, apiPost} from "../Utils/api"
+
 
 const AuthContext = createContext();
 
@@ -10,42 +12,31 @@ export function AuthProvider( { children } ) {
 	const [user, setUser] = useState(null)
 
 	const getUser = async () => {
-		try {
-			const response = await fetch("/api/user", {method: 'GET',} )
-			if (!response.ok) {
-				throw (await response.text())
-			}
-			const data = await response.json()
-			if (data.success == false)
-				throw (data.context)
-			setUser(data.userinfo)
-			// console.log(data.userinfo)
-		} catch (err) {
-			// console.log(err)
+		const res = await apiGet("/user/me")
+		if (!res.ok) {
 			setUser(null)
-			throw (err)
+			console.log(response.status)
+		} else {
+			console.log(res.json)
+			setUser(res.json)
 		}
 	}
 
 	const login = async (username, password) => {
-		const response = await fetch('/api/login', {
-			method: 'POST',
+		const res = apiPost('/login', {
 			body: JSON.stringify({
 				'username': username,
 				'password': password
 			})
 		})
-		if (!response.ok) {
-			throw (await response.text())
+		if (!res.ok) {
+			throw (res.status)
 		}
-		const data = await response.json()
-		if (data.success == false)
-			throw (data.context)
 		getUser()
 	}
 
 	const register = async (username, email, password) => {
-		const response = await fetch('/api/register', {
+		const response = await apiPOrt('/register', {
 			method: 'POST',
 			body: JSON.stringify({
 				'username': username,
@@ -54,11 +45,8 @@ export function AuthProvider( { children } ) {
 			})
 		})
 		if (!response.ok) {
-			throw (await response.text())
+			throw (await response.status())
 		}
-		const data = await response.json()
-		if (data.success == false)
-			throw (data.context)
 		getUser()
 	}
 

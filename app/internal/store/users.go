@@ -57,7 +57,7 @@ func GetUserInfo(db *pgxpool.Pool, ctx context.Context, login string) (models.Us
 }
 
 func EditUserInfo(db *pgxpool.Pool, ctx context.Context, userInfo models.UserInfo) error {
-	
-	
-	err := db.QueryRow(ctx, "UPDATE login=$1", login).Scan(&userInfo.Login, &userInfo.Creation_date)
+	var err error = nil
+	// err := db.QueryRow(ctx, "UPDATE login=$1", login).Scan(&userInfo.Login, &userInfo.Creation_date)
+	return err
 }

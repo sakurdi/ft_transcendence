@@ -16,7 +16,6 @@ type UserRegistration struct{
 }
 
 type UserInfo struct{
-	
 	Login string `json:"username"`
 	Password string `json:"-"`
 	Email string `json:"-"`

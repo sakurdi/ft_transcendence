@@ -6,7 +6,7 @@ import (
 	// "ft_transcendence/internal/auth"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/models"
-	store "ft_transcendence/internal/store/users"
+	store "ft_transcendence/internal/store"
 	// "io"
 	"net/http"
 )

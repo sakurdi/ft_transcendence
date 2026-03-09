@@ -98,5 +98,3 @@ export default {
 };
 
 // https://coolors.co/221f21-728bb4-f4f4f9-03b5aa-a8dcd9
-  theme: 
-  },

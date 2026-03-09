@@ -1,3 +1,7 @@
+import { useState, useRef, useEffect } from "react"
+
+const WS   = "wss://localhost:1043"
+
 // ── useAuth ───────────────────────────────────────────────────────────────────
 
 function useAuth() {
