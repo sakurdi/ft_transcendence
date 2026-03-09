@@ -32,6 +32,16 @@ export default function Login() {
 		}, []
 	)
 
+	function handleEnter(event) {
+		if (event.key == "Enter") {
+			const form = event.target.form;
+			const index = [...form].indexOf(event.target);
+			console.log(`Index: ${index}`)
+			form[index + 1].focus();
+			event.preventDefault()
+		}
+	}
+
 	async function onSubmit() {
 		console.log(values.username, values.password)
 		try {
@@ -42,22 +52,25 @@ export default function Login() {
 			setLoginError(error)
 		}
 	}
+
 	return (
-		<div className={styles.Register}>
+		<form className={styles.Register} onSubmit={e => { e.preventDefault();}}>
 			<TextInput
 				value={values.username}
 				onChange={(username) => setValue("username", username)}
 				placeholder="Login"
-			/>
+				onKeypress={ handleEnter }
+				/>
 			<PasswordInput
 				value={values.password}
 				onChange={(password) => setValue("password", password)}
-				onEnter={onSubmit}
+				onKeypress={ handleEnter }
+				// onEnter={onSubmit}
 			/>
 			<Button onClick={onSubmit}>
 				Login
 			</Button>
 			<ErrorText errorText={loginError}/>
-		</div>
+		</form>
 	)
 }

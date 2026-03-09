@@ -9,13 +9,24 @@ export default function TextInput ({
 	className,
 	onEnter = undefined,
 	children,
+	onKeypress = undefined
 }) {
+	const getOnKeyPress = (onKeypress, onEnter) => {
+		return (e) => {
+			if (onKeypress)
+				onKeypress(e)
+			if (e.key == "Enter" && onEnter != undefined)
+				onEnter()
+		}
+	}
+
 	const getOnEnter_ = (onEnter) => {
 		if (onEnter !== undefined) {
 			return (
 				(e) => {
 					if (e.key === "Enter")
 						onEnter();
+					
 				}
 			)
 		} else {
@@ -29,7 +40,8 @@ export default function TextInput ({
 	return (
 		<div className={styles.TextInput_Div}>
 			<input className={className}
-				onKeyDown={(e) => {onEnter_(e)}}
+				// onKeyDown={(e) => {onEnter_(e)}}
+				onKeyDown={(e) => {getOnKeyPress(onKeypress, onEnter)(e)}}
 				type={type}
 				placeholder={placeholder}
 				value={value}

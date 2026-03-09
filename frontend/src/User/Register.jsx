@@ -98,6 +98,16 @@ export default function Register() {
 		}, []
 	)
 
+	// function handleEnter(event) {
+	// 	if (event.key == "Enter") {
+	// 		const form = event.target.form;
+	// 		const index = [...form].indexOf(event.target);
+	// 		console.log(`Index: ${index}`)
+	// 		form[index + 1].focus();
+	// 		event.preventDefault()
+	// 	}
+	// }
+
 	async function onSubmit() {	
 		const validEmail = checkEmail(values.email,
 			(errEmail) => {setError("email", errEmail)})
