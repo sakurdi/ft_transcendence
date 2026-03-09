@@ -13,6 +13,7 @@ import (
 type Event struct {
 	Type string `json:"type"`
 	Data any    `json:"data"`
+	User string `json:"user"`
 }
 
 type Conn struct {

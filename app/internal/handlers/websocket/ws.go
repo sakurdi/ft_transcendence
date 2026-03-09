@@ -5,6 +5,7 @@ import (
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/middleware"
 	"ft_transcendence/internal/models"
+	// "ft_transcendence/internal/handlers"
 	store "ft_transcendence/internal/store"
 	"ft_transcendence/internal/ws"
 	"log"
@@ -28,27 +29,28 @@ func ThreadSocket(c *config.Config) http.HandlerFunc {
 	}
 }
 
-// func CheckPresence(c *config.Config) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
+func CheckPresence(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 
-// 		// senderID := middleware.GetUserID(c, r)
-// 		// recipientUsername := chi.URLParam(r, "username")
-// 		// recipientID, _ := store.GetUserID(c.DB, r.Context(), recipientUsername)
-// 		// log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
-// 		// room := ws.DMRoom(senderID, recipientID)
-// 		room := "global"
+		senderID := middleware.GetUserID(c, r)
+		senderUsername, _ := store.GetUserLogin(c.DB, r.Context(), senderID)
+		// recipientUsername := chi.URLParam(r, "username")
+		// recipientID, _ := store.GetUserID(c.DB, r.Context(), recipientUsername)
+		// log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
+		// room := ws.DMRoom(senderID, recipientID)
+		room := "global"
 
-// 		onConnect := func(conn *ws.Conn) {
-// 			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "is online"})
-// 		}
+		onConnect := func(conn *ws.Conn) {
+			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "isonline", User: senderUsername})
+		}
 
-// 		onDisconnect := func(conn *ws.Conn) {
-// 			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "is offline"})
-// 		}
+		onDisconnect := func(conn *ws.Conn) {
+			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "isoffline", User: senderUsername})
+		}
 
-// 		c.Hub.Serve(w, r, room, onConnect, nil, onDisconnect)
-// 	}
-// }
+		c.Hub.Serve(w, r, room, onConnect, nil, onDisconnect)
+	}
+}
 
 func DMSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

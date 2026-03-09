@@ -282,11 +282,22 @@ function CreatePostSection() {
 function DMSection({ auth }) {
     const { entries, push } = useLog()
     const socket = useSocket(push)
+	const presenceScoket = useSocket(push)
     const [userID,   setUserID]   = useState("2")
     const [message,  setMessage]  = useState("")
     const [messages, setMessages] = useState([])
     const msgsRef    = useRef(null)
     const handlerRef = useRef(null)
+
+	const [userConnected, setUserConnected] = useState({})
+
+
+    useEffect(() => {
+        console.log(userConnected)
+    }, [userConnected])
+
+
+
 
     useEffect(() => {
         if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
@@ -294,12 +305,27 @@ function DMSection({ auth }) {
 
     // auto-connect when user logs in
     useEffect(() => {
-        if (auth.user) connectDM()
+        if (auth.user) {
+			connectDM()
+			isConnected()
+		}
         else {
             socket.disconnect()
+			presenceScoket.disconnect()
             setMessages([])
         }
     }, [auth.user])
+
+	const userWentOffline = (userToRemove) => {
+		setUserConnected(friends => {
+			const { [userToRemove]: _, ...rest} = friends;
+			return rest;
+		});
+	}
+
+	const userWentOnline = (userToAdd) => {
+		setUserConnected(friends => ({...friends, [userToAdd]: userToAdd}))
+	}
 
     handlerRef.current = function(event) {
         if (event.type === "history") {
@@ -308,6 +334,21 @@ function DMSection({ auth }) {
         if (event.type === "new_message" && event.data) {
             setMessages(prev => [...prev, event.data])
         }
+		if (event.type === "typing") {
+
+		}
+		if (event.type === "connection") {
+			console.log(event)
+			if (event.data === "isonline")
+			{
+				console.log("isonline")
+				userWentOnline(event.user)
+			}
+			else {
+				console.log("isoffline")
+				userWentOffline(event.user)
+			}
+		}
     }
 
     const connectDM = async (username) => {
@@ -323,6 +364,43 @@ function DMSection({ auth }) {
     function sendMessage() {
         if (socket.send({ content: message })) setMessage("")
     }
+
+	const isConnected = async () => {
+		presenceScoket.connect(`${WS}/ws/presence`, (event) => handlerRef.current(event))
+	}
+
+	function connectionLight(username) {
+		if (userConnected[username] !== undefined) {
+			return <div className="online-indicator"> pipi
+			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
+				{/* <span className="display: block;
+				width: 15px;
+				height: 15px;
+				
+				background-color: #0fcc45;
+				opacity: 0.7;
+				border-radius: 50%;
+				
+				animation: blink 1s linear infinite;"></span> */}
+				
+			</div>
+		}
+		else {
+			return <div className="online-indicator"> caca
+			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-red-600">non</span>
+				{/* <span className="display: block;
+				width: 15px;
+				height: 15px;
+				
+				background-color: #606156;
+				opacity: 0.7;
+				border-radius: 50%;
+				
+				animation: blink 1s linear infinite;"></span> */}
+				
+			</div>
+		}
+	}
 
     function handleKey(e) {
         if (e.key === "Enter") sendMessage()
@@ -340,13 +418,6 @@ function DMSection({ auth }) {
         }
     };
 
-    // const removeFriend = async () => {
-    //     const res = await api(`/friends/${newFriendId}`, { method: "DELETE" });
-    //     if (res.ok) {
-    //         setNewFriendId("");
-	// 		getFriends();
-    //     }
-    // };
 
 	 const removeFriend = async (username) => {
         const res = await api(`/friends/${username}`, { method: "DELETE" });
@@ -362,7 +433,9 @@ function DMSection({ auth }) {
 			const friends = JSON.parse(res.body);
 			// console.log("Friends:", friends);
 			setFriends(Array.isArray(friends) ? friends : []);
+
 		}
+		// console.log(userConnected)
 	}
 
 	const sendRequest = async () => {
@@ -438,23 +511,23 @@ function DMSection({ auth }) {
         }
     };
 
-    return (
-        <div className="flex flex-col items-center border rounded bg-white w-64">
-            <img src={previewUrl} 
-                className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+		return (
+			<div className="flex flex-col items-center border rounded bg-white w-64">
+				<img src={previewUrl} 
+					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
-            <input type="file" 
-                accept="image/png, image/jpeg, image/jpg" 
-                onChange={handleFileChange} 
-                className="text-xs"/>
+				<input type="file" 
+					accept="image/png, image/jpeg, image/jpg" 
+					onChange={handleFileChange} 
+					className="text-xs"/>
 
-            <button onClick={uploadAvatar}
-                className="bg-sky-600 text-white rounded">
-                Upload
-            </button>
-        </div>
-    );
-}
+				<button onClick={uploadAvatar}
+					className="bg-sky-600 text-white rounded">
+					Upload
+				</button>
+			</div>
+		);
+	}
 
 
     return (
@@ -503,9 +576,12 @@ function DMSection({ auth }) {
 						friends.map(friend => (
 							<li key={friend.id}>
 								{friend.username} (ID: {friend.id})
+								{connectionLight(friend.username)}
+								
 								<Btn onClick={() => connectDM(friend.username)}>Chat</Btn>
 								<Btn onClick={() => checkProfil(friend.username)}>Profile</Btn>
 								<Btn onClick={() => removeFriend(friend.username)}>Unfriend</Btn>
+
 							</li>
 						))
 					)}
