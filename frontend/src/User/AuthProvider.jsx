@@ -37,7 +37,6 @@ export function AuthProvider( { children } ) {
 
 	const register = async (username, email, password) => {
 		const response = await apiPost('/register', {
-			method: 'POST',
 			body: JSON.stringify({
 				'username': username,
 				'Email': email,

@@ -12,55 +12,55 @@ function checkEmail(email, setEmailError) {
 	if (email === "") {
 		// setValidEmailChar(validEMailFalse)
 		setEmailError("Email is empty")
-		console.log("Empty Email")
+		// console.log("Empty Email")
 		return false
 	}
 	else if (!email.match(regexEmail)) {
 		// setValidEmailChar(validEMailFalse)
 		setEmailError("Email is not valid")
-		console.log("mail Doesnt match")
+		// console.log("mail Doesnt match")
 		return false
 	}
 	// setValidEmailChar(validEMailTrue)
 	setEmailError("")
-	console.log("Mail ok")
+	// console.log("Mail ok")
 	return true
 }
 
 function checkUsername(username, setUsernameError) {
 	if (username === "") {
 		setUsernameError("Username is empty")
-		console.log("Empty username")
+		// console.log("Empty username")
 		return false
 	}
 	if (username.length <= 2) {
 		setUsernameError("Username needs to be a least 3 characters")
-		console.log("To small username")
+		// console.log("To small username")
 		return false
 	}
 	setUsernameError("")
-	console.log("username ok")
+	// console.log("username ok")
 	return true
 }
 
 function checkPassword(password, password2, setPasswordError) {
 	if (password === "") {
 		setPasswordError("Password is empty")
-		console.log("Empty password")
+		// console.log("Empty password")
 		return false
 	}
 	if (password.length <= 3) {
 		setPasswordError("Password needs to be a least 4 characters")
-		console.log("Tosmall password")
+		// console.log("Tosmall password")
 		return false
 	}
 	if (password !== password2) {
 		setPasswordError("Passwords don't match")
-		console.log("no match password")
+		// console.log("no match password")
 		return false
 	}
 	setPasswordError("")
-	console.log("password ok")
+	// console.log("password ok")
 	return true
 }
 
@@ -92,7 +92,7 @@ export default function Register() {
 
 	useEffect(() => { 
 			if (userHandle.user) {
-				console.log("User is already registerd")
+				// console.log("User is already registerd")
 				navigate('/')
 			}
 		}, []
@@ -108,12 +108,12 @@ export default function Register() {
 		if (!validEmail || !validUsername || !validPassword) {
 			return
 		}
-		console.log(values.email, values.username, values.password1, values.password2)
+		// console.log(values.email, values.username, values.password1, values.password2)
 		try {
 			await userHandle.register(values.username, values.email, values.password1)
 			navigate('/')
 		} catch (error) {
-			console.log(error)
+			// console.log(error)
 			setRegisterError(error)
 		}
 	}

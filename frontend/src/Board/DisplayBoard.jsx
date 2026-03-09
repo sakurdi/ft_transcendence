@@ -5,6 +5,8 @@ import useAuth from "../User/AuthProvider";
 import DisplayPost from "./DisplayPost";
 import DisplayThreads from "./DisplayThreads";
 
+import { apiGet } from "../Utils/api";
+
 import TextEdit from "../components/TextEdit";
 
 // type Board struct {
@@ -62,11 +64,8 @@ export function DisplayBoardHeader({board, privilegeLvl}) {
 
 	useEffect(() => {
 		const fetfchOwnerName = async () => {
-			// const response = await fetch("/api/board/" + boardname + "/ismod");
-			// if (!response.ok == false)
-			// 	return
-			// const data = await response.json()
-			// if (data.success == false)
+			// const response = await apiGet(`/api/board/${boardname}/ismod`);
+			// if (!response.ok)
 			// 	return
 			setOwnerName("Ca faut le faire") // TODO
 		}
@@ -109,13 +108,10 @@ export default function DisplayBoard() {
 	useEffect(() => {
 		const checkIsMod = async (boardname) =>  {
 			try {
-				const response = await fetch("/api/board/" + boardname + "/ismod");
+				const response = await apiGet(`/board/${boardname}/ismod`);
 				if (!response.ok) {
-					throw (await response.text())
+					throw (response.success)
 				}
-				const data = await response.json()
-				if (data.success == false)
-					throw (data.context)
 				return true;
 			} catch (error) {
 				// console.log(error)
@@ -125,23 +121,19 @@ export default function DisplayBoard() {
 	
 		const fetchBoard = async (boardName) => {
 			try {
-				const response = await fetch("/api/board/" + boardName,)
+				const response = await apiGet(`/board/${boardName}`,)
 				if (!response.ok) {
-					throw (await response.text())
+					throw (response.status)
 				}
-				// console.log(response)
-				const data = await response.json()
-				if (data.success == false)
-					throw (data.context)
-				// console.log(data)
-				setBoard(data)
+				console.log(response.json)
+				setBoard(response.json)
 				if (userHandle.user) {
 					setPrivilegeLvl(1)
 					const user = userHandle.user
-					if (user.id == data.owner_id) {
+					if (user.id == response.json.owner_id) {
 						setPrivilegeLvl(3)
 					} else {
-						const isMod = await checkIsMod(data.name) 
+						const isMod = await checkIsMod(response.json.name) 
 						if (isMod) {
 							setPrivilegeLvl(2)
 						}

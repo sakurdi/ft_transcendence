@@ -39,10 +39,10 @@ export default function NavBar() {
 
 	const NavBarHandle = (loggedIn) => {
 		if (loggedIn) {
-			console.log("Logged In")
+			// console.log("Logged In")
 			return <NavBarUser/>;
 		} else {
-			console.log("Not Logged In")
+			// console.log("Not Logged In")
 			return <NavBarLogin/>;
 		}
 	}

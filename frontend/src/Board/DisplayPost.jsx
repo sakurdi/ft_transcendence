@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigation } from "react-dom"
 import useAuth from "../User/AuthProvider";
+import { apiGet } from "../Utils/api";
 
 
 export default function DisplayPost({board, postID}) {
-	const baseURL = "/board/" + board.name + "/"
+	const baseURL = `/board/${board.name}/`
 	const userHandler = useAuth()
 	const [loading, setLoading] = useState(true)
 	const [post, setPost] = useState([])
@@ -12,9 +13,9 @@ export default function DisplayPost({board, postID}) {
 	useEffect(() => {
 		const getPost = async (postID) => {
 			try {
-				// const response = await fetch("/api/board/" + boardName,)
+				// const response = await apiGet(`/board/${boardName}`)
 				// if (!response.ok) {
-				// 	throw (await response.text())
+				// 	throw (await response.status)
 				// }
 				// console.log(response)
 				// const data = await response.json()

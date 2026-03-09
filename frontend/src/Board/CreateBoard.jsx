@@ -5,6 +5,8 @@ import TextInput from  "../components/TextInput"
 import useAuth from "../User/AuthProvider";
 import WrapError from "../components/WrapError";
 
+import { apiPost } from "../Utils/api";
+
 // type BoardCreate struct {
 // 	Name        string `json:"name"`
 // 	Description string `json:"description"`
@@ -27,20 +29,15 @@ export default function CreateBoard() {
 	const _CreateBoard = async () => {
 		try {
 			console.log(boardName, boardDescription)
-			const response = await fetch("/api/board/new",
-				{method: 'POST',
-				body: JSON.stringify({
-				'name': boardName,
-				'description': boardDescription}
+			const response = await apiPost("//board/new",
+				{body: JSON.stringify({
+					'name': boardName,
+					'description': boardDescription}
 			)} )
 			if (!response.ok) {
-				throw (await response.text())
+				throw (await response.status)
 			}
-			console.log(response)
-			const data = await response.json()
-			if (data.success == false)
-				throw (data.context)
-			console.log(data)
+			console.log(response.json)
 			navigate("/board/" + boardName);
 		} catch (error) {
 			console.log(error)
