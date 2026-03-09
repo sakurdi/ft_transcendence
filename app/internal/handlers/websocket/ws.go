@@ -55,6 +55,7 @@ func CheckPresence(c *config.Config) http.HandlerFunc {
 func DMSocket(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		senderID := middleware.GetUserID(c, r)
+		senderUsername, _ := store.GetUserLogin(c.DB, r.Context(), senderID)
 		recipientUsername := chi.URLParam(r, "username")
 		recipientID, _ := store.GetUserID(c.DB, r.Context(), recipientUsername)
 		log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
@@ -80,7 +81,7 @@ func DMSocket(c *config.Config) http.HandlerFunc {
 			}
 
 			if incoming.Type == "typing" {
-				c.Hub.Broadcast(room, ws.Event{Type: "typing", Data: "is typing..."})
+				c.Hub.Broadcast(room, ws.Event{Type: "typing", Data: "is typing...", User: senderUsername})
 				return
 			}
 
@@ -93,7 +94,7 @@ func DMSocket(c *config.Config) http.HandlerFunc {
 				return
 			}
 
-			c.Hub.Broadcast(room, ws.Event{Type: "new_message", Data: msg})
+			c.Hub.Broadcast(room, ws.Event{Type: "new_message", Data: msg, User: senderUsername})
 		}
 
 		c.Hub.Serve(w, r, room, onConnect, onMessage, nil)

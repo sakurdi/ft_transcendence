@@ -146,8 +146,8 @@ function Input({ placeholder, value, onChange, onKeyDown, type = "text", classNa
             type={type}
             placeholder={placeholder}
             value={value}
-            onChange={e => onChange(e.target.value)}
-            onKeyDown={onKeyDown}
+            onChange={e => {onChange(e.target.value)}}
+            onKeyDown={(e) => {onKeyDown?.(e)}}
             className={`border border-stone-200 rounded px-3 py-1.5 text-sm bg-stone-50 outline-none focus:border-stone-400 font-mono w-40 ${className}`}
         />
     )
@@ -277,6 +277,75 @@ function CreatePostSection() {
     )
 }
 
+// ── Profil Showcase ───────────────────────────────────────────────────────────────
+
+function ProfilShowcase({profilUser, onClose}) {
+	return (profilUser && 
+			<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+				onClick={onClose}>
+
+				<div className="bg-white rounded-xl p-6 shadow-xl flex flex-col items-center gap-3 w-64"
+					onClick={e => e.stopPropagation()}>
+
+					<img src={profilUser.avatar_url || "/api/uploads/avatars/default.jpg"}
+						alt="avatar123"
+						className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+
+					<p className="font-bold text-stone-800 text-lg">{profilUser.username}</p>
+
+					{/* <Btn onClick={() => setProfilUser(null)} variant="ghost">Close123</Btn> */}
+					<Btn onClick={onClose}>Close</Btn>
+				</div>
+			</div>)
+}
+
+// ── Avatar Upload───────────────────────────────────────────────────────────────
+
+function ProfileAvatar() {
+    const [file, setFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState();
+
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile)); 
+    };
+
+    const uploadAvatar = async () => {
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("avatar", file);
+        const res = await fetch(`/api/uploads/avatar/${file.name}`, {
+            method: "POST",
+            body: formData,
+            credentials: "include" 
+        });
+
+        if (res.ok) {
+            // const data = await res.json();
+            // setPreviewUrl(data.avatar_url);
+			setPreviewUrl(null);
+        }
+    };
+		return (
+			<div className="flex flex-col items-center border rounded bg-white w-64">
+				<img src={previewUrl} 
+					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+
+				<input type="file" 
+					accept="image/png, image/jpeg, image/jpg" 
+					onChange={handleFileChange} 
+					className="text-xs"/>
+
+				<button onClick={uploadAvatar}
+					className="bg-sky-600 text-white rounded">
+					Upload
+				</button>
+			</div>
+		);
+	}
+
 // ── DM ────────────────────────────────────────────────────────────────────────
 
 function DMSection({ auth }) {
@@ -291,13 +360,13 @@ function DMSection({ auth }) {
 
 	const [userConnected, setUserConnected] = useState({})
 
+	const [friends, setFriends] = useState([]);
+	const [newFriendId, setNewFriendId] = useState("");
+	const [friendRequests, setFriendRequests] = useState([]);
 
     useEffect(() => {
         console.log(userConnected)
     }, [userConnected])
-
-
-
 
     useEffect(() => {
         if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
@@ -365,6 +434,47 @@ function DMSection({ auth }) {
         if (socket.send({ content: message })) setMessage("")
     }
 
+	// function ChatWindow() {
+	// 	return  <div
+    //             ref={msgsRef}
+    //             className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
+    //         >
+    //             {messages.length === 0
+    //                 ? <p className="text-xs text-stone-300 font-mono">no messages</p>
+    //                 : messages.map((m, i) => m && (
+    //                     <div key={m.id ?? i} className="flex flex-col gap-0.5">
+    //                         <div className="flex items-center gap-2">
+    //                             <span className={`text-xs font-mono font-medium ${
+    //                                 m.sender_id === auth.user?.id
+    //                                     ? "text-sky-600"
+    //                                     : "text-stone-500"
+    //                             }`}>
+    //                                 {auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
+    //                             </span>
+    //                             <span className="text-xs text-stone-300">
+    //                                 {m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
+    //                             </span>
+    //                         </div>
+    //                         <p className="text-sm text-stone-800">{m.content}</p>
+    //                     </div>
+    //                 ))
+    //             }
+    //         </div>
+	// }
+
+	// function ChatInput() {
+	// 	return  <Row>
+    //             <Input
+    //                 placeholder="message"
+    //                 value={message}
+    //                 onChange={isTyping}
+    //                 onKeyDown={handleKey}
+    //                 className="w-72"
+    //             />
+    //             <Btn onClick={sendMessage}>Send</Btn>
+    //         </Row>
+	// }
+
 	const isConnected = async () => {
 		presenceScoket.connect(`${WS}/ws/presence`, (event) => handlerRef.current(event))
 	}
@@ -372,32 +482,12 @@ function DMSection({ auth }) {
 	function connectionLight(username) {
 		if (userConnected[username] !== undefined) {
 			return <div className="online-indicator"> pipi
-			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
-				{/* <span className="display: block;
-				width: 15px;
-				height: 15px;
-				
-				background-color: #0fcc45;
-				opacity: 0.7;
-				border-radius: 50%;
-				
-				animation: blink 1s linear infinite;"></span> */}
-				
+				<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
 			</div>
 		}
 		else {
 			return <div className="online-indicator"> caca
-			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-red-600">non</span>
-				{/* <span className="display: block;
-				width: 15px;
-				height: 15px;
-				
-				background-color: #606156;
-				opacity: 0.7;
-				border-radius: 50%;
-				
-				animation: blink 1s linear infinite;"></span> */}
-				
+				<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-red-600">non</span>
 			</div>
 		}
 	}
@@ -406,70 +496,204 @@ function DMSection({ auth }) {
         if (e.key === "Enter") sendMessage()
     }
 
-    const [friends, setFriends] = useState([]);
-    const [newFriendId, setNewFriendId] = useState("");
-	const [friendRequests, setFriendRequests] = useState([]);
+    // const [friends, setFriends] = useState([]);
+    // const [newFriendId, setNewFriendId] = useState("");
+	// const [friendRequests, setFriendRequests] = useState([]);
 
 
-    const addFriend = async () => {
-        const res = await api(`/friends/${newFriendId}`, { method: "POST" });
-        if (res.ok) {
-            setNewFriendId("");
-        }
-    };
+    // const addFriend = async () => {
+    //     const res = await api(`/friends/${newFriendId}`, { method: "POST" });
+    //     if (res.ok) {
+    //         setNewFriendId("");
+    //     }
+    // };
 
 
-	 const removeFriend = async (username) => {
-        const res = await api(`/friends/${username}`, { method: "DELETE" });
-        if (res.ok) {
-            setNewFriendId("");
-			getFriends();
-        }
-    };
+	//  const removeFriend = async (username) => {
+    //     const res = await api(`/friends/${username}`, { method: "DELETE" });
+    //     if (res.ok) {
+    //         setNewFriendId("");
+	// 		getFriends();
+    //     }
+    // };
 
-	const getFriends = async () => {
-		const res = await api("/friends");
-		if (res.ok) {
-			const friends = JSON.parse(res.body);
-			// console.log("Friends:", friends);
-			setFriends(Array.isArray(friends) ? friends : []);
+	// const getFriends = async () => {
+	// 	const res = await api("/friends");
+	// 	if (res.ok) {
+	// 		const friends = JSON.parse(res.body);
+	// 		setFriends(Array.isArray(friends) ? friends : []);
+	// 	}
+	// }
 
+	// const sendRequest = async () => {
+	// 	const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
+	// 	if (res.ok) {
+	// 		setNewFriendId("");
+	// 	}
+	// };
+
+	// const acceptRequest = async (requestID) => {
+	// 	if (!requestID)
+	// 		return;
+	// 	const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+	// 	if (res.ok) {
+	// 		getFriends();
+	// 		getFriendRequests();
+	// 	}
+	// };
+
+	// const declineRequest = async (requestID) => {
+	// 	if (!requestID)
+	// 		return;
+	// 	const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+	// 	if (res.ok) {
+	// 		getFriendRequests();
+	// 	}
+	// };
+
+	// const getFriendRequests = async () => {
+	// 	const res = await api("/friends/requests");
+	// 	if (res.ok) {
+	// 		const requests = JSON.parse(res.body);
+	// 		setFriendRequests(Array.isArray(requests) ? requests : []);
+	// 	}
+	// }
+
+	function FriendSection() {
+		// const [friends, setFriends] = useState([]);
+		// const [newFriendId, setNewFriendId] = useState("");
+		// const [friendRequests, setFriendRequests] = useState([]);
+
+
+		const addFriend = async () => {
+			const res = await api(`/friends/${newFriendId}`, { method: "POST" });
+			if (res.ok) {
+				setNewFriendId("");
+			}
+		};
+
+
+		const removeFriend = async (username) => {
+			const res = await api(`/friends/${username}`, { method: "DELETE" });
+			if (res.ok) {
+				setNewFriendId("");
+				getFriends();
+			}
+		};
+
+		const getFriends = async () => {
+			const res = await api("/friends");
+			if (res.ok) {
+				const friends = JSON.parse(res.body);
+				setFriends(Array.isArray(friends) ? friends : []);
+			}
 		}
-		// console.log(userConnected)
-	}
 
-	const sendRequest = async () => {
-		const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
-		if (res.ok) {
-			setNewFriendId("");
-		}
-	};
+		const sendRequest = async () => {
+			const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
+			if (res.ok) {
+				setNewFriendId("");
+			}
+		};
 
-	const acceptRequest = async (requestID) => {
-		if (!requestID)
-			return;
-		const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
-		if (res.ok) {
-			getFriends();
-			getFriendRequests();
-		}
-	};
+		const acceptRequest = async (requestID) => {
+			if (!requestID)
+				return;
+			const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+			if (res.ok) {
+				getFriends();
+				getFriendRequests();
+			}
+		};
 
-	const declineRequest = async (requestID) => {
-		if (!requestID)
-			return;
-		const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
-		if (res.ok) {
-			getFriendRequests();
-		}
-	};
+		const declineRequest = async (requestID) => {
+			if (!requestID)
+				return;
+			const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+			if (res.ok) {
+				getFriendRequests();
+			}
+		};
 
-	const getFriendRequests = async () => {
-		const res = await api("/friends/requests");
-		if (res.ok) {
-			const requests = JSON.parse(res.body);
-			setFriendRequests(Array.isArray(requests) ? requests : []);
+		const getFriendRequests = async () => {
+			const res = await api("/friends/requests");
+			if (res.ok) {
+				const requests = JSON.parse(res.body);
+				setFriendRequests(Array.isArray(requests) ? requests : []);
+			}
 		}
+
+		return  (
+			<>
+
+			<Row>
+                <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />
+                <Btn onClick={addFriend}>Add Friend</Btn>
+            </Row>
+
+			<Row>
+                <Input placeholder="User ID to remove" value={newFriendId} onChange={setNewFriendId} />
+                <Btn onClick={removeFriend}>Remove Friend</Btn>
+            </Row>
+
+			<Row>
+				<Btn onClick={getFriends}>Refresh Friends</Btn>
+			</Row>
+
+			<div>
+				<h3>Friends List:</h3>
+				<ul>
+					{friends && friends.length === 0 ? (
+						<li className="text-stone-400">No friend</li>
+					) : (
+						friends.map(friend => (
+							<li key={friend.id}>
+								{friend.username} (ID: {friend.id})
+								{connectionLight(friend.username)}
+								
+								<Btn onClick={() => connectDM(friend.username)}>Chat</Btn>
+								<Btn onClick={() => checkProfil(friend.username)}>Profile</Btn>
+								<Btn onClick={() => removeFriend(friend.username)}>Unfriend</Btn>
+
+							</li>
+						))
+					)}
+				</ul>
+			</div>
+
+			<Row>
+				<Input type="text" placeholder="Username to send request" value={newFriendId} onChange={setNewFriendId} />
+				<Btn onClick={sendRequest}>Send Request</Btn>
+			</Row>
+
+			<Row>
+				<Input placeholder="Username to accept" value={newFriendId} onChange={setNewFriendId} />
+				<Btn onClick={() => acceptRequest(newFriendId)}>Accept Request</Btn>
+			</Row>
+
+			<Row>
+				<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
+			</Row>
+
+			<div>
+				<h3>Friend Requests:</h3>
+				<ul>
+					{friendRequests && friendRequests.length === 0 ? (
+						<li>No friend request</li>
+					) : (
+						friendRequests.map(request => (
+							<li key={request.id}>
+								Request from {request.username} (ID: {request.from_user_id})
+								<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
+								<Btn onClick={() => declineRequest(request.username)}>Decline</Btn>
+							</li>
+						))
+					)}
+				</ul>
+			</div>
+
+			</>
+			)
 	}
 
 	const [profilUser, setProfilUser] = useState(null);
@@ -482,79 +706,17 @@ function DMSection({ auth }) {
 		}
 	};
 
-
-	function ProfileAvatar() {
-    const [file, setFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState("/api/uploads/avatars/default.png");
-
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        setPreviewUrl(URL.createObjectURL(selectedFile)); 
-    };
-
-    const uploadAvatar = async () => {
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append("avatar", file);
-        const res = await fetch(`/api/uploads/avatar/${file.name}`, {
-            method: "POST",
-            body: formData,
-            credentials: "include" 
-        });
-
-        if (res.ok) {
-            // const data = await res.json();
-            // setPreviewUrl(data.avatar_url);
-			setPreviewUrl(null);
-        }
-    };
-
-		return (
-			<div className="flex flex-col items-center border rounded bg-white w-64">
-				<img src={previewUrl} 
-					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
-
-				<input type="file" 
-					accept="image/png, image/jpeg, image/jpg" 
-					onChange={handleFileChange} 
-					className="text-xs"/>
-
-				<button onClick={uploadAvatar}
-					className="bg-sky-600 text-white rounded">
-					Upload
-				</button>
-			</div>
-		);
-	}
-
-
     return (
 		<>
-		{profilUser && (
-			<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-				onClick={() => setProfilUser(null)}>
 
-				<div className="bg-white rounded-xl p-6 shadow-xl flex flex-col items-center gap-3 w-64"
-					onClick={e => e.stopPropagation()}>
-
-					<img src={profilUser.avatar_url || "/api/uploads/avatars/default.png"}
-						alt="avatar123"
-						className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
-
-					<p className="font-bold text-stone-800 text-lg">{profilUser.username}</p>
-
-					<Btn onClick={() => setProfilUser(null)} variant="ghost">Close</Btn>
-
-				</div>
-			</div>
-		)}
+		<ProfilShowcase profilUser={profilUser} onClose={()=> setProfilUser(null)} />
 
 		<ProfileAvatar />
 
         <Section title="DM Socket">
-			<Row>
+
+			<FriendSection />
+			{/* <Row>
                 <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />
                 <Btn onClick={addFriend}>Add Friend</Btn>
             </Row>
@@ -623,7 +785,9 @@ function DMSection({ auth }) {
                 <Input placeholder="recipient username" value={userID} onChange={setUserID} />
                 <Btn onClick={() => connectDM(userID)}>Connect</Btn>
                 <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
-            </Row>
+            </Row> */}
+
+			{/* <ChatWindow /> */}
             <div
                 ref={msgsRef}
                 className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
@@ -652,6 +816,7 @@ function DMSection({ auth }) {
 
             <Log entries={entries} />
 
+			{/* <ChatInput /> */}
             <Row>
                 <Input
                     placeholder="message"
@@ -662,6 +827,7 @@ function DMSection({ auth }) {
                 />
                 <Btn onClick={sendMessage}>Send</Btn>
             </Row>
+
         </Section>
 		</>
     )
