@@ -31,3 +31,8 @@ type PostCreate struct {
 	Content  string  `json:"content"`
 	ParentID *int    `json:"parent_id"`
 }
+
+type BoardRole struct {
+	Username string `json:"username"`
+	Role     string `json:"role"`
+}

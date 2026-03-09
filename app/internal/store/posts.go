@@ -70,3 +70,14 @@ func scanPosts(rows pgx.Rows) ([]models.Post, error) {
 	}
 	return posts, rows.Err()
 }
+
+func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, error) {
+	var p models.Post
+	err := db.QueryRow(ctx, `
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at
+		FROM posts p LEFT JOIN users u ON p.author_id = u.id
+		WHERE p.id=$1`,
+		postID,
+	).Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt)
+	return p, err
+}

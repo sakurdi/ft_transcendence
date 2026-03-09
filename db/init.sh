@@ -51,7 +51,16 @@ CREATE TABLE IF NOT EXISTS boards (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS board_moderators (
+    board_id INTEGER REFERENCES boards(id) ON DELETE CASCADE,
+    user_id  INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    added_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (board_id, user_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id);
+CREATE INDEX IF NOT EXISTS idx_board_moderators_board ON board_moderators(board_id);
+CREATE INDEX IF NOT EXISTS idx_board_moderators_user ON board_moderators(user_id);
 
 INSERT INTO boards (name, description, owner_id) VALUES
     ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
@@ -73,6 +82,21 @@ CREATE TABLE IF NOT EXISTS posts (
 
 CREATE INDEX IF NOT EXISTS idx_posts_board_id ON posts(board_id);
 CREATE INDEX IF NOT EXISTS idx_posts_parent_id ON posts(parent_id);
+
+CREATE TABLE dm_messages (
+    id           SERIAL PRIMARY KEY,
+    sender_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    recipient_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    content      TEXT NOT NULL,
+    created_at   TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_dm_conversation ON dm_messages (
+    LEAST(sender_id, recipient_id),
+    GREATEST(sender_id, recipient_id),
+    created_at DESC
+);
+
 
 INSERT INTO posts (board_id, author_id, title, content)
 SELECT 
@@ -119,6 +143,9 @@ JOIN users u ON u.login = 'gaeudes'
 JOIN posts p ON p.title = 'poppy'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
+
+
+
 
 EOSQL
 

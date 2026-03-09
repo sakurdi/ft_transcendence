@@ -100,3 +100,52 @@ func GetHash(c *config.Config) http.HandlerFunc {
 		utils.JSON(w, http.StatusOK, map[string]string{"status": hash})
 	}
 }
+
+func LoginPing(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID := c.Session.GetInt(r.Context(), "user_id")
+		username := c.Session.GetString(r.Context(), "username")
+		if userID == 0 || username == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]any{
+			"id":       userID,
+			"username": username,
+		})
+	}
+}
+
+func GetUserInfo(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if _, err := store.GetUserID(c.DB, r.Context(), chi.URLParam(r, "username")); err != nil {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return 
+		}
+		info, err := store.GetUserInfo(c.DB, r.Context(), chi.URLParam(r, "username"));
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return 
+		}
+		utils.JSON(w, http.StatusOK, info)
+	}
+}
+
+func UpdateUserInfo(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// verifier si l'utilisateur est admin
+		if 	username := c.Session.GetString(r.Context(), "username"); username !=  chi.URLParam(r, "username"){
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return 
+		}
+		var userInfo models.UserInfo
+		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+		
+	}
+}

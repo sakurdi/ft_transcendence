@@ -61,3 +61,53 @@ func RemoveModerator(db *pgxpool.Pool, ctx context.Context, boardID, userID int)
 	)
 	return err
 }
+
+func UpdateBoard(db *pgxpool.Pool, ctx context.Context, boardID int, board models.BoardCreate) error {
+	_, err := db.Exec(ctx,
+		"UPDATE boards SET name=$1, description=$2 WHERE id=$3",
+		board.Name, board.Description, boardID,
+	)
+	return err
+}
+
+func DeleteBoard(db *pgxpool.Pool, ctx context.Context, boardID int) error {
+	_, err := db.Exec(ctx, "DELETE FROM boards WHERE id=$1", boardID)
+	return err
+}
+
+func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.BoardRole, error) {
+	rows, err := db.Query(ctx, `
+		SELECT u.login,
+			CASE
+				WHEN b.owner_id = u.id THEN 'admin'
+				ELSE 'moderator'
+			END as role
+		FROM boards b
+		JOIN users u ON u.id = b.owner_id
+		WHERE b.id = $1
+
+		UNION
+
+		SELECT u.login, 'moderator' as role
+		FROM board_moderators bm
+		JOIN users u ON u.id = bm.user_id
+		WHERE bm.board_id = $1
+
+		ORDER BY role ASC`,
+		boardID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	members := []models.BoardRole{}
+	for rows.Next() {
+		var m models.BoardRole
+		if err := rows.Scan(&m.Username, &m.Role); err != nil {
+			return nil, err
+		}
+		members = append(members, m)
+	}
+	return members, rows.Err()
+}

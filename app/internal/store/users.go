@@ -48,3 +48,16 @@ func RegisterUser(db *pgxpool.Pool, ctx context.Context, user models.UserRegistr
 	)
 	return err
 }
+
+func GetUserInfo(db *pgxpool.Pool, ctx context.Context, login string) (models.UserInfo, error) {
+	
+	var userInfo models.UserInfo
+	err := db.QueryRow(ctx, "SELECT login, created_at FROM users WHERE login=$1", login).Scan(&userInfo.Login, &userInfo.Creation_date)
+	return userInfo, err
+}
+
+func EditUserInfo(db *pgxpool.Pool, ctx context.Context, userInfo models.UserInfo) error {
+	
+	
+	err := db.QueryRow(ctx, "UPDATE login=$1", login).Scan(&userInfo.Login, &userInfo.Creation_date)
+}

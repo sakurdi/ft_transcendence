@@ -6,6 +6,8 @@ import (
 	"ft_transcendence/internal/middleware"
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
+	"ft_transcendence/internal/ws"
+	"log"
 
 	"ft_transcendence/internal/utils"
 	"net/http"
@@ -132,10 +134,22 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
+		post, err := store.GetPost(c.DB, r.Context(), id)
+		if err != nil {
+			log.Printf("ws: failed to get post %d: %v", id, err)
+		} else if body.ParentID != nil {
+			room := ws.ThreadRoom(*body.ParentID)
+			log.Printf("ws: broadcasting new_reply to %s", room)
+			c.Hub.Broadcast(room, ws.Event{Type: "new_reply", Data: post})
+		} else {
+			room := ws.BoardRoom(boardID)
+			log.Printf("ws: broadcasting new_thread to %s", room)
+			c.Hub.Broadcast(room, ws.Event{Type: "new_thread", Data: post})
+		}
+
 		utils.JSON(w, http.StatusCreated, map[string]int{"id": id})
 	}
 }
-
 func DeletePostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
@@ -195,6 +209,7 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 
 func RemoveModHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
@@ -212,11 +227,53 @@ func RemoveModHandler(c *config.Config) http.HandlerFunc {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
-
 		if err := store.RemoveModerator(c.DB, r.Context(), boardID, targetID); err != nil {
-			http.Error(w, "Failed to remove moderator", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func UpdateBoardHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		var body models.BoardCreate
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+		if err := store.UpdateBoard(c.DB, r.Context(), boardID, body); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func DeleteBoardHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		if err := store.DeleteBoard(c.DB, r.Context(), boardID); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func GetBoardModTeamHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		members, err := store.GetBoardTeam(c.DB, r.Context(), boardID)
+		if err != nil {
+			log.Printf("GetBoardModTeamHandler error: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		utils.JSON(w, http.StatusOK, members)
 	}
 }

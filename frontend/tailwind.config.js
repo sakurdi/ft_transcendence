@@ -79,6 +79,18 @@ export default {
 				},
 
 			},
+			animation: {
+				"gradient-x": "gradient-x 6s ease infinite",
+			},
+			keyframes: {
+				"gradient-x": {
+				"0%, 100%": { backgroundPosition: "0% 50%" },
+				"50%": { backgroundPosition: "100% 50%" },
+				},
+			},
+			backgroundSize: {
+				"200%": "200% 200%",
+			},
 		},
 	},
 	plugins: [
@@ -86,3 +98,5 @@ export default {
 };
 
 // https://coolors.co/221f21-728bb4-f4f4f9-03b5aa-a8dcd9
+  theme: 
+  },
