@@ -50,13 +50,14 @@ function DisplayBoardDescription({board, privilegeLvl}) {
 }
 
 export function DisplayBoardHeader({board, privilegeLvl}) {
+	const navigate = useNavigate()
 	const baseOwnerName = "<undefined>"
 	const [ownerName, setOwnerName] = useState(baseOwnerName)
 
 	const DisplayBoardOwner = (ownerName, privilegeLvl) => {
 		if (ownerName === baseOwnerName) return <a>{baseOwnerName}</a>
 		// console.log(privilegeLvl)
-		const url = "/user/" + (privilegeLvl == 3 ? "me" : ownerName )
+		const url = `/user/${ownerName}`
 		return (
 			<a onClick={ () => navigate(url) }>{ownerName}</a>
 		)
@@ -157,7 +158,7 @@ export default function DisplayBoard() {
 	return (<>
 		<_displayBoard board = {board}
 			privilegeLvl = {privilegeLvl}/>
-		<DisplayThreads board={board} privilegeLvl = {privilegeLvl}/>
+		<DisplayThreads board = {board} privilegeLvl = {privilegeLvl}/>
 		</>
 	)
 }
