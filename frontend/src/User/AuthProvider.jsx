@@ -23,7 +23,7 @@ export function AuthProvider( { children } ) {
 	}
 
 	const login = async (username, password) => {
-		const res = apiPost('/login', {
+		const res = await apiPost('/login', {
 			body: JSON.stringify({
 				'username': username,
 				'password': password
@@ -32,11 +32,11 @@ export function AuthProvider( { children } ) {
 		if (!res.ok) {
 			throw (res.status)
 		}
-		getUser()
+		await getUser()
 	}
 
 	const register = async (username, email, password) => {
-		const response = await apiPOrt('/register', {
+		const response = await apiPost('/register', {
 			method: 'POST',
 			body: JSON.stringify({
 				'username': username,
@@ -47,18 +47,14 @@ export function AuthProvider( { children } ) {
 		if (!response.ok) {
 			throw (await response.status())
 		}
-		getUser()
+		await getUser()
 	}
 
 	const logout = async () => {
-		const response = await fetch('/api/logout', {method: 'POST'})
+		const response = await apiPost('/logout')
 		if (!response.ok) {
-			throw (await response.text())
+			throw (response.status)
 		}
-		const data = await response.json()
-		if (data.success == false)
-			throw (data.context)
-		// console.log(data)
 		setUser(null)
 	}
 

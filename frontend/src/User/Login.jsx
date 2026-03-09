@@ -24,12 +24,14 @@ export default function Login() {
 	}
 
 	useEffect(() => { 
+			console.log(userHandle.user)
 			if (userHandle.user) {
 				console.log("User is already logged in")
 				navigate('/')
 			}
 		}, []
 	)
+
 	async function onSubmit() {
 		console.log(values.username, values.password)
 		try {
