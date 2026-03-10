@@ -299,7 +299,7 @@ function ProfilShowcase({profilUser, onClose}) {
 			</div>)
 }
 
-// ── Avatar Upload───────────────────────────────────────────────────────────────
+// ── Avatar Upload ───────────────────────────────────────────────────────────────
 
 function ProfileAvatar() {
     const [file, setFile] = useState(null);
@@ -346,6 +346,118 @@ function ProfileAvatar() {
 		);
 	}
 
+// ── Chat Window ───────────────────────────────────────────────────────────────
+
+function ChatWindow(props) {
+	return  <div
+			// ref={msgsRef}
+			className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
+		>
+			{props.messages.length === 0
+				? <p className="text-xs text-stone-300 font-mono">no messages</p>
+				: props.messages.map((m, i) => m && (
+					<div key={m.id ?? i} className="flex flex-col gap-0.5">
+						<div className="flex items-center gap-2">
+							<span className={`text-xs font-mono font-medium ${
+								m.sender_id === props.auth.user?.id
+									? "text-sky-600"
+									: "text-stone-500"
+							}`}>
+								{props.auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
+							</span>
+							<span className="text-xs text-stone-300">
+								{m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
+							</span>
+						</div>
+						<p className="text-sm text-stone-800">{m.content}</p>
+					</div>
+				))
+			}
+		</div>
+}
+
+// ── Chat Input ───────────────────────────────────────────────────────────────
+
+function ChatInput(props) {
+	return  <Row>
+			<Input
+				autoFocus="autoFocus"
+				placeholder="message"
+				value={props.message}
+				onChange={props.isTyping}
+				onKeyDown={props.handleKey}
+				className="w-72"
+			/>
+			<Btn onClick={props.sendMessage}>Send</Btn>
+		</Row>
+}
+
+// ── Friend List ───────────────────────────────────────────────────────────────
+
+function FriendList(props) {
+	return <>
+		<Row>
+			<Btn onClick={props.getFriends}>Refresh Friends</Btn>
+		</Row>
+
+		<div>
+			<h3>Friends List:</h3>
+			<ul>
+				{props.friends && props.friends.length === 0 ? (
+					<li className="text-stone-400">No friend</li>
+				) : (
+					props.friends.map(friend => (
+						<li key={friend.id}>
+							{friend.username} (ID: {friend.id})
+							{props.connectionLight(friend.username)}
+							
+							<Btn onClick={() => props.connectDM(friend.username)}>Chat</Btn>
+							<Btn onClick={() => props.checkProfil(friend.username)}>Profile</Btn>
+							<Btn onClick={() => props.removeFriend(friend.username)}>Unfriend</Btn>
+
+						</li>
+					))
+				)}
+			</ul>
+		</div>
+	</>
+}
+
+// ── Friend List Request ───────────────────────────────────────────────────────────────
+
+function FriendListRequest(props) {
+	return <>
+
+		<Row>
+			<Input placeholder="Username to send request" value={props.newFriendId} onChange={props.setNewFriendId} />
+			<Btn onClick={props.sendRequest}>Send Request</Btn>
+		</Row>
+
+		<Row>
+			<Btn onClick={props.getFriendRequests}>Refresh Friend Requests</Btn>
+		</Row>
+
+		<div>
+			<h3>Friend Requests:</h3>
+			<ul>
+				{props.friendRequests && props.friendRequests.length === 0 ? (
+					<li>No friend request</li>
+				) : (
+					props.friendRequests.map(request => (
+						<li key={request.id}>
+							Request from {request.username} (ID: {request.from_user_id})
+							<Btn onClick={() => props.acceptRequest(request.username)}>Accept</Btn>
+							<Btn onClick={() => props.declineRequest(request.username)}>Decline</Btn>
+						</li>
+					))
+				)}
+			</ul>
+		</div>
+
+	</>
+}
+
+
 // ── DM ────────────────────────────────────────────────────────────────────────
 
 function DMSection({ auth }) {
@@ -360,9 +472,9 @@ function DMSection({ auth }) {
 
 	const [userConnected, setUserConnected] = useState({})
 
-	const [friends, setFriends] = useState([]);
-	const [newFriendId, setNewFriendId] = useState("");
-	const [friendRequests, setFriendRequests] = useState([]);
+	// const [friends, setFriends] = useState([]);
+	// const [newFriendId, setNewFriendId] = useState("");
+	// const [friendRequests, setFriendRequests] = useState([]);
 
     useEffect(() => {
         console.log(userConnected)
@@ -434,52 +546,12 @@ function DMSection({ auth }) {
         if (socket.send({ content: message })) setMessage("")
     }
 
-	// function ChatWindow() {
-	// 	return  <div
-    //             ref={msgsRef}
-    //             className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
-    //         >
-    //             {messages.length === 0
-    //                 ? <p className="text-xs text-stone-300 font-mono">no messages</p>
-    //                 : messages.map((m, i) => m && (
-    //                     <div key={m.id ?? i} className="flex flex-col gap-0.5">
-    //                         <div className="flex items-center gap-2">
-    //                             <span className={`text-xs font-mono font-medium ${
-    //                                 m.sender_id === auth.user?.id
-    //                                     ? "text-sky-600"
-    //                                     : "text-stone-500"
-    //                             }`}>
-    //                                 {auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
-    //                             </span>
-    //                             <span className="text-xs text-stone-300">
-    //                                 {m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
-    //                             </span>
-    //                         </div>
-    //                         <p className="text-sm text-stone-800">{m.content}</p>
-    //                     </div>
-    //                 ))
-    //             }
-    //         </div>
-	// }
-
-	// function ChatInput() {
-	// 	return  <Row>
-    //             <Input
-    //                 placeholder="message"
-    //                 value={message}
-    //                 onChange={isTyping}
-    //                 onKeyDown={handleKey}
-    //                 className="w-72"
-    //             />
-    //             <Btn onClick={sendMessage}>Send</Btn>
-    //         </Row>
-	// }
-
 	const isConnected = async () => {
 		presenceScoket.connect(`${WS}/ws/presence`, (event) => handlerRef.current(event))
 	}
 
 	function connectionLight(username) {
+		// console.log(userConnected)
 		if (userConnected[username] !== undefined) {
 			return <div className="online-indicator"> pipi
 				<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
@@ -496,204 +568,67 @@ function DMSection({ auth }) {
         if (e.key === "Enter") sendMessage()
     }
 
-    // const [friends, setFriends] = useState([]);
-    // const [newFriendId, setNewFriendId] = useState("");
-	// const [friendRequests, setFriendRequests] = useState([]);
+    const [friends, setFriends] = useState([]);
+    const [newFriendId, setNewFriendId] = useState("");
+	const [friendRequests, setFriendRequests] = useState([]);
 
 
-    // const addFriend = async () => {
-    //     const res = await api(`/friends/${newFriendId}`, { method: "POST" });
-    //     if (res.ok) {
-    //         setNewFriendId("");
-    //     }
-    // };
+    const addFriend = async () => {
+        const res = await api(`/friends/${newFriendId}`, { method: "POST" });
+        if (res.ok) {
+            setNewFriendId("");
+        }
+    };
 
 
-	//  const removeFriend = async (username) => {
-    //     const res = await api(`/friends/${username}`, { method: "DELETE" });
-    //     if (res.ok) {
-    //         setNewFriendId("");
-	// 		getFriends();
-    //     }
-    // };
+	 const removeFriend = async (username) => {
+        const res = await api(`/friends/${username}`, { method: "DELETE" });
+        if (res.ok) {
+            setNewFriendId("");
+			getFriends();
+        }
+    };
 
-	// const getFriends = async () => {
-	// 	const res = await api("/friends");
-	// 	if (res.ok) {
-	// 		const friends = JSON.parse(res.body);
-	// 		setFriends(Array.isArray(friends) ? friends : []);
-	// 	}
-	// }
-
-	// const sendRequest = async () => {
-	// 	const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
-	// 	if (res.ok) {
-	// 		setNewFriendId("");
-	// 	}
-	// };
-
-	// const acceptRequest = async (requestID) => {
-	// 	if (!requestID)
-	// 		return;
-	// 	const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
-	// 	if (res.ok) {
-	// 		getFriends();
-	// 		getFriendRequests();
-	// 	}
-	// };
-
-	// const declineRequest = async (requestID) => {
-	// 	if (!requestID)
-	// 		return;
-	// 	const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
-	// 	if (res.ok) {
-	// 		getFriendRequests();
-	// 	}
-	// };
-
-	// const getFriendRequests = async () => {
-	// 	const res = await api("/friends/requests");
-	// 	if (res.ok) {
-	// 		const requests = JSON.parse(res.body);
-	// 		setFriendRequests(Array.isArray(requests) ? requests : []);
-	// 	}
-	// }
-
-	function FriendSection() {
-		// const [friends, setFriends] = useState([]);
-		// const [newFriendId, setNewFriendId] = useState("");
-		// const [friendRequests, setFriendRequests] = useState([]);
-
-
-		const addFriend = async () => {
-			const res = await api(`/friends/${newFriendId}`, { method: "POST" });
-			if (res.ok) {
-				setNewFriendId("");
-			}
-		};
-
-
-		const removeFriend = async (username) => {
-			const res = await api(`/friends/${username}`, { method: "DELETE" });
-			if (res.ok) {
-				setNewFriendId("");
-				getFriends();
-			}
-		};
-
-		const getFriends = async () => {
-			const res = await api("/friends");
-			if (res.ok) {
-				const friends = JSON.parse(res.body);
-				setFriends(Array.isArray(friends) ? friends : []);
-			}
+	const getFriends = async () => {
+		const res = await api("/friends");
+		if (res.ok) {
+			const friends = JSON.parse(res.body);
+			setFriends(Array.isArray(friends) ? friends : []);
 		}
+	}
 
-		const sendRequest = async () => {
-			const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
-			if (res.ok) {
-				setNewFriendId("");
-			}
-		};
-
-		const acceptRequest = async (requestID) => {
-			if (!requestID)
-				return;
-			const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
-			if (res.ok) {
-				getFriends();
-				getFriendRequests();
-			}
-		};
-
-		const declineRequest = async (requestID) => {
-			if (!requestID)
-				return;
-			const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
-			if (res.ok) {
-				getFriendRequests();
-			}
-		};
-
-		const getFriendRequests = async () => {
-			const res = await api("/friends/requests");
-			if (res.ok) {
-				const requests = JSON.parse(res.body);
-				setFriendRequests(Array.isArray(requests) ? requests : []);
-			}
+	const sendRequest = async () => {
+		const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
+		if (res.ok) {
+			setNewFriendId("");
 		}
+	};
 
-		return  (
-			<>
+	const acceptRequest = async (requestID) => {
+		if (!requestID)
+			return;
+		const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+		if (res.ok) {
+			getFriends();
+			getFriendRequests();
+		}
+	};
 
-			<Row>
-                <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />
-                <Btn onClick={addFriend}>Add Friend</Btn>
-            </Row>
+	const declineRequest = async (requestID) => {
+		if (!requestID)
+			return;
+		const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+		if (res.ok) {
+			getFriendRequests();
+		}
+	};
 
-			<Row>
-                <Input placeholder="User ID to remove" value={newFriendId} onChange={setNewFriendId} />
-                <Btn onClick={removeFriend}>Remove Friend</Btn>
-            </Row>
-
-			<Row>
-				<Btn onClick={getFriends}>Refresh Friends</Btn>
-			</Row>
-
-			<div>
-				<h3>Friends List:</h3>
-				<ul>
-					{friends && friends.length === 0 ? (
-						<li className="text-stone-400">No friend</li>
-					) : (
-						friends.map(friend => (
-							<li key={friend.id}>
-								{friend.username} (ID: {friend.id})
-								{connectionLight(friend.username)}
-								
-								<Btn onClick={() => connectDM(friend.username)}>Chat</Btn>
-								<Btn onClick={() => checkProfil(friend.username)}>Profile</Btn>
-								<Btn onClick={() => removeFriend(friend.username)}>Unfriend</Btn>
-
-							</li>
-						))
-					)}
-				</ul>
-			</div>
-
-			<Row>
-				<Input type="text" placeholder="Username to send request" value={newFriendId} onChange={setNewFriendId} />
-				<Btn onClick={sendRequest}>Send Request</Btn>
-			</Row>
-
-			<Row>
-				<Input placeholder="Username to accept" value={newFriendId} onChange={setNewFriendId} />
-				<Btn onClick={() => acceptRequest(newFriendId)}>Accept Request</Btn>
-			</Row>
-
-			<Row>
-				<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
-			</Row>
-
-			<div>
-				<h3>Friend Requests:</h3>
-				<ul>
-					{friendRequests && friendRequests.length === 0 ? (
-						<li>No friend request</li>
-					) : (
-						friendRequests.map(request => (
-							<li key={request.id}>
-								Request from {request.username} (ID: {request.from_user_id})
-								<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
-								<Btn onClick={() => declineRequest(request.username)}>Decline</Btn>
-							</li>
-						))
-					)}
-				</ul>
-			</div>
-
-			</>
-			)
+	const getFriendRequests = async () => {
+		const res = await api("/friends/requests");
+		if (res.ok) {
+			const requests = JSON.parse(res.body);
+			setFriendRequests(Array.isArray(requests) ? requests : []);
+		}
 	}
 
 	const [profilUser, setProfilUser] = useState(null);
@@ -715,7 +650,7 @@ function DMSection({ auth }) {
 
         <Section title="DM Socket">
 
-			<FriendSection />
+			{/* <FriendSection /> */}
 			{/* <Row>
                 <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />
                 <Btn onClick={addFriend}>Add Friend</Btn>
@@ -724,9 +659,11 @@ function DMSection({ auth }) {
 			<Row>
                 <Input placeholder="User ID to remove" value={newFriendId} onChange={setNewFriendId} />
                 <Btn onClick={removeFriend}>Remove Friend</Btn>
-            </Row>
+            </Row> */}
 
-			<Row>
+			<FriendList getFriends={getFriends} friends={friends} connectDM={connectDM}
+						checkProfil={checkProfil} removeFriend={removeFriend} connectionLight={connectionLight}/>
+			{/* <Row>
 				<Btn onClick={getFriends}>Refresh Friends</Btn>
 			</Row>
 			<div>
@@ -748,20 +685,23 @@ function DMSection({ auth }) {
 						))
 					)}
 				</ul>
-			</div>
+			</div> */}
 
-			<Row>
+			{/* <Row>
 				<Input placeholder="Username to send request" value={newFriendId} onChange={setNewFriendId} />
 				<Btn onClick={sendRequest}>Send Request</Btn>
-			</Row>
+			</Row> */}
 
-
+{/* 
 			<Row>
 				<Input placeholder="Username to accept" value={newFriendId} onChange={setNewFriendId} />
 				<Btn onClick={() => acceptRequest(newFriendId)}>Accept Request</Btn>
-			</Row>
+			</Row> */}
 
-			<Row>
+			<FriendListRequest friendRequests={friendRequests} getFriendRequests={getFriendRequests}
+						acceptRequest={acceptRequest} declineRequest={declineRequest} sendRequest={sendRequest}
+						newFriendId={newFriendId} setNewFriendId={setNewFriendId}/>
+			{/* <Row>
 				<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
 			</Row>
 			<div>
@@ -779,16 +719,16 @@ function DMSection({ auth }) {
 						))
 					)}
 				</ul>
-			</div>
+			</div> */}
 
-            <Row>
+            {/* <Row>
                 <Input placeholder="recipient username" value={userID} onChange={setUserID} />
                 <Btn onClick={() => connectDM(userID)}>Connect</Btn>
                 <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
             </Row> */}
 
-			{/* <ChatWindow /> */}
-            <div
+			<ChatWindow messages={messages} auth={auth}/>
+            {/* <div
                 ref={msgsRef}
                 className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
             >
@@ -812,12 +752,12 @@ function DMSection({ auth }) {
                         </div>
                     ))
                 }
-            </div>
+            </div> */}
 
             <Log entries={entries} />
 
-			{/* <ChatInput /> */}
-            <Row>
+			<ChatInput message={message} isTyping={isTyping} handleKey={handleKey} sendMessage={sendMessage}/>
+            {/* <Row>
                 <Input
                     placeholder="message"
                     value={message}
@@ -826,7 +766,7 @@ function DMSection({ auth }) {
                     className="w-72"
                 />
                 <Btn onClick={sendMessage}>Send</Btn>
-            </Row>
+            </Row> */}
 
         </Section>
 		</>
