@@ -168,13 +168,15 @@ func AcceptFriendRequest(db *pgxpool.Pool, ctx context.Context, userID, friendID
 
 func DeclineFriendRequest(db *pgxpool.Pool, ctx context.Context, userID, friendID int) error {
 	result, err := db.Exec(ctx,
-		"UPDATE friend_requests SET status='declined' WHERE from_user_id=$1 AND to_user_id=$2 AND status='pending'",
+		"UPDATE friend_requests SET status='rejected' WHERE from_user_id=$1 AND to_user_id=$2 AND status='pending'",
 		friendID, userID,
 	)
 	if err != nil {
+		fmt.Println("dodo")
 		return err
 	}
 	if result.RowsAffected() == 0 {
+		fmt.Println("1234")
 		return fmt.Errorf("no pending request found")
 	}
 	return nil

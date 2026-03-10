@@ -426,15 +426,51 @@ function FriendList(props) {
 // ── Friend List Request ───────────────────────────────────────────────────────────────
 
 function FriendListRequest(props) {
+
+	const sendRequest = async () => {
+		const res = await api(`/friends/request/${props.newFriendId}`, { method: "POST" });
+		if (res.ok) {
+			props.onChange("");
+		}
+	};
+
+	const acceptRequest = async (requestID) => {
+		if (!requestID)
+			return;
+		const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+		if (res.ok) {
+			props.getFriends();
+			getFriendRequests();
+		}
+	};
+
+	const declineRequest = async (requestID) => {
+		if (!requestID)
+			return;
+		const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+		if (res.ok) {
+			getFriendRequests();
+		}
+	};
+
+	const getFriendRequests = async () => {
+		const res = await api("/friends/requests");
+		if (res.ok) {
+			const requests = JSON.parse(res.body);
+			props.onChangeFriendRequest(Array.isArray(requests) ? requests : []);
+		}
+	}
+
 	return <>
 
 		<Row>
-			<Input placeholder="Username to send request" value={props.newFriendId} onChange={props.setNewFriendId} />
-			<Btn onClick={props.sendRequest}>Send Request</Btn>
+			<Input placeholder="Username to send request" value={props.newFriendId} onChange={props.onChange} />
+			{/* <Btn onClick={props.sendRequest}>Send Request</Btn> */}
+			<Btn onClick={sendRequest}>Send Request</Btn>
 		</Row>
 
 		<Row>
-			<Btn onClick={props.getFriendRequests}>Refresh Friend Requests</Btn>
+			<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
 		</Row>
 
 		<div>
@@ -446,8 +482,8 @@ function FriendListRequest(props) {
 					props.friendRequests.map(request => (
 						<li key={request.id}>
 							Request from {request.username} (ID: {request.from_user_id})
-							<Btn onClick={() => props.acceptRequest(request.username)}>Accept</Btn>
-							<Btn onClick={() => props.declineRequest(request.username)}>Decline</Btn>
+							<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
+							<Btn onClick={() => declineRequest(request.username)}>Decline</Btn>
 						</li>
 					))
 				)}
@@ -456,7 +492,6 @@ function FriendListRequest(props) {
 
 	</>
 }
-
 
 // ── DM ────────────────────────────────────────────────────────────────────────
 
@@ -565,7 +600,8 @@ function DMSection({ auth }) {
 	}
 
     function handleKey(e) {
-        if (e.key === "Enter") sendMessage()
+        if (e.key === "Enter")
+			sendMessage()
     }
 
     const [friends, setFriends] = useState([]);
@@ -597,39 +633,39 @@ function DMSection({ auth }) {
 		}
 	}
 
-	const sendRequest = async () => {
-		const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
-		if (res.ok) {
-			setNewFriendId("");
-		}
-	};
+	// const sendRequest = async () => {
+	// 	const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
+	// 	if (res.ok) {
+	// 		setNewFriendId("");
+	// 	}
+	// };
 
-	const acceptRequest = async (requestID) => {
-		if (!requestID)
-			return;
-		const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
-		if (res.ok) {
-			getFriends();
-			getFriendRequests();
-		}
-	};
+	// const acceptRequest = async (requestID) => {
+	// 	if (!requestID)
+	// 		return;
+	// 	const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+	// 	if (res.ok) {
+	// 		getFriends();
+	// 		getFriendRequests();
+	// 	}
+	// };
 
-	const declineRequest = async (requestID) => {
-		if (!requestID)
-			return;
-		const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
-		if (res.ok) {
-			getFriendRequests();
-		}
-	};
+	// const declineRequest = async (requestID) => {
+	// 	if (!requestID)
+	// 		return;
+	// 	const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+	// 	if (res.ok) {
+	// 		getFriendRequests();
+	// 	}
+	// };
 
-	const getFriendRequests = async () => {
-		const res = await api("/friends/requests");
-		if (res.ok) {
-			const requests = JSON.parse(res.body);
-			setFriendRequests(Array.isArray(requests) ? requests : []);
-		}
-	}
+	// const getFriendRequests = async () => {
+	// 	const res = await api("/friends/requests");
+	// 	if (res.ok) {
+	// 		const requests = JSON.parse(res.body);
+	// 		setFriendRequests(Array.isArray(requests) ? requests : []);
+	// 	}
+	// }
 
 	const [profilUser, setProfilUser] = useState(null);
 
@@ -698,9 +734,14 @@ function DMSection({ auth }) {
 				<Btn onClick={() => acceptRequest(newFriendId)}>Accept Request</Btn>
 			</Row> */}
 
-			<FriendListRequest friendRequests={friendRequests} getFriendRequests={getFriendRequests}
-						acceptRequest={acceptRequest} declineRequest={declineRequest} sendRequest={sendRequest}
-						newFriendId={newFriendId} setNewFriendId={setNewFriendId}/>
+			<FriendListRequest
+				friendRequests={friendRequests} onChangeFriendRequest={next => setFriendRequests(next)}
+				// getFriendRequests={getFriendRequests}
+				// acceptRequest={acceptRequest}
+				// declineRequest={declineRequest}
+				getFriends={getFriends}
+				newFriendId={newFriendId} onChange={next => setNewFriendId(next)}
+			/>
 			{/* <Row>
 				<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
 			</Row>
