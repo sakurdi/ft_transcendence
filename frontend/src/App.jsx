@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { createContext, useContext } from "react"
+
 
 const BASE = "https://localhost:1043/api"
 const WS   = "wss://localhost:1043"
@@ -277,9 +279,51 @@ function CreatePostSection() {
     )
 }
 
+// ── Friend Provider ───────────────────────────────────────────────────────────────
+
+const FriendContext = createContext();
+
+function FriendProvider({ children }) {
+	const [message,  setMessage]  = useState("")
+    const [messages, setMessages] = useState([])
+	
+	const [userConnected, setUserConnected] = useState({})
+
+    const [friends, setFriends] = useState([]);
+    const [newFriendId, setNewFriendId] = useState("");
+	const [friendRequests, setFriendRequests] = useState([]);
+
+	const [profilUser, setProfilUser] = useState(null);
+
+	const info = {
+		message,
+		messages,
+		userConnected,
+		friends,
+		newFriendId,
+		friendRequests,
+		profilUser,
+		setMessage,
+		setMessages,
+		setUserConnected,
+		setFriends,
+		setNewFriendId,
+		setFriendRequests,
+		setProfilUser,
+	}
+
+	return (
+		<FriendContext.Provider value={info}>
+			{children}
+		</FriendContext.Provider>
+	);
+}
+
 // ── Profil Showcase ───────────────────────────────────────────────────────────────
 
 function ProfilShowcase({profilUser, onClose}) {
+	// const { profilUser } = useContext(FriendContext);
+
 	return (profilUser && 
 			<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
 				onClick={onClose}>
@@ -507,9 +551,11 @@ function DMSection({ auth }) {
 
 	const [userConnected, setUserConnected] = useState({})
 
-	// const [friends, setFriends] = useState([]);
-	// const [newFriendId, setNewFriendId] = useState("");
-	// const [friendRequests, setFriendRequests] = useState([]);
+    const [friends, setFriends] = useState([]);
+    const [newFriendId, setNewFriendId] = useState("");
+	const [friendRequests, setFriendRequests] = useState([]);
+
+	const [profilUser, setProfilUser] = useState(null);
 
     useEffect(() => {
         console.log(userConnected)
@@ -604,18 +650,12 @@ function DMSection({ auth }) {
 			sendMessage()
     }
 
-    const [friends, setFriends] = useState([]);
-    const [newFriendId, setNewFriendId] = useState("");
-	const [friendRequests, setFriendRequests] = useState([]);
-
-
     const addFriend = async () => {
         const res = await api(`/friends/${newFriendId}`, { method: "POST" });
         if (res.ok) {
             setNewFriendId("");
         }
     };
-
 
 	 const removeFriend = async (username) => {
         const res = await api(`/friends/${username}`, { method: "DELETE" });
@@ -667,7 +707,6 @@ function DMSection({ auth }) {
 	// 	}
 	// }
 
-	const [profilUser, setProfilUser] = useState(null);
 
 	const checkProfil = async (username) => {
 		const res = await api(`/users/${username}`);
@@ -831,7 +870,9 @@ function TestPage() {
             {/* <BoardSection />
             <ThreadSection />
             <CreatePostSection /> */}
-            <DMSection auth={auth} />
+			<FriendProvider>
+            	<DMSection auth={auth} />
+			</FriendProvider>
         </div>
     )
 }
