@@ -1,5 +1,6 @@
 import { useState } from "react"
 import useAuth from "../User/AuthProvider"
+import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import { apiPost } from "../Utils/api"
 import TextInput from "../components/TextInput"
@@ -11,7 +12,10 @@ import TextInput from "../components/TextInput"
 // }
 
 
-export default function CreatePost({board}) {
+export default function CreatePost({board, setRefreshKeyThread}) {
+	const navigate = useNavigate();
+
+
 	const [title, setTitle] = useState("")
 	const [content, setContent] = useState("")
 
@@ -38,6 +42,9 @@ export default function CreatePost({board}) {
 		} else {
 			const json = res.json
 			console.log(res)
+			setTitle("")
+			setContent("")
+			setRefreshKeyThread()
 		}
 
 	}

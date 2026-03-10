@@ -94,8 +94,12 @@ export default function DisplayBoard() {
 	const userHandle = useAuth()
 	const navigate = useNavigate()
 	const { boardName } = useParams()
+
+	const [refreshKeyThread, setRefreshKeyThread] = useState(0);
+	const [refreshKeyBoard, setRefreshKeyBoard] = useState(0);
 	const [loading, setLoading] = useState(true)
 	const [privilegeLvl, setPrivilegeLvl] = useState(0);
+
 	const [board, setBoard] = useState({
 		id: undefined,
 		name: undefined,
@@ -145,7 +149,7 @@ export default function DisplayBoard() {
 		fetchBoard(boardName)
 		
 		setLoading(false)
-	}, [boardName, userHandle])
+	}, [refreshKeyBoard, userHandle])
 
 	if (loading) {
 		return ("loading")
@@ -156,8 +160,13 @@ export default function DisplayBoard() {
 	return (
 	<>
 		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl}/>
-		<DisplayThreads board = {board} privilegeLvl = {privilegeLvl}/>
-		{privilegeLvl != 0 && <CreatePost board={board}/>}
+		<DisplayThreads board = {board} privilegeLvl = {privilegeLvl}
+			refreshKeyThread={refreshKeyThread}
+			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
+		{privilegeLvl != 0 &&
+			<CreatePost board={board}
+				setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
+		}
 	</>
 	)
 }

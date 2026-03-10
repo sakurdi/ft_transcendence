@@ -25,7 +25,7 @@ const Home = () => {
 			<ButtonLink link="/logout">Logout</ButtonLink>
 			<ButtonLink link="/ShowSession">ShowSession</ButtonLink>
 			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
-			<ButtonLink link="/board/pipi">Board pipi</ButtonLink>
+			<ButtonLink link="/board/league">Board league</ButtonLink>
 		</>
 	)
 }

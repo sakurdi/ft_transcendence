@@ -1,8 +1,8 @@
 import styles from "./WrapError.module.css";
 
 export default function WrapError ({
-	children,
 	errorText,
+	children,
 }) {
 	return (
 		<div className={styles.entryError}>
