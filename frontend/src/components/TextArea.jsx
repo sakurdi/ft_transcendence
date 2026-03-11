@@ -1,4 +1,6 @@
-export default function TextArea({value, setValue, rows, onEscape, allowEnter = true, bgColor = "white", ...props}) {
+import { forwardRef } from "react"
+
+const TextArea = forwardRef(function TextArea({value, setValue, rows, onEscape, onEnter = undefined, bgColor = "white", ...props}, ref) {
 	if (rows === undefined) {
 		rows = (value.match(/\n/g) || []).length + 1
 	}
@@ -12,8 +14,9 @@ export default function TextArea({value, setValue, rows, onEscape, allowEnter = 
         e.stopPropagation()
         if (e.key === "Escape" && onEscape !== undefined) {
             onEscape()
-        } else if (e.key === "Enter" && !allowEnter) {
+        } else if (e.key === "Enter" && onEnter != undefined) {
             e.preventDefault()
+			onEnter()
         }
     }
 	return (
@@ -25,12 +28,16 @@ export default function TextArea({value, setValue, rows, onEscape, allowEnter = 
 			onClick = { (e) => {e.stopPropagation()} }
 			onKeyDown = {onKeyDown}
 			rows = {rows} width = "90" spellCheck = "false"
+			{...props}
+			ref = {ref}
 		/>
 	)
-}
+})
+export default TextArea;
 
-export function TextAreaTitle({...props}) {
+export const TextAreaTitle = forwardRef(function TextAreaTitle({...props}, ref) {
 	return (
-		<TextArea allowEnter={false} rows = {1} {...props}/>
+		<TextArea rows = {1} {...props} ref = {ref}/>
 	)
-}
+})
+

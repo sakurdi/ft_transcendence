@@ -92,7 +92,6 @@ export function DisplayBoardHeader({board, privilegeLvl}) {
 
 export default function DisplayBoard() {
 	const userHandle = useAuth()
-	const navigate = useNavigate()
 	const { boardName } = useParams()
 
 	const [refreshKeyThread, setRefreshKeyThread] = useState(0);
