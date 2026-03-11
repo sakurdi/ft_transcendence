@@ -321,24 +321,25 @@ function FriendProvider({ children }) {
 
 // ── Profil Showcase ───────────────────────────────────────────────────────────────
 
-function ProfilShowcase({profilUser, onClose}) {
-	// const { profilUser } = useContext(FriendContext);
+function ProfilShowcase() {
+	const user = useContext(FriendContext);
 
-	return (profilUser && 
+	return (user.profilUser && 
 			<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-				onClick={onClose}>
+				onClick={() => user.setProfilUser(null)}>
 
 				<div className="bg-white rounded-xl p-6 shadow-xl flex flex-col items-center gap-3 w-64"
 					onClick={e => e.stopPropagation()}>
 
-					<img src={profilUser.avatar_url || "/api/uploads/avatars/default.jpg"}
+					<img src={user.profilUser.avatar_url || "/api/uploads/avatars/default.jpg"}
 						alt="avatar123"
 						className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
-					<p className="font-bold text-stone-800 text-lg">{profilUser.username}</p>
+					{/* <p className="font-bold text-stone-800 text-lg">{profilUser.username}</p> */}
+					<p className="font-bold text-stone-800 text-lg">{user.profilUser.username}</p>
 
 					{/* <Btn onClick={() => setProfilUser(null)} variant="ghost">Close123</Btn> */}
-					<Btn onClick={onClose}>Close</Btn>
+					<Btn onClick={() => user.setProfilUser(null)}>Close</Btn>
 				</div>
 			</div>)
 }
@@ -393,36 +394,51 @@ function ProfileAvatar() {
 // ── Chat Window ───────────────────────────────────────────────────────────────
 
 function ChatWindow(props) {
+	const user = useContext(FriendContext);
+
+	const msgsRef = useRef(null)
+
+	const scrollToBottom = () => {
+		 if (msgsRef.current)
+			msgsRef.current.scrollTop = msgsRef.current.scrollHeight
+	}
+
+	useEffect(() => {
+       scrollToBottom()
+    }, [user.messages])
+
 	return  <div
-			// ref={msgsRef}
-			className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
-		>
-			{props.messages.length === 0
-				? <p className="text-xs text-stone-300 font-mono">no messages</p>
-				: props.messages.map((m, i) => m && (
-					<div key={m.id ?? i} className="flex flex-col gap-0.5">
-						<div className="flex items-center gap-2">
-							<span className={`text-xs font-mono font-medium ${
-								m.sender_id === props.auth.user?.id
-									? "text-sky-600"
-									: "text-stone-500"
-							}`}>
-								{props.auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
-							</span>
-							<span className="text-xs text-stone-300">
-								{m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
-							</span>
-						</div>
-						<p className="text-sm text-stone-800">{m.content}</p>
+		ref={msgsRef}
+		className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
+	>
+		{user.messages.length === 0
+			? <p className="text-xs text-stone-300 font-mono">no messages</p>
+			: user.messages.map((m, i) => m && (
+				<div key={m.id ?? i} className="flex flex-col gap-0.5">
+					<div className="flex items-center gap-2">
+						<span className={`text-xs font-mono font-medium ${
+							m.sender_id === props.auth.user?.id
+								? "text-sky-600"
+								: "text-stone-500"
+						}`}>
+							{props.auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
+						</span>
+						<span className="text-xs text-stone-300">
+							{m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
+						</span>
 					</div>
-				))
-			}
-		</div>
+					<p className="text-sm text-stone-800">{m.content}</p>
+				</div>
+			))
+		}
+	</div>
 }
 
 // ── Chat Input ───────────────────────────────────────────────────────────────
 
 function ChatInput(props) {
+	// const user = useContext(FriendContext);
+
 	return  <Row>
 			<Input
 				autoFocus="autoFocus"
@@ -546,7 +562,7 @@ function DMSection({ auth }) {
     const [userID,   setUserID]   = useState("2")
     const [message,  setMessage]  = useState("")
     const [messages, setMessages] = useState([])
-    const msgsRef    = useRef(null)
+
     const handlerRef = useRef(null)
 
 	const [userConnected, setUserConnected] = useState({})
@@ -557,13 +573,12 @@ function DMSection({ auth }) {
 
 	const [profilUser, setProfilUser] = useState(null);
 
+	const userCon = useContext(FriendContext);
+
     useEffect(() => {
         console.log(userConnected)
     }, [userConnected])
 
-    useEffect(() => {
-        if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
-    }, [messages])
 
     // auto-connect when user logs in
     useEffect(() => {
@@ -574,7 +589,7 @@ function DMSection({ auth }) {
         else {
             socket.disconnect()
 			presenceScoket.disconnect()
-            setMessages([])
+            userCon.setMessages([])
         }
     }, [auth.user])
 
@@ -591,10 +606,10 @@ function DMSection({ auth }) {
 
     handlerRef.current = function(event) {
         if (event.type === "history") {
-            setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
+            userCon.setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
         }
         if (event.type === "new_message" && event.data) {
-            setMessages(prev => [...prev, event.data])
+            userCon.setMessages(prev => [...prev, event.data])
         }
 		if (event.type === "typing") {
 
@@ -614,7 +629,7 @@ function DMSection({ auth }) {
     }
 
     const connectDM = async (username) => {
-        setMessages([])
+        userCon.setMessages([])
         socket.connect(`${WS}/ws/dm/${username}`, (event) => handlerRef.current(event))
     }
 
@@ -624,7 +639,8 @@ function DMSection({ auth }) {
 	}
 
     function sendMessage() {
-        if (socket.send({ content: message })) setMessage("")
+        if (socket.send({ content: message }))
+			setMessage("")
     }
 
 	const isConnected = async () => {
@@ -632,7 +648,6 @@ function DMSection({ auth }) {
 	}
 
 	function connectionLight(username) {
-		// console.log(userConnected)
 		if (userConnected[username] !== undefined) {
 			return <div className="online-indicator"> pipi
 				<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
@@ -673,180 +688,39 @@ function DMSection({ auth }) {
 		}
 	}
 
-	// const sendRequest = async () => {
-	// 	const res = await api(`/friends/request/${newFriendId}`, { method: "POST" });
-	// 	if (res.ok) {
-	// 		setNewFriendId("");
-	// 	}
-	// };
-
-	// const acceptRequest = async (requestID) => {
-	// 	if (!requestID)
-	// 		return;
-	// 	const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
-	// 	if (res.ok) {
-	// 		getFriends();
-	// 		getFriendRequests();
-	// 	}
-	// };
-
-	// const declineRequest = async (requestID) => {
-	// 	if (!requestID)
-	// 		return;
-	// 	const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
-	// 	if (res.ok) {
-	// 		getFriendRequests();
-	// 	}
-	// };
-
-	// const getFriendRequests = async () => {
-	// 	const res = await api("/friends/requests");
-	// 	if (res.ok) {
-	// 		const requests = JSON.parse(res.body);
-	// 		setFriendRequests(Array.isArray(requests) ? requests : []);
-	// 	}
-	// }
-
 
 	const checkProfil = async (username) => {
 		const res = await api(`/users/${username}`);
 		if (res.ok) {
 			const user = JSON.parse(res.body);
-			setProfilUser(user);
+			userCon.setProfilUser(user);
 		}
 	};
 
     return (
 		<>
 
-		<ProfilShowcase profilUser={profilUser} onClose={()=> setProfilUser(null)} />
+		<ProfilShowcase />
 
 		<ProfileAvatar />
 
         <Section title="DM Socket">
 
-			{/* <FriendSection /> */}
-			{/* <Row>
-                <Input placeholder="User ID to add" value={newFriendId} onChange={setNewFriendId} />
-                <Btn onClick={addFriend}>Add Friend</Btn>
-            </Row>
-
-			<Row>
-                <Input placeholder="User ID to remove" value={newFriendId} onChange={setNewFriendId} />
-                <Btn onClick={removeFriend}>Remove Friend</Btn>
-            </Row> */}
-
 			<FriendList getFriends={getFriends} friends={friends} connectDM={connectDM}
-						checkProfil={checkProfil} removeFriend={removeFriend} connectionLight={connectionLight}/>
-			{/* <Row>
-				<Btn onClick={getFriends}>Refresh Friends</Btn>
-			</Row>
-			<div>
-				<h3>Friends List:</h3>
-				<ul>
-					{friends && friends.length === 0 ? (
-						<li className="text-stone-400">No friend</li>
-					) : (
-						friends.map(friend => (
-							<li key={friend.id}>
-								{friend.username} (ID: {friend.id})
-								{connectionLight(friend.username)}
-								
-								<Btn onClick={() => connectDM(friend.username)}>Chat</Btn>
-								<Btn onClick={() => checkProfil(friend.username)}>Profile</Btn>
-								<Btn onClick={() => removeFriend(friend.username)}>Unfriend</Btn>
-
-							</li>
-						))
-					)}
-				</ul>
-			</div> */}
-
-			{/* <Row>
-				<Input placeholder="Username to send request" value={newFriendId} onChange={setNewFriendId} />
-				<Btn onClick={sendRequest}>Send Request</Btn>
-			</Row> */}
-
-{/* 
-			<Row>
-				<Input placeholder="Username to accept" value={newFriendId} onChange={setNewFriendId} />
-				<Btn onClick={() => acceptRequest(newFriendId)}>Accept Request</Btn>
-			</Row> */}
+						checkProfil={checkProfil} removeFriend={removeFriend} connectionLight={connectionLight}
+			/>
 
 			<FriendListRequest
 				friendRequests={friendRequests} onChangeFriendRequest={next => setFriendRequests(next)}
-				// getFriendRequests={getFriendRequests}
-				// acceptRequest={acceptRequest}
-				// declineRequest={declineRequest}
 				getFriends={getFriends}
 				newFriendId={newFriendId} onChange={next => setNewFriendId(next)}
 			/>
-			{/* <Row>
-				<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
-			</Row>
-			<div>
-				<h3>Friend Requests:</h3>
-				<ul>
-					{friendRequests && friendRequests.length === 0 ? (
-						<li>No friend request</li>
-					) : (
-						friendRequests.map(request => (
-							<li key={request.id}>
-								Request from {request.username} (ID: {request.from_user_id})
-								<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
-								<Btn onClick={() => declineRequest(request.username)}>Decline</Btn>
-							</li>
-						))
-					)}
-				</ul>
-			</div> */}
 
-            {/* <Row>
-                <Input placeholder="recipient username" value={userID} onChange={setUserID} />
-                <Btn onClick={() => connectDM(userID)}>Connect</Btn>
-                <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
-            </Row> */}
-
-			<ChatWindow messages={messages} auth={auth}/>
-            {/* <div
-                ref={msgsRef}
-                className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
-            >
-                {messages.length === 0
-                    ? <p className="text-xs text-stone-300 font-mono">no messages</p>
-                    : messages.map((m, i) => m && (
-                        <div key={m.id ?? i} className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-2">
-                                <span className={`text-xs font-mono font-medium ${
-                                    m.sender_id === auth.user?.id
-                                        ? "text-sky-600"
-                                        : "text-stone-500"
-                                }`}>
-                                    {auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
-                                </span>
-                                <span className="text-xs text-stone-300">
-                                    {m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
-                                </span>
-                            </div>
-                            <p className="text-sm text-stone-800">{m.content}</p>
-                        </div>
-                    ))
-                }
-            </div> */}
+			<ChatWindow auth={auth} />
 
             <Log entries={entries} />
 
 			<ChatInput message={message} isTyping={isTyping} handleKey={handleKey} sendMessage={sendMessage}/>
-            {/* <Row>
-                <Input
-                    placeholder="message"
-                    value={message}
-                    onChange={isTyping}
-                    onKeyDown={handleKey}
-                    className="w-72"
-                />
-                <Btn onClick={sendMessage}>Send</Btn>
-            </Row> */}
 
         </Section>
 		</>
