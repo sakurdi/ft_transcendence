@@ -11,24 +11,27 @@ import { apiDelete, apiPut } from "../../Utils/api";
 import { getRandomPastelDate } from "../../Utils/colors";
 import getDateDifferenceISO from "../../Utils/date";
 
-import TextButton, { TextLink } from "../../components/TextButton";
+import { TextLink } from "../../components/TextButton";
+import Button from "../../components/Button";
 import TextArea, { TextAreaTitle } from "../../components/TextArea";
 import Tooltip from "../../components/Tooltip";
-import Loading from "../../components/Loading";
 
 export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	return (
-		<div>
+		<div className="flex gap-2">
 		{ isEditing ?
 			<>
-			<TextButton text = "Save"
-				onClick={(e) => saveEdit()}/>
-			<TextButton text = "Discard"
-				onClick={discardEdit}/>
+				<Button size="sm" variant="primary" onClick={saveEdit}>
+					Save
+				</Button>
+				<Button size="sm" variant="ghost" onClick={discardEdit}>
+					Discard
+				</Button>
 			</>
 		:
-			<TextButton text = "Edit"
-				onClick={setEditing}/>
+			<Button size="sm" variant="ghost" className="text-surface-400 hover:text-brand-600" onClick={setEditing}>
+				Edit
+			</Button>
 		}
 		</div>
 	)
@@ -36,48 +39,39 @@ export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditi
 
 function MediaRenderer({path}) {
 	if (!path)
-		return
+		return null
 
 	var ext = path.substr(path.lastIndexOf('.') + 1);
 	var format = getFileFormat(ext);
 	
 	switch (format) {
 		case 'image':
-			return <p>
-				<img src={path}
-							alt="upload123"
-							className="w-24 h-24 object-cover border-2 border-stone-200"/>
-			</p>
-
+			return (
+				<div className="mt-4 rounded-xl overflow-hidden border border-surface-200 shadow-sm w-fit max-w-full">
+					<img src={path} alt="Upload" className="max-h-96 object-contain"/>
+				</div>
+			)
 		case 'audio':
-			return <p>
-				<audio controls src={path}/>
-			</p>
-
+			return <audio className="mt-4 w-full" controls src={path}/>
 		case 'video':
-			return <p>
-					<video controls src={path}/>
-			</p>
-			
+			return <video className="mt-4 w-full rounded-xl" controls src={path}/>
 		default:
-			<></>
+			return null
 	}
 }
 
 function DisplayFile({post}) {
-	return <div>
-		<MediaRenderer path={`${BASE}`+post.upload_path} />
-	</div>
+	if (!post.upload_path) return null
+	return <MediaRenderer path={`${BASE}${post.upload_path}`} />
 }
 
-export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
+export default function DisplayPost({post, privilegeLvl, update, canClickLink = true, isReply = false})
 {
 	const navigate = useNavigate()
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
 	const [loading, setLoading] = useState(true)
-
 	const [canEdit, setCanEdit] = useState(false)
 	const [canDelete, setCanDelete] = useState(privilegeLvl >= 2)
 
@@ -89,8 +83,7 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 	const postColor = getRandomPastelDate(post.created_at) 
 	
 	useEffect(() => {
-		// if (postInfo.title === null) return
-		if (isEditing == true && titleRef.current) {
+		if (isEditing && titleRef.current) {
 			const refArea = titleRef.current
 			refArea.focus()
 			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
@@ -104,32 +97,20 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 			setCanEdit(userID === post.author_id)
 			if (!canDelete)
 				setCanDelete(userID === post.author_id)
-		} else {
-			setCanEdit(false)
-			setCanDelete(false)
 		}
 		setLoading(false)
-	}, [userHandle.loading, userHandle.user])
+	}, [userHandle.loading, userHandle.user, post.author_id, canDelete])
 
-	if (loading) return <Loading/>
-
-	function onEnterTitle() {
-		if (contentRef.current) {
-			const refArea = contentRef.current
-			refArea.focus()
-			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
-		}
-	}
+	if (loading) return null
 
 	async function deletePost(e) {
-		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
+		e.stopPropagation()
+		if (window.confirm(`Delete this post?`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
 				notifHandle.pushSuccess("Post deleted")
-				if (update)
-					update()
-				else
-					navigate(`/board/${post.board_id}`) //need to get boardName
+				if (update) update()
+				else navigate(`/board`)
 			} else
 				notifHandle.pushError(res.status)
 		}
@@ -137,87 +118,143 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 	
 	async function saveEdit() {
 		const res = await apiPut(`/post/${post.id}`, {
-			body: JSON.stringify({
-				'content': postInfo.content
-			})
+			body: JSON.stringify({ 'content': postInfo.content })
 		})
 		if (res.ok) {
-			notifHandle.pushSuccess("Post edited")
+			notifHandle.pushSuccess("Post updated")
 			setIsEditing(false)
 			update()
 		} else {
-			notifHandle.pushError(res.message)
+			notifHandle.pushError(res.status)
 		}
 	}
 
-	function discardEdit() {
-		setPostInfo({title: post.title, content: post.content})
-		setIsEditing(false)
+	// Simplification for Discussion Focus:
+	// Replies are much flatter and use less "card" space.
+	if (isReply) {
+		return (
+			<div className="group flex gap-4 py-6 border-b border-surface-100 last:border-0 transition-colors hover:bg-surface-50/50 -mx-4 px-4">
+				<div className="flex-shrink-0">
+					<div 
+						className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm shadow-sm"
+						style={{ backgroundColor: postColor }}
+					>
+						{post.username[0].toUpperCase()}
+					</div>
+				</div>
+				<div className="flex-1 min-w-0">
+					<header className="flex justify-between items-center mb-1">
+						<div className="flex items-center gap-2 text-sm">
+							<span className="font-bold text-surface-900 cursor-pointer hover:text-brand-600" onClick={() => navigate(`/user/${post.username}`)}>
+								{post.username}
+							</span>
+							<span className="text-surface-300">•</span>
+							<time className="text-xs text-surface-400">{getDateDifferenceISO(post.created_at)}</time>
+						</div>
+						{canDelete && (
+							<button onClick={deletePost} className="opacity-0 group-hover:opacity-100 text-surface-300 hover:text-red-500 transition-all text-xs font-bold uppercase tracking-widest">
+								Delete
+							</button>
+						)}
+					</header>
+					
+					<div className="text-surface-700 text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+						{isEditing ? (
+							<TextArea 
+								value={postInfo.content}
+								setValue={(value) => setPostInfo(prev => ({...prev, content: value}))}
+								bgColor={postColor}
+								ref={contentRef}
+							/>
+						) : (
+							<p>{post.content}</p>
+						)}
+						<DisplayFile post={post}/>
+					</div>
+
+					<footer className="mt-2">
+						{canEdit && (
+							<EditComponentButtons 
+								isEditing={isEditing}
+								saveEdit={saveEdit}
+								discardEdit={() => { setPostInfo({title: post.title, content: post.content}); setIsEditing(false); }}
+								setEditing={() => setIsEditing(true)}
+							/>
+						)}
+					</footer>
+				</div>
+			</div>
+		)
 	}
 
 	return (
-	<article onClick={() => ((canClickLink && !isEditing) && navigate(`/post/${post.id}`))}
-			className="bg-zinc-700 rounded-xl p-2 cursor-pointer hover:bg-zinc-700 transition"
-			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: postColor }}>
-		<header className="mb-2">
-			{	postInfo.title != null &&
-				(isEditing ?
-					<TextAreaTitle
-						value = {postInfo.title}
-						setValue = {(value) => {setPostInfo(prev => ({...prev, "title": value}))}}
-						onEscape = {discardEdit}
-						bgColor = {postColor}
-						onEnter = {() => onEnterTitle()}
-						ref = {titleRef}
-					/>
-				:
-					<h6 className="text-white font-bold text-base">
-						{postInfo.title}
-					</h6>
-				)
-			}
-			<div className="flex items-center gap-3">
-				<time dateTime={post.created_at}
-					className="text-xs text-zinc-400">
-					{getDateDifferenceISO(post.created_at)}
-				</time>
-				<TextLink text={post.username}
-					link={`/user/${post.username}`}
-					className="text-xs text-zinc-400"/>
-				{canDelete &&
-					<Tooltip content = "Delete">
-						<TextButton onClick = {deletePost}
-							text = "❌"/>
-					</Tooltip>
-				}
-			</div>
-		</header>
-		<hr className="mb-2 -mx-4" style={{borderStyle: 'solid', borderColor: postColor, borderTopWidth: '3px'}}/>
-		<section>
-			{ isEditing ?
-				<TextArea value = {postInfo.content}
-					setValue = {(value) => {setPostInfo(prev => ({...prev, "content": value}))}}
-					onEscape = {discardEdit}
-					bgColor = {postColor}
-					ref = {contentRef}
-				/>
-			:
-				<p className="text-gray-200 text-sm break-words whitespace-pre-wrap">
-					{postInfo.content}
-				</p>
-			}
-				<DisplayFile post={post}/>
-		</section>
-		<footer>
-			{canEdit &&
-				<EditComponentButtons isEditing = {isEditing}
-					saveEdit = {() => {saveEdit()}}
-					discardEdit = {discardEdit}
-					setEditing = {() => {setIsEditing(true)}}
-				/>
-			}
-		</footer>
+		<article 
+			onClick={() => ((canClickLink && !isEditing) && navigate(`/post/${post.id}`))}
+			className={`bg-white rounded-3xl border border-surface-200 p-8 transition-all duration-200 shadow-soft hover:shadow-md ${canClickLink && !isEditing ? 'cursor-pointer' : ''}`}
+		>
+			<header className="flex justify-between items-start mb-6">
+				<div className="flex-1 min-w-0">
+					{postInfo.title != null && (
+						isEditing ? (
+							<TextAreaTitle
+								value={postInfo.title}
+								setValue={(value) => setPostInfo(prev => ({...prev, title: value}))}
+								bgColor={postColor}
+								ref={titleRef}
+							/>
+						) : (
+							<h1 className="text-3xl font-black text-surface-900 mb-2 leading-tight tracking-tight">
+								{postInfo.title}
+							</h1>
+						)
+					)}
+					<div className="flex items-center gap-3">
+						<div className="w-6 h-6 rounded-full bg-surface-100 flex items-center justify-center text-[10px] font-black" style={{ color: postColor }}>
+							{post.username[0].toUpperCase()}
+						</div>
+						<div className="flex items-center gap-2 text-xs text-surface-400">
+							<span className="font-bold text-surface-900 hover:text-brand-600 transition-colors" onClick={(e) => { e.stopPropagation(); navigate(`/user/${post.username}`) }}>
+								@{post.username}
+							</span>
+							<span>•</span>
+							<time>{getDateDifferenceISO(post.created_at)}</time>
+						</div>
+					</div>
+				</div>
 
-	</article>
+				{canDelete && (
+					<Button variant="ghost" size="sm" onClick={deletePost} className="text-surface-300 hover:text-red-500 p-2 h-auto rounded-full">
+						✕
+					</Button>
+				)}
+			</header>
+
+			<section className="mb-8">
+				{isEditing ? (
+					<TextArea 
+						value={postInfo.content}
+						setValue={(value) => setPostInfo(prev => ({...prev, content: value}))}
+						bgColor={postColor}
+						ref={contentRef}
+					/>
+				) : (
+					<p className="text-surface-700 text-lg leading-relaxed whitespace-pre-wrap break-words">
+						{postInfo.content}
+					</p>
+				)}
+				<DisplayFile post={post}/>
+			</section>
+
+			{canEdit && (
+				<footer className="pt-6 border-t border-surface-100">
+					<EditComponentButtons 
+						isEditing={isEditing}
+						saveEdit={saveEdit}
+						discardEdit={() => { setPostInfo({title: post.title, content: post.content}); setIsEditing(false); }}
+						setEditing={(e) => { e.stopPropagation(); setIsEditing(true); }}
+					/>
+				</footer>
+			)}
+		</article>
 	)
 }
