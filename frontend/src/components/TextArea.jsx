@@ -16,11 +16,14 @@ export default function TextArea({value, setValue, rows=1, onEscape, allowEnter 
 			style={{ backgroundColor: bgColor}}
 			value = {value}
 			onChange = {onChange}
-			onClick = {(e) => {e.stopPropagation()}}
+			onClick = { (e) => {e.stopPropagation()} }
+			rows = {rows} width = "90"
 		/>
 	)
 }
 
-// export function TextArea({value, setValue, ...props}) {
-	
-// }
+export function TextAreaTitle({...props}) {
+	return (
+		<TextArea allowEnter={false} rows = {1} props={props}/>
+	)
+}

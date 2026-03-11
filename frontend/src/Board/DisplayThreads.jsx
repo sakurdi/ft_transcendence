@@ -4,7 +4,7 @@ import useAuth from "../User/AuthProvider";
 import { apiDelete, apiGet } from "../Utils/api";
 import TextButton, { TextLink } from "../components/TextButton";
 import getRandomPastel from "../Utils/colors";
-import Button from "../components/Button";
+import TextArea from "../components/TextArea";
 
 // author_id: 2
 // board_id: 3
