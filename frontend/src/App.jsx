@@ -662,7 +662,6 @@ function DMSection({ auth }) {
     const { entries, push } = useLog()
     const socket = useSocket(push)
 	const presenceScoket = useSocket(push)
-    const [userID,   setUserID]   = useState("2")
     const [message,  setMessage]  = useState("")
     const [messages, setMessages] = useState([])
 
@@ -750,38 +749,10 @@ function DMSection({ auth }) {
 		presenceScoket.connect(`${WS}/ws/presence`, (event) => handlerRef.current(event))
 	}
 
-	function connectionLight(username) {
-		if (userConnected[username] !== undefined) {
-			return <div className="online-indicator"> pipi
-				<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
-			</div>
-		}
-		else {
-			return <div className="online-indicator"> caca
-				<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-red-600">non</span>
-			</div>
-		}
-	}
-
     function handleKey(e) {
         if (e.key === "Enter")
 			sendMessage()
     }
-
-    const addFriend = async () => {
-        const res = await api(`/friends/${newFriendId}`, { method: "POST" });
-        if (res.ok) {
-            setNewFriendId("");
-        }
-    };
-
-	 const removeFriend = async (username) => {
-        const res = await api(`/friends/${username}`, { method: "DELETE" });
-        if (res.ok) {
-            setNewFriendId("");
-			getFriends();
-        }
-    };
 
 	const getFriends = async () => {
 		const res = await api("/friends");
@@ -790,14 +761,6 @@ function DMSection({ auth }) {
 			userCon.setFriends(Array.isArray(friends) ? friends : []);
 		}
 	}
-
-	const checkProfil = async (username) => {
-		const res = await api(`/users/${username}`);
-		if (res.ok) {
-			const user = JSON.parse(res.body);
-			userCon.setProfilUser(user);
-		}
-	};
 
     return (
 		<>
