@@ -29,13 +29,16 @@ function OneThreadHeader({
 		setTitle,
 		isEditing,
 		canDelete,
-		deleteThread}) {
+		deleteThread})
+{
 	return (
 		<header className="mb-2">
 			{isEditing ?
-					<textarea className="text-white font-bold text-base"
+					<textarea className = "text-white font-bold text-base bg-transparent resize-none focus:outline-none rounded-xl "
 						value = {title}
-						onChange = {setTitle}
+						onChange = {(e) => {e.stopPropagation(); e.key != "Enter" && setTitle(e.target.value)}}
+						onClick = {(e) => {e.stopPropagation()}}
+						rows = "1" cols="30"
 					/>
 				:
 					<h6 className="text-white font-bold text-base">
@@ -58,8 +61,48 @@ function OneThreadHeader({
 	)
 }
 
-function OneThreadContent({thread, content, canEdit}) {
-
+function OneThreadContent({
+		content, 
+		setContent, 
+		canEdit, 
+		isEditing, 
+		setIsEditing, 
+		saveEdit, 
+		discardEdit})
+{
+	const EditComponent = () => {
+		return (
+			<div>
+			{ isEditing ?
+				<>
+				<TextButton text = "Save"
+					onClick={saveEdit}/>
+				<TextButton text = "Discard"
+					onClick={discardEdit}/>
+				</>
+			:
+				<TextButton text = "Edit"
+					onClick={() => setIsEditing(true)}/>
+			}
+			</div>
+		)
+	}
+	return (
+		<section>
+			{isEditing ? 
+				<textarea className="text-white font-bold text-base"
+					value = {content}
+					onChange = {(e) => {e.stopPropagation(); setContent(e.target.value)}}
+					onClick = {(e) => {e.stopPropagation()}}
+				/>
+			:
+				<p className="text-gray-200 text-sm break-words whitespace-normal">
+					{content}
+				</p>
+			}
+			{canEdit ? EditComponent() : <></>}
+		</section>
+	)
 }
 
 export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
@@ -94,11 +137,15 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 	}
 	
 	const saveEdit = async () => {
-		//api
-		setRefreshKeyThread()
+		setIsEditing(false)
+		if (false) {
+			//api
+			setRefreshKeyThread()
+		}
 	}
 	const discardEdit = () => {
-
+		setPostInfo({title: thread.title, content: thread.content})
+		setIsEditing(false)
 	}
 
 	return (
@@ -107,18 +154,22 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: borderColor }}>
 			<OneThreadHeader
 				thread = {thread}
-				title = {[postInfo.title]}
+				title = {postInfo.title}
 				setTitle = {(value) => {setPostInfo(prev => ({...prev, ["title"]: value}))}}
 				isEditing = {isEditing}
 				canDelete = {canDelete}
 				deleteThread = {deleteThread}
 			/>
 			<hr className="mb-2 -mx-4" style={{borderStyle: 'solid', borderColor: borderColor, borderTopWidth: '3px'}}/>
-			<section>
-				<p className="text-gray-200 text-sm break-words whitespace-normal">
-					{thread.content}
-				</p>
-			</section>
+			<OneThreadContent content = {postInfo.content}
+				setContent = { (value) => {setPostInfo(prev => ({...prev, ["content"]: value}))}}
+				canEdit = {canEdit}
+				isEditing = {isEditing}
+				setIsEditing = {setIsEditing}
+				saveEdit = {saveEdit}
+				discardEdit = {discardEdit}
+			/>
+			
 		</article>
 	)
 }
