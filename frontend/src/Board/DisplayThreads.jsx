@@ -4,7 +4,7 @@ import useAuth from "../User/AuthProvider";
 import { apiDelete, apiGet } from "../Utils/api";
 import TextButton, { TextLink } from "../components/TextButton";
 import getRandomPastel from "../Utils/colors";
-import TextArea from "../components/TextArea";
+import TextArea, { TextAreaTitle } from "../components/TextArea";
 
 // author_id: 2
 // board_id: 3
@@ -29,16 +29,24 @@ function OneThreadHeader({
 		setTitle,
 		isEditing,
 		canDelete,
-		deleteThread})
+		deleteThread,
+		discardEdit,
+		bgColor})
 {
 	return (
 		<header className="mb-2">
 			{isEditing ?
-					<textarea className = "text-white font-bold text-base bg-transparent resize-none focus:outline-none rounded-xl "
+					// <textarea className = "text-white font-bold text-base bg-transparent resize-none focus:outline-none rounded-xl "
+					// 	value = {title}
+					// 	onChange = {(e) => {e.stopPropagation(); e.key != "Enter" && setTitle(e.target.value)}}
+					// 	onClick = {(e) => {e.stopPropagation()}}
+					// 	rows = "1" cols="30"
+					// />
+					<TextAreaTitle
+						setValue = {setTitle}
 						value = {title}
-						onChange = {(e) => {e.stopPropagation(); e.key != "Enter" && setTitle(e.target.value)}}
-						onClick = {(e) => {e.stopPropagation()}}
-						rows = "1" cols="30"
+						onEscape = {discardEdit}
+						bgColor = {bgColor}
 					/>
 				:
 					<h6 className="text-white font-bold text-base">
@@ -68,7 +76,8 @@ function OneThreadContent({
 		isEditing, 
 		setIsEditing, 
 		saveEdit, 
-		discardEdit})
+		discardEdit,
+		bgColor})
 {
 	const EditComponent = () => {
 		return (
@@ -90,13 +99,13 @@ function OneThreadContent({
 	return (
 		<section>
 			{isEditing ? 
-				<textarea className="text-white font-bold text-base"
-					value = {content}
-					onChange = {(e) => {e.stopPropagation(); setContent(e.target.value)}}
-					onClick = {(e) => {e.stopPropagation()}}
+				<TextArea value = {content}
+					setValue = {setContent}
+					onEscape = {discardEdit}
+					bgColor = {bgColor}
 				/>
 			:
-				<p className="text-gray-200 text-sm break-words whitespace-normal">
+				<p className="text-gray-200 text-sm break-words whitespace-pre-wrap">
 					{content}
 				</p>
 			}
@@ -117,7 +126,7 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 	const [isEditing, setIsEditing] = useState(false)
 	const [postInfo, setPostInfo] = useState({title: thread.title, content: thread.content})
 
-	const borderColor = getRandomPastel(getSeedThreadColor(thread)) 
+	const postColor = getRandomPastel(getSeedThreadColor(thread)) 
 
 	function getSeedThreadColor(thread) {
 		const date = new Date(thread.created_at)
@@ -138,6 +147,7 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 	
 	const saveEdit = async () => {
 		setIsEditing(false)
+		console.log(postInfo.content)
 		if (false) {
 			//api
 			setRefreshKeyThread()
@@ -149,9 +159,9 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 	}
 
 	return (
-		<article onClick={() => navigate(`/post/${thread.id}`)}
+		<article onClick={() => (!isEditing && navigate(`/post/${thread.id}`))}
 			className="bg-zinc-700 rounded-xl p-2 cursor-pointer hover:bg-zinc-700 transition"
-			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: borderColor }}>
+			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: postColor }}>
 			<OneThreadHeader
 				thread = {thread}
 				title = {postInfo.title}
@@ -159,8 +169,10 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 				isEditing = {isEditing}
 				canDelete = {canDelete}
 				deleteThread = {deleteThread}
+				discardEdit = {discardEdit}
+				bgColor = {postColor}
 			/>
-			<hr className="mb-2 -mx-4" style={{borderStyle: 'solid', borderColor: borderColor, borderTopWidth: '3px'}}/>
+			<hr className="mb-2 -mx-4" style={{borderStyle: 'solid', borderColor: postColor, borderTopWidth: '3px'}}/>
 			<OneThreadContent content = {postInfo.content}
 				setContent = { (value) => {setPostInfo(prev => ({...prev, ["content"]: value}))}}
 				canEdit = {canEdit}
@@ -168,6 +180,7 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 				setIsEditing = {setIsEditing}
 				saveEdit = {saveEdit}
 				discardEdit = {discardEdit}
+				bgColor = {postColor}
 			/>
 			
 		</article>
