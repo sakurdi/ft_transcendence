@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom"
 import useAuth from "../User/AuthProvider";
 import { apiDelete, apiGet } from "../Utils/api";
 import TextButton, { TextLink } from "../components/TextButton";
 import getRandomPastel from "../Utils/colors";
 import TextArea, { TextAreaTitle } from "../components/TextArea";
+import Tooltip from "../components/Tooltip";
 
 // author_id: 2
 // board_id: 3
@@ -14,14 +15,6 @@ import TextArea, { TextAreaTitle } from "../components/TextArea";
 // parent_id: null
 // title: "Bonjour"
 // username: "gaeudes"
-
-function OneThreadHeaderDeleteButton({deleteThread}) {
-	// console.log("Deletebutton")
-	return (
-		<TextButton onClick={deleteThread}
-			text="❌"/>
-	)
-}
 
 function OneThreadHeader({
 		thread,
@@ -36,12 +29,6 @@ function OneThreadHeader({
 	return (
 		<header className="mb-2">
 			{isEditing ?
-					// <textarea className = "text-white font-bold text-base bg-transparent resize-none focus:outline-none rounded-xl "
-					// 	value = {title}
-					// 	onChange = {(e) => {e.stopPropagation(); e.key != "Enter" && setTitle(e.target.value)}}
-					// 	onClick = {(e) => {e.stopPropagation()}}
-					// 	rows = "1" cols="30"
-					// />
 					<TextAreaTitle
 						setValue = {setTitle}
 						value = {title}
@@ -62,7 +49,9 @@ function OneThreadHeader({
 					link={`/user/${thread.username}`}
 					className="text-xs text-zinc-400"/>
 				{canDelete &&
-					<OneThreadHeaderDeleteButton deleteThread = {deleteThread}/>
+					<Tooltip content = "Delete">
+						<TextButton onClick={deleteThread}	text="❌"/>
+					</Tooltip>
 				}
 			</div>
 		</header>
@@ -74,7 +63,7 @@ function OneThreadContent({
 		setContent, 
 		canEdit, 
 		isEditing, 
-		setIsEditing, 
+		setEditing, 
 		saveEdit, 
 		discardEdit,
 		bgColor})
@@ -91,7 +80,7 @@ function OneThreadContent({
 				</>
 			:
 				<TextButton text = "Edit"
-					onClick={() => setIsEditing(true)}/>
+					onClick={() => setEditing(true)}/>
 			}
 			</div>
 		)
@@ -121,10 +110,10 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 
 	const canEdit = (!user ? false : (thread.author_id === user.id))
 	const canDelete = privilegeLvl >= 2 || canEdit
-	// console.log(`CanEdit: ${canEdit} | CanDelete: ${canDelete}`)
 
 	const [isEditing, setIsEditing] = useState(false)
 	const [postInfo, setPostInfo] = useState({title: thread.title, content: thread.content})
+	const refArea = useRef(null, null)
 
 	const postColor = getRandomPastel(getSeedThreadColor(thread)) 
 
@@ -177,7 +166,7 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 				setContent = { (value) => {setPostInfo(prev => ({...prev, ["content"]: value}))}}
 				canEdit = {canEdit}
 				isEditing = {isEditing}
-				setIsEditing = {setIsEditing}
+				setEditing = {() => {setIsEditing(true); }}
 				saveEdit = {saveEdit}
 				discardEdit = {discardEdit}
 				bgColor = {postColor}
@@ -190,32 +179,33 @@ export function DisplayOneThread({thread, privilegeLvl, setRefreshKeyThread})
 export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
 	const userHandler = useAuth()
 	const [loading, setLoading] = useState(true)
-	const [threads, setThreads] = useState([])
+	const [threads, setThreads] = useState(null)
 	
 	useEffect(() => {
 		const fetchThreads = async (boardName) => {
 			const res = await apiGet(`/board/${boardName}/threads`)
 			if (res.ok) {
-				// console.log(res)
 				setThreads(res.json)
 				setLoading(false)
 			}
 		}
 		fetchThreads(board.name)
-		// console.log(board)
 	}, [refreshKeyThread])
 
 	if (loading) return "loading"
-	// console.log("Threads: "+threads)
-	return(
-	<>
-		{threads.map((oneThread) =>
-			<DisplayOneThread key={oneThread.id}
-				thread={oneThread}
-				privilegeLvl={privilegeLvl}
-				setRefreshKeyThread={setRefreshKeyThread}
-			/>)
-		}
-	</>
-	)
+	if (threads === null) {
+		return "This board has no posts"
+	} else {
+		return(
+		<>
+			{threads.map((oneThread) =>
+				<DisplayOneThread key={oneThread.id}
+					thread={oneThread}
+					privilegeLvl={privilegeLvl}
+					setRefreshKeyThread={setRefreshKeyThread}
+				/>)
+			}
+		</>
+		)
+	}
 }
