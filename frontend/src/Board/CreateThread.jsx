@@ -19,6 +19,35 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	const [title, setTitle] = useState("")
 	const [content, setContent] = useState("")
 
+	const [file, setFile] = useState(null)
+	const [previewUrl, setPreviewUrl] = useState(null)
+
+	const infoElementError = document.getElementById("input-error");
+	const infoElement = document.getElementById("input-preview");
+
+	const handleFileChange = (e) => {
+		const selectedFile = e.target.files[0];
+		
+		if (selectedFile) {
+			if (selectedFile.size > (1 << 20)){
+				infoElementError.textContent = `File is too big`;
+				infoElementError.style.color = "red";
+				setFile("")
+				setPreviewUrl("")
+			}
+
+			infoElement.textContent = `Selected file: ${selectedFile.name}
+									(${(selectedFile.size /1024).toFixed(2)})KB)`;
+			setFile(selectedFile);
+			setPreviewUrl(URL.createObjectURL(selectedFile));
+
+		}
+		else {
+			infoElement.textContent = '';
+		}
+		
+	}
+
 	function handleEnter(event) {
 		if (event.key == "Enter") {
 			const form = event.target.form;
@@ -30,13 +59,28 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 
 	async function onSubmit() {	
 		console.log(`Title: ${title}  | "${content}"`)
-		const res = await apiPost(`/board/${board.id}/post`,
-				{body: JSON.stringify({
-					'title': title,
-					'content': content,
-					'parent_id': null
+
+		const formData = new FormData();
+		formData.append('title', title);
+		formData.append('content', content);
+		formData.append('parent_id', '0');
+		if (file) {
+			formData.append("upload", file);
+		}
+
+		const res = await fetch(`/api/board/${board.id}/post`,
+				{
+					method: 'POST',
+					body: formData
 				})
-			})
+
+		// const res = await apiPost(`/board/${board.id}/post`,
+		// 		{body: JSON.stringify({
+		// 			'title': title,
+		// 			'content': content,
+		// 			'parent_id': null
+		// 		})
+		// 	})
 		if (!res.ok) {
 			console.log(res.status)
 		} else {
@@ -44,6 +88,10 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 			console.log(res)
 			setTitle("")
 			setContent("")
+			setFile("")
+			setPreviewUrl("")
+			infoElement.textContent = '';
+			infoElementError.textContent = '';
 			setRefreshKeyThread()
 		}
 
@@ -60,6 +108,16 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 				onChange = { (event) => setContent(event.target.value) }
 				placeholder = "Content"
 				/>
+
+			<img src={previewUrl} className="max-w-xs object-cover border border-stone-300"></img>
+			<p id="input-preview"></p>
+			<p id="input-error"></p>
+			<input type="file"
+				onChange={handleFileChange}
+				accept="image/png, image/jpeg, image/jpg"
+				id="input-file"
+				/>
+
 			<Button type = "submit">
 				Confirm
 			</Button>

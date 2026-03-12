@@ -27,9 +27,9 @@ type BoardCreate struct {
 }
 
 type PostCreate struct {
-	Title    *string `json:"title"`
-	Content  string  `json:"content"`
-	ParentID *int    `json:"parent_id"`
+	Title    *string   `json:"title"`
+	Content  string    `json:"content"`
+	ParentID *int      `json:"parent_id"`
 }
 
 type BoardRole struct {

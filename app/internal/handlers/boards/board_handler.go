@@ -14,6 +14,11 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+
+	// "io"
+	// "os"
+	// "fmt"
+	// "path/filepath"
 )
 
 func CreateBoardHandler(c *config.Config) http.HandlerFunc {
@@ -117,16 +122,67 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		var body models.PostCreate
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+		err2 := r.ParseMultipartForm(5 << 20)
+		if (err2 != nil) {
+			http.Error(w, "Error multipart form", http.StatusBadRequest)
 			return
 		}
+
+		title_value := r.FormValue("title")
+
+		parent_id := r.FormValue("parent_id")
+		parent_id_int, err := strconv.Atoi(parent_id)
+		if (err != nil) {
+			http.Error(w, "Error parent_id_int when strconv", http.StatusBadRequest)
+			return
+		}
+		var parentIDptr *int
+		if (parent_id_int != 0) {
+			parentIDptr = &parent_id_int
+		}
+
+		body := models.PostCreate {
+			Title: &title_value,
+			Content: r.FormValue("content"),
+			ParentID: parentIDptr,
+		}
+
+		// var body models.PostCreate
+		// if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
+		// 	http.Error(w, "Invalid request", http.StatusBadRequest)
+		// 	return
+		// }
 
 		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
 			http.Error(w, "Threads need a title", http.StatusBadRequest)
 			return
 		}
+
+		// file, handler, err := r.FormFile("upload")
+		// if (err != nil) {
+		// 	http.Error(w, "Threads need a title", http.StatusBadRequest)
+		// 	return
+		// }
+		// defer file.Close()
+
+		// ext := filepath.Ext(handler.Filename)
+		// if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+		// 	http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
+		// 	return
+		// }
+
+		// fileName := fmt.Sprintf("user_%d%s", userID, ext)
+		// savePath := filepath.Join("/upload/database", fileName)
+
+		// dst, err := os.Create((savePath))
+		// if err != nil {
+		// 	http.Error(w, "Error saving file", http.StatusInternalServerError)
+		// 	return
+		// }
+		// defer dst.Close()
+		// io.Copy(dst, file)
+
+		// body.UploadPath = savePath
 
 		id, err := store.CreatePost(c.DB, r.Context(), body, boardID, userID)
 		if err != nil {
