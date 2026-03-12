@@ -631,7 +631,7 @@ function FriendListRequest(props) {
 	}
 
 	function ListRequest() {
-		<div>
+		return <div>
 			<h3>Friend Requests:</h3>
 			<ul>
 				{user.friendRequests && user.friendRequests.length === 0 ? (
