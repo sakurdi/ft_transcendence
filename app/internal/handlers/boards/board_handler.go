@@ -15,10 +15,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	// "io"
-	// "os"
-	// "fmt"
-	// "path/filepath"
+	"io"
+	"os"
+	"fmt"
+	"path/filepath"
 )
 
 func CreateBoardHandler(c *config.Config) http.HandlerFunc {
@@ -147,42 +147,34 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			ParentID: parentIDptr,
 		}
 
-		// var body models.PostCreate
-		// if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
-		// 	http.Error(w, "Invalid request", http.StatusBadRequest)
-		// 	return
-		// }
-
 		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
 			http.Error(w, "Threads need a title", http.StatusBadRequest)
 			return
 		}
 
-		// file, handler, err := r.FormFile("upload")
-		// if (err != nil) {
-		// 	http.Error(w, "Threads need a title", http.StatusBadRequest)
-		// 	return
-		// }
-		// defer file.Close()
+		file, handler, err := r.FormFile("upload")
+		if (err == nil) {
+			defer file.Close()
 
-		// ext := filepath.Ext(handler.Filename)
-		// if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-		// 	http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
-		// 	return
-		// }
+			ext := filepath.Ext(handler.Filename)
+			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+				http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
+				return
+			}
 
-		// fileName := fmt.Sprintf("user_%d%s", userID, ext)
-		// savePath := filepath.Join("/upload/database", fileName)
+			fileName := fmt.Sprintf("user_%d%s", userID, ext)
+			savePath := filepath.Join("/app/uploads/database", fileName)
 
-		// dst, err := os.Create((savePath))
-		// if err != nil {
-		// 	http.Error(w, "Error saving file", http.StatusInternalServerError)
-		// 	return
-		// }
-		// defer dst.Close()
-		// io.Copy(dst, file)
+			dst, err := os.Create((savePath))
+			if err != nil {
+				http.Error(w, "Error saving file", http.StatusInternalServerError)
+				return
+			}
+			defer dst.Close()
+			io.Copy(dst, file)
 
-		// body.UploadPath = savePath
+			body.UploadPath = savePath
+		}
 
 		id, err := store.CreatePost(c.DB, r.Context(), body, boardID, userID)
 		if err != nil {

@@ -22,6 +22,7 @@ services:
     container_name: app
     volumes:
       - ./app:/app
+      - ./uploads:/app/uploads
     environment:
       DB_URL: postgres://user:pass@db:5432/appdb?sslmode=disable
     networks:

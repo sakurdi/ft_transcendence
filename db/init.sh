@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS posts (
     author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     title VARCHAR(255),
     content TEXT NOT NULL,
+	upload_path VARCHAR(255),
     parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()
 );
