@@ -4,8 +4,12 @@ import {apiGet, apiPost} from "../Utils/api"
 
 const AuthContext = createContext();
 
-const useAuth = () => useContext(AuthContext);
-export default useAuth
+export default function useAuth() {
+	const context = useContext(AuthContext)
+	if (context == null)
+		throw (new Error("useAuth outside of AuthProvider"))
+	return (context)
+}
 
 
 export function AuthProvider( { children } ) {

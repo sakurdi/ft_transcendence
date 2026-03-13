@@ -5,10 +5,13 @@ import TextInput, {PasswordInput} from "../components/TextInput"
 import {ErrorText} from "../components/WrapError"
 import styles from './Register.module.css';
 import useAuth from "./AuthProvider";
-
+import useNotif from "../components/Notif";
 
 export default function Login() {
 	const userHandle = useAuth()
+	const notifHandle = useNotif()
+
+	console.log(notifHandle)
 	
 	const navigate = useNavigate()
 	
@@ -45,6 +48,9 @@ export default function Login() {
 		// console.log(values.username, values.password)
 		try {
 			await userHandle.login(values.username, values.password)
+			notifHandle.pushError("Nsm")
+			notifHandle.pushNotif("Salut kevin wang")
+			notifHandle.pushSuccess("Salut kevin wang")
 			navigate('/')
 		} catch (error) {
 			console.log(error)
@@ -63,7 +69,7 @@ export default function Login() {
 			<PasswordInput
 				value={values.password}
 				onChange={(password) => setValue("password", password)}
-				onEnter= {onSubmit}
+				// onEnter= {onSubmit} // form handles this
 			/>
 			<Button type="submit">
 				Login

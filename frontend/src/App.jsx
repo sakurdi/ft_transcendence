@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./User/AuthProvider";
+import { NotifProvider } from "./components/Notif";
 
 import Register from "./User/Register";
 import Login from "./User/Login";
@@ -11,10 +12,6 @@ import {ButtonLink} from "./components/Button";
 import NavBar from "./NavBar";
 import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
-
-
-
-
 
 const Home = () => {
 	return (
@@ -34,21 +31,23 @@ const Home = () => {
 
 export default function App() {
   return (
-	<AuthProvider>
-		<BrowserRouter future={{v7_relativeSplatPath: false}}>
-			<NavBar/>
-			<Routes>
-				<Route path='/' element={<Home/>} />
-				<Route path='/register' element={<Register/>} />
-				<Route path='/login' element={<Login/>} />
-				<Route path='/logout' element={<LogoutPage/>} />
-				<Route path="/user/:username" element={<UserPage />} />
-				<Route path='/ShowSession' element={<ShowSession/>} />
-				<Route path='/createBoard' element={<CreateBoard/>} />
-				<Route path='/board/:boardName' element={<DisplayBoard/>} />
-				<Route path='/board/:boardName/thread/:threadID' element={<DisplayBoard/>} />
-			</Routes>
-		</BrowserRouter>
-	</AuthProvider>
+	<NotifProvider>
+		<AuthProvider>
+			<BrowserRouter future={{v7_relativeSplatPath: false}}>
+				<NavBar/>
+				<Routes>
+					<Route path='/' element={<Home/>} />
+					<Route path='/register' element={<Register/>} />
+					<Route path='/login' element={<Login/>} />
+					<Route path='/logout' element={<LogoutPage/>} />
+					<Route path="/user/:username" element={<UserPage />} />
+					<Route path='/ShowSession' element={<ShowSession/>} />
+					<Route path='/createBoard' element={<CreateBoard/>} />
+					<Route path='/board/:boardName' element={<DisplayBoard/>} />
+					<Route path='/board/:boardName/thread/:threadID' element={<DisplayBoard/>} />
+				</Routes>
+			</BrowserRouter>
+		</AuthProvider>
+	</NotifProvider>
 	);
 }
