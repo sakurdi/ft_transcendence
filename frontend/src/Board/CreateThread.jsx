@@ -114,7 +114,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 			<p id="input-error"></p>
 			<input type="file"
 				onChange={handleFileChange}
-				accept="image/png, image/jpeg, image/jpg"
+				accept="image/png, image/jpeg, image/jpg, video/mp4, audio/*"
 				id="input-file"
 				/>
 

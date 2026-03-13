@@ -30,6 +30,28 @@ function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	)
 }
 
+
+
+function DisplayFile({post}) {
+
+	var ext = post.upload_path.substr(post.upload_path.lastIndexOf('.') + 1);
+
+	return <section>
+				<p>
+					<p>{post.upload_path}</p>
+					<img src={"/api"+post.upload_path}
+								alt="upload123"
+								className="w-24 h-24 object-cover border-2 border-stone-200"/>
+
+					<audio controls src={"/api"+post.upload_path}/>
+
+					<video controls src={"/api"+post.upload_path}/>
+				</p>
+				:
+				<></>
+		</section>
+}
+
 export default function DisplayPost({post, privilegeLvl, refreshKey})
 {
 	const navigate = useNavigate()
@@ -148,15 +170,22 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 			}
 		</section>
 
-		{/* (post.upload_path && */}
-		<section>
-			<p>{post.upload_path}</p>
-			<img src={"/api"+post.upload_path}
-						alt="upload123"
-						className="w-24 h-24 object-cover border-2 border-stone-200"/>
+		<DisplayFile post={post}/>
+		{/* <section>
+			{ post.upload_path ?
+				<p>
+					<img src={"/api"+post.upload_path}
+								alt="upload123"
+								className="w-24 h-24 object-cover border-2 border-stone-200"/>
 
-		</section>
-		{/* ) */}
+					<audio controls src={"/api"+post.upload_path}/>
+
+					<video controls src={"/api"+post.upload_path}/>
+				</p>
+				:
+				<p></p>
+			}
+		</section> */}
 
 	</article>
 	)
