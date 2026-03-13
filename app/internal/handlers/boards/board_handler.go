@@ -19,6 +19,8 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
+	"math/rand/v2"
+	// base64 "encoding/base64"
 )
 
 func CreateBoardHandler(c *config.Config) http.HandlerFunc {
@@ -113,6 +115,19 @@ func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
+func ServeUpload(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fileName := chi.URLParam(r, "fileName")
+		filePath := filepath.Join("/app/uploads/database", fileName)
+
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+		http.ServeFile(w, r, filePath)
+	}
+}
+
 func CreatePostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
@@ -162,7 +177,22 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 				return
 			}
 
-			fileName := fmt.Sprintf("user_%d%s", userID, ext)
+			
+			// rand.Seed(time.Now().UnixNano())
+			// n := a + rand.Intn(b-a+1)
+
+
+			// randBytes := make([]byte, 16)
+			// for i:=0; i<16; i++ {
+			// 	randBytes[i] = 65 + rand.Intn(25)
+			// }
+			// // rand.Read(randBytes)
+			// randomString := fmt.Sprintf("%x", randBytes)
+			// test := base64.RawURLEncoding.EncodeToString(randBytes)
+
+			n := rand.IntN(10000)
+
+			fileName := fmt.Sprintf("user_%d_%d%s", userID, n, ext)
 			savePath := filepath.Join("/app/uploads/database", fileName)
 
 			dst, err := os.Create((savePath))

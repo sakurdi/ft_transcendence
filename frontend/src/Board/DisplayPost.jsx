@@ -147,6 +147,17 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 				/>
 			}
 		</section>
+
+		{/* (post.upload_path && */}
+		<section>
+			<p>{post.upload_path}</p>
+			<img src={"/api"+post.upload_path}
+						alt="upload123"
+						className="w-24 h-24 object-cover border-2 border-stone-200"/>
+
+		</section>
+		{/* ) */}
+
 	</article>
 	)
 }

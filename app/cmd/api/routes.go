@@ -36,6 +36,7 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/board/{boardName}/threads", boards.GetThreadsHandler(c))
 	mux.Get("/thread/{postID}/replies", boards.GetRepliesHandler(c))
 
+	mux.Get("/app/uploads/database/{fileName}", boards.ServeUpload(c))
 	// mux.Put(/api)
 
 

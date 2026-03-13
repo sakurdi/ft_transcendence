@@ -20,7 +20,7 @@ func CreatePost(db *pgxpool.Pool, ctx context.Context, post models.PostCreate, b
 
 func GetThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, offset int) ([]models.Post, error) {
 	rows, err := db.Query(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, p.upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.board_id=$1 AND p.parent_id IS NULL
 		ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
@@ -35,7 +35,7 @@ func GetThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, offset in
 
 func GetReplies(db *pgxpool.Pool, ctx context.Context, parentID int) ([]models.Post, error) {
 	rows, err := db.Query(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.parent_id=$1
 		ORDER BY p.created_at ASC`,
@@ -74,7 +74,7 @@ func scanPosts(rows pgx.Rows) ([]models.Post, error) {
 func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, error) {
 	var p models.Post
 	err := db.QueryRow(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, p.upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, p.upload_path, COALESCE(p.upload_path, '') AS upload_path
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.id=$1`,
 		postID,
