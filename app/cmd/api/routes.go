@@ -20,6 +20,13 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
 
+	mux.Post("/login", users.LoginHandler(c))
+	mux.Post("/register", users.RegisterHandler(c))
+
+	mux.Get("/board/{boardName}", boards.GetBoardHandler(c))
+	mux.Get("/board/{boardName}/threads", boards.GetThreadsHandler(c))
+	mux.Get("/thread/{postID}/replies", boards.GetRepliesHandler(c))
+
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
@@ -40,9 +47,6 @@ func routes(c *config.Config) http.Handler {
 		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
-		
-		r.Post("/board/new", boards.CreateBoardHandler(c))
-		r.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
 
 		r.Put("/user/{username}", users.UpdateUserHandler(c))
 
@@ -73,4 +77,3 @@ func routes(c *config.Config) http.Handler {
 
 	return mux
 }
-
