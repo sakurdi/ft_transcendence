@@ -20,8 +20,6 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
 
-	mux.Get("/password/{pass}", users.GetHash(c))
-
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
