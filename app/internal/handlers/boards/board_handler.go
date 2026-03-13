@@ -278,3 +278,33 @@ func GetBoardModTeamHandler(c *config.Config) http.HandlerFunc {
 		utils.JSON(w, http.StatusOK, members)
 	}
 }
+
+func EditPostHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionUserID := middleware.GetUserID(c, r)
+		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
+		if err != nil {
+			utils.JSON(w, http.StatusBadRequest, map[string]string{"status": "Invalid post ID"})
+			return
+		}
+		authorID, err := store.GetPostAuthorID(c.DB, r.Context(), postID)
+		if err != nil {
+			utils.JSON(w, http.StatusNotFound, map[string]string{"status": "Post not found"})
+			return
+		}
+		if sessionUserID != authorID {
+			utils.JSON(w, http.StatusForbidden, map[string]string{"status": "Forbidden"})
+			return
+		}
+		var body models.PostEdit
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
+			utils.JSON(w, http.StatusBadRequest, map[string]string{"status": "Invalid request"})
+			return
+		}
+		if err := store.UpdatePost(c.DB, r.Context(), postID, body.Content); err != nil {
+			utils.JSON(w, http.StatusInternalServerError, map[string]string{"status": "Internal Server Error"})
+			return
+		}
+		utils.JSON(w, http.StatusOK, map[string]string{"status": "Post updated"})
+	}
+}

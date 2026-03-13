@@ -81,3 +81,14 @@ func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, er
 	).Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt)
 	return p, err
 }
+
+func UpdatePost(db *pgxpool.Pool, ctx context.Context, postID int, content string) error {
+	_, err := db.Exec(ctx, "UPDATE posts SET content=$1 WHERE id=$2", content, postID)
+	return err
+}
+
+func GetPostAuthorID(db *pgxpool.Pool, ctx context.Context, postID int) (int, error) {
+	var authorID int
+	err := db.QueryRow(ctx, "SELECT author_id FROM posts WHERE id=$1", postID).Scan(&authorID)
+	return authorID, err
+}
