@@ -11,8 +11,6 @@ export default function Login() {
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
-	console.log(notifHandle)
-	
 	const navigate = useNavigate()
 	
 	const [values, setValuesInt] = useState({
@@ -20,16 +18,13 @@ export default function Login() {
 		password: '',
 	})
 	
-	const [loginError, setLoginError] = useState('');
-
 	const setValue = (field, value) => {
 		setValuesInt(prev => ({...prev, [field]: value}))
 	}
 
 	useEffect(() => { 
-			console.log(userHandle.user)
 			if (userHandle.user) {
-				console.log("User is already logged in")
+				notifHandle.pushSuccess("You are already logged in")
 				navigate('/')
 			}
 		}, []
@@ -45,16 +40,13 @@ export default function Login() {
 	}
 
 	async function onSubmit() {
-		// console.log(values.username, values.password)
 		try {
 			await userHandle.login(values.username, values.password)
-			notifHandle.pushError("Nsm")
-			notifHandle.pushNotif("Salut kevin wang")
-			notifHandle.pushSuccess("Salut kevin wang")
+			notifHandle.pushSuccess(`Logged in as ${values.username}`)
 			navigate('/')
 		} catch (error) {
 			console.log(error)
-			setLoginError(error)
+			notifHandle.pushError(error)
 		}
 	}
 
@@ -74,7 +66,6 @@ export default function Login() {
 			<Button type="submit">
 				Login
 			</Button>
-			<ErrorText errorText={loginError}/>
 		</form>
 	)
 }
