@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/Button"
 import TextInput from  "../components/TextInput"
 import useAuth from "../User/AuthProvider";
-import WrapError from "../components/WrapError";
+import useNotif from "../components/Notif";
 
 import { apiPost } from "../Utils/api";
 
@@ -16,15 +16,17 @@ import { apiPost } from "../Utils/api";
 export default function CreateBoard() {
 	const navigate = useNavigate()
 	const userHandler = useAuth()
+	const notifHandle = useNotif()
 
 	useEffect(() => {
-		if (!userHandler.user)
+		if (!userHandler.user) {
+			notifHandle.pushError("You need to be logged in to create a board")
 			navigate('/');
+		}
 	}, [])
 
 	const [boardName, setBoardName] = useState("")
 	const [boardDescription, setBoardDescription] = useState("")
-	const [error, setError] = useState("")
 	
 	const _CreateBoard = async () => {
 		try {
@@ -38,10 +40,11 @@ export default function CreateBoard() {
 				throw (await response.status)
 			}
 			console.log(response.json)
+			notifHandle.pushSuccess(`Board "${boardName}" succesfully created`)
 			navigate("/board/" + boardName);
 		} catch (error) {
 			console.log(error)
-			setError(error)
+			notifHandle.pushError(error)
 		}
 	}
 
@@ -54,11 +57,9 @@ export default function CreateBoard() {
 			<TextInput value = {boardDescription}
 				onChange = {setBoardDescription}
 				placeHolder = "Description"/>
-			<WrapError errorText={error}>
-				<Button onClick={_CreateBoard}>
-					Confirm
-				</Button>
-			</WrapError>
+			<Button onClick={_CreateBoard}>
+				Confirm
+			</Button>
 		</div>
 	)
 }
