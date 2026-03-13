@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (login, password, email, role) VALUES
-    ('saal-kur','\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com', 'superadmin'),
-    ('gaeudes', '\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com', 'superadmin'),
-    ('kevwang', '\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com', 'superadmin'),
-    ('peon', '\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'bonjour@bonjour.com', 'user')
+    ('saal-kur','$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com', 'superadmin'),
+    ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com', 'superadmin'),
+    ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com', 'superadmin'),
+    ('peon', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'bonjour@bonjour.com', 'user')
 
 ON CONFLICT DO NOTHING;
 
