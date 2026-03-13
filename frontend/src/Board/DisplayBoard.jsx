@@ -4,6 +4,7 @@ import Button, {ButtonLink} from "../components/Button";
 import useAuth from "../User/AuthProvider";
 import DisplayPost from "./DisplayPost";
 import DisplayThreads from "./DisplayThreads";
+import DisplayMods from "./DisplayMods";
 
 import { apiGet } from "../Utils/api";
 
@@ -50,7 +51,7 @@ function DisplayBoardDescription({board, privilegeLvl}) {
 	}
 }
 
-export function DisplayBoardHeader({board, privilegeLvl}) {
+export function DisplayBoardHeader({board, privilegeLvl, children}) {
 	const navigate = useNavigate()
 	const baseOwnerName = "<undefined>"
 	const [ownerName, setOwnerName] = useState(baseOwnerName)
@@ -86,6 +87,7 @@ export function DisplayBoardHeader({board, privilegeLvl}) {
 				</div>
 				<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
 			</header>
+			{children}
 		</section>
 	)
 }
@@ -158,7 +160,9 @@ export default function DisplayBoard() {
 	}
 	return (
 	<>
-		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl}/>
+		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl}>
+			{privilegeLvl >= 3 && <DisplayMods boardID={board.id}/>}
+		</DisplayBoardHeader>
 		<DisplayThreads board = {board} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>

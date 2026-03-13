@@ -8,7 +8,7 @@ import (
 	"ft_transcendence/internal/store"
 	"ft_transcendence/internal/ws"
 	"log"
-
+	"fmt"
 	"ft_transcendence/internal/utils"
 	"net/http"
 	"strconv"
@@ -188,6 +188,7 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
+		fmt.Printf("AddMod: UserId: %v BoardUd: %v\n", userID, boardID)
 		if err != nil {
 			http.Error(w, "Invalid user ID", http.StatusBadRequest)
 			return

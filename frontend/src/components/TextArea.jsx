@@ -14,7 +14,7 @@ const TextArea = forwardRef(function TextArea({value, setValue, rows, onEscape, 
         e.stopPropagation()
         if (e.key === "Escape" && onEscape !== undefined) {
             onEscape()
-        } else if (e.key === "Enter" && onEnter != undefined) {
+        } else if (e.key === "Enter" && onEnter !== undefined) {
             e.preventDefault()
 			onEnter()
         }
