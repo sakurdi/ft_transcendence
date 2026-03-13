@@ -16,13 +16,16 @@ CREATE TABLE IF NOT EXISTS users (
     login VARCHAR(30) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('superadmin', 'user', 'banned')),
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-INSERT INTO users (login, password, email) VALUES
-    ('saal-kur', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com'),
-    ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com'),
-    ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com')
+INSERT INTO users (login, password, email, role) VALUES
+    ('saal-kur','\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com', 'superadmin'),
+    ('gaeudes', '\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com', 'superadmin'),
+    ('kevwang', '\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com', 'superadmin'),
+    ('peon', '\$2a\$12\$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'bonjour@bonjour.com', 'user')
+
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);

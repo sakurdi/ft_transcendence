@@ -36,3 +36,7 @@ type BoardRole struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
 }
+
+type PostEdit struct {
+	Content string `json:"content"`
+}

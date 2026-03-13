@@ -50,14 +50,68 @@ func RegisterUser(db *pgxpool.Pool, ctx context.Context, user models.UserRegistr
 }
 
 func GetUserInfo(db *pgxpool.Pool, ctx context.Context, login string) (models.UserInfo, error) {
-	
 	var userInfo models.UserInfo
-	err := db.QueryRow(ctx, "SELECT login, created_at FROM users WHERE login=$1", login).Scan(&userInfo.Login, &userInfo.Creation_date)
+	err := db.QueryRow(ctx,
+		"SELECT login, role, created_at FROM users WHERE login=$1",
+		login,
+	).Scan(&userInfo.Login, &userInfo.Role, &userInfo.Creation_date)
 	return userInfo, err
 }
 
-func EditUserInfo(db *pgxpool.Pool, ctx context.Context, userInfo models.UserInfo) error {
-	
-	
-	err := db.QueryRow(ctx, "UPDATE login=$1", login).Scan(&userInfo.Login, &userInfo.Creation_date)
+func EditUserInfo(db *pgxpool.Pool, ctx context.Context, userID int, input models.UserEdit) error {
+	_, err := db.Exec(ctx, `
+        UPDATE users SET
+            login    = COALESCE(NULLIF($1, ''), login),
+            email    = COALESCE(NULLIF($2, ''), email),
+            password = COALESCE(NULLIF($3, ''), password)
+        WHERE id=$4`,
+		input.Login, input.Email, input.Password, userID,
+	)
+	return err
+}
+
+func GetUserRole(db *pgxpool.Pool, ctx context.Context, userID int) (string, error) {
+	var role string
+	err := db.QueryRow(ctx,
+		"SELECT role FROM users WHERE id=$1",
+		userID,
+	).Scan(&role)
+	return role, err
+}
+
+func GetUserByID(db *pgxpool.Pool, ctx context.Context, userID int) (models.UserProfile, error) {
+	var u models.UserProfile
+	err := db.QueryRow(ctx,
+		"SELECT id, login, role, created_at FROM users WHERE id=$1",
+		userID,
+	).Scan(&u.ID, &u.Login, &u.Role, &u.Creation_date)
+	return u, err
+}
+
+func DeleteUser(db *pgxpool.Pool, ctx context.Context, userID int) error {
+	_, err := db.Exec(ctx, "DELETE FROM users WHERE id=$1", userID)
+	return err
+}
+
+func GetAllUsers(db *pgxpool.Pool, ctx context.Context) ([]models.UserProfile, error) {
+	rows, err := db.Query(ctx, "SELECT id, login, role, created_at FROM users ORDER BY created_at ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := []models.UserProfile{}
+	for rows.Next() {
+		var u models.UserProfile
+		if err := rows.Scan(&u.ID, &u.Login, &u.Role, &u.Creation_date); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, rows.Err()
+}
+
+func SetUserRole(db *pgxpool.Pool, ctx context.Context, userID int, role string) error {
+	_, err := db.Exec(ctx, "UPDATE users SET role=$1 WHERE id=$2", role, userID)
+	return err
 }

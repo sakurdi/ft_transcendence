@@ -57,13 +57,37 @@ func RequireBoardAdmin(c *config.Config) func(http.Handler) http.Handler {
 				http.Error(w, "Invalid board ID", http.StatusBadRequest)
 				return
 			}
-
 			isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isAdmin {
 				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
 			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
+func RequireSuperAdmin(c *config.Config) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role, err := store.GetUserRole(c.DB, r.Context(), GetUserID(c, r))
+			if err != nil || role != "superadmin" {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func DjangoFreeman(c *config.Config) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role, err := store.GetUserRole(c.DB, r.Context(), GetUserID(c, r))
+			if err != nil || role == "banned" {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
 			next.ServeHTTP(w, r)
 		})
 	}
