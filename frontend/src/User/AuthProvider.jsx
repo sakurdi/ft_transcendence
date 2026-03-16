@@ -17,6 +17,9 @@ export function AuthProvider( { children } ) {
 
 	const [loading, setLoading] = useState(true)
 	const [user, setUser] = useState(null)
+	const [refreshUser, setRefreshUser] = useState(0)
+
+	// const update = 
 
 	const getUser = async () => {
 		setLoading(true)
@@ -66,14 +69,10 @@ export function AuthProvider( { children } ) {
 
 	useEffect(() => {
 		const getUserInit = async () => {
-			try {
-				await getUser();
-			} catch (err) {
-				
-			}
+			await getUser();
 		}
 		getUserInit()
-	}, [])
+	}, [refreshUser])
 
 	return (
 		<AuthContext.Provider value = {{user, loading, login, register, logout}}>

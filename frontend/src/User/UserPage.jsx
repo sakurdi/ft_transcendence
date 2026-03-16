@@ -4,6 +4,8 @@ import useAuth from "./AuthProvider";
 import useNotif	from "../components/Notif"
 import { apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
+import Button, { ButtonLink } from "../components/Button"
+import TextButton from "../components/TextButton"
 
 const getStrTimeDate = (dateISO) => {
 	const dateAPI = new Date(dateISO);
@@ -41,6 +43,7 @@ export default function UserPage() {
 			const res = await apiGet(`/user/${username}`)
 			if (res.ok) {
 				setUserinfo(res.json)
+				setCanEdit(res.json.username === userHandle.user?.username)
 			} else {
 				notifHandle.pushError(res.status)
 			}
@@ -51,10 +54,8 @@ export default function UserPage() {
 		setLoading(false)
 	}, [refreshKey, userHandle.loading])
 
-	console.log(userinfo)
 	if (loading || userHandle.loading) return <Loading/>
-
-	if (!userinfo) return "No User"
+	if (!userinfo) return "User does not exist"
 
 	console.log(userinfo)
 	console.log(userHandle.user)
@@ -66,6 +67,16 @@ export default function UserPage() {
 			<time dateTime = {userinfo.member_since}>
 				{getStrTimeDate(userinfo.member_since)}
 			</time>
+			{canEdit &&
+				<>
+					<Button>
+						Delete User
+					</Button>
+					<ButtonLink link = "/changepassword">
+						Change password
+					</ButtonLink>
+				</>
+			}
 		</div>
 	)
 }
