@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Button, {ButtonLink} from "../components/Button";
 import useAuth from "../User/AuthProvider";
-import DisplayPost from "./DisplayPost";
 import DisplayThreads from "./DisplayThreads";
 import DisplayMods from "./DisplayMods";
+import getDateDifferenceISO from "../Utils/date";
 
 import { apiGet } from "../Utils/api";
 
@@ -19,14 +18,15 @@ import CreatePost from "./CreateThread";
 // 	CreatedAt   time.Time `json:"created_at"`
 // }
 
-const getStrTimeDate = (dateISO) => {
-	const dateAPI = new Date(dateISO);
+// const getStrTimeDate = (dateISO) => {
+// 	const dateAPI = new Date(dateISO);
 	
-	const time = dateAPI.toLocaleTimeString("fr-FR")
-	const date = dateAPI.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric", year: "2-digit"})
-	// console.log(time," | ", date)
-	return (time + " " + date)
-}
+// 	return getDateDifference(dateAPI)
+// 	const time = dateAPI.toLocaleTimeString("fr-FR")
+// 	const date = dateAPI.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric", year: "2-digit"})
+// 	// console.log(time," | ", date)
+// 	return (time + " " + date)
+// }
 
 function DisplayBoardDescription({board, privilegeLvl}) {
 	const [edit, setEdit] = useState(false)
@@ -82,7 +82,7 @@ export function DisplayBoardHeader({board, privilegeLvl, children}) {
 				<div>
 					<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
 					<time dateTime= {board.created_at}>
-						{getStrTimeDate(board.created_at)}
+						{getDateDifferenceISO(board.created_at)}
 					</time>
 				</div>
 				<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>

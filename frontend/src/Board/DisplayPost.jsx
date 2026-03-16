@@ -6,6 +6,8 @@ import TextButton, { TextLink } from "../components/TextButton";
 import getRandomPastel from "../Utils/colors";
 import TextArea, { TextAreaTitle } from "../components/TextArea";
 import Tooltip from "../components/Tooltip";
+import useNotif from "../components/Notif";
+import getDateDifferenceISO from "../Utils/date";
 
 function getSeedpostColor(post) {
 	const date = new Date(post.created_at)
@@ -34,6 +36,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 {
 	const navigate = useNavigate()
 	const user = useAuth().user
+	const notifHandler = useNotif()
 
 	const canEdit = (!user ? false : (post.author_id === user.id))
 	const canDelete = privilegeLvl >= 2 || canEdit
@@ -69,10 +72,10 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
-				console.log("Post deleted")
+				notifHandler.pushSuccess("Post deleted")
 				refreshKey()
 			} else
-				console.log("Post not deleted: " + res.status)
+				notifHandler.pushError("Post deleted")
 		}
 	}
 	
@@ -112,7 +115,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 			<div className="flex items-center gap-3">
 				<time dateTime={post.created_at}
 					className="text-xs text-zinc-400">
-					{post.created_at}
+					{getDateDifferenceISO(post.created_at)}
 				</time>
 				<TextLink text={post.username}
 					link={`/user/${post.username}`}

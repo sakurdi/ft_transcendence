@@ -11,7 +11,7 @@ function checkEmail(email, pushError) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
 
 	if (email === "") {
-		pushError("Email is empty")
+		pushError("Email cannot be empty")
 		return false
 	}
 	else if (!email.match(regexEmail)) {
@@ -22,12 +22,18 @@ function checkEmail(email, pushError) {
 }
 
 function checkUsername(username, pushError) {
+	const regexUsername = "[a-zA-Z0-9_]{3,}"
+
 	if (username === "") {
-		pushError("Username is empty")
+		pushError("Username cannot be empty")
 		return false
 	}
 	if (username.length <= 2) {
 		pushError("Username needs to be a least 3 characters")
+		return false
+	}
+	if (username.length <= 2) {
+		pushError("Username must only contain letters, numbers and '_'")
 		return false
 	}
 	return true
@@ -35,7 +41,7 @@ function checkUsername(username, pushError) {
 
 function checkPassword(password, password2, pushError) {
 	if (password === "") {
-		pushError("Password is empty")
+		pushError("Password cannot be empty")
 		return false
 	}
 	if (password.length <= 3) {
