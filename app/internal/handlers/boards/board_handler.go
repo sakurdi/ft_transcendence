@@ -19,7 +19,6 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
-	// "math/rand"
 	// base64 "encoding/base64"
 )
 

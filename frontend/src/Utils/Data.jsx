@@ -8,7 +8,26 @@ const extension = {
 	"mpeg": "audio",
 
 	"mp4": "video",
-	"webm": "video"
+	"webm": "video",
+
+	"pdf": "application",
+	"txt": "text"
+}
+
+const mime = {
+	"jpg": "image/jpg",
+	"jpeg": "image/jpeg",
+	"png": "image/png",
+	"gif": "image/gif",
+
+	"mp3": "audio/mpeg",
+	"mpeg": "audio/mpeg",
+
+	"mp4": "video/mp4",
+	"webm": "video/webm",
+
+	"pdf": "application/pdf",
+	"txt": "text/plain"
 }
 
 export default function getFileFormat(fileExtension) {
@@ -25,7 +44,7 @@ export function getFileFormatWithURL(fileURL) {
 }
 
 export function buildAcceptedFormat() {
-	var accepted = Object.entries(extension).map(([ext, type]) => `${type}/${ext}`).join(", ");
+	var accepted = Object.entries(extension).map(([ext, type]) => `${type}`).join(", ");
 	console.log("accepetd", accepted)
 	return accepted;
 }

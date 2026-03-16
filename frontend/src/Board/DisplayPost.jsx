@@ -52,7 +52,17 @@ function MediaRenderer({url}) {
 			return <p>
 					<video controls src={`${BASE}`+url}/>
 			</p>
+		
+		case 'application':
+			return <p>
+					<embed src={`${BASE}`+url} width="600px" height="300px"/>
+			</p>
 
+		case 'text':
+			return <p>
+					<embed src={`${BASE}`+url} />
+			</p>
+			
 		default:
 			<></>
 	}

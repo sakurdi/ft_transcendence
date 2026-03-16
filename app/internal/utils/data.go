@@ -17,6 +17,9 @@ var extension = map[string]string {
 
 	".mp4": "video",
 	".webm": "video",
+
+	".pdf": "text",
+	".txt": "text",
 }
 
 func GetExtension(ext string) (string, error) {
