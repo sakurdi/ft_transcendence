@@ -17,10 +17,16 @@ import (
 func LogoutHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := c.Session.Destroy(r.Context()); err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Internal Server Error",
+			})
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "Logged out"})
+		utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	true,
+			"message": "Successfully logged out",
+		})
 	}
 }
 
@@ -28,21 +34,33 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var userInfo models.UserLogin
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid request",
+			})
 			return
 		}
 		passwordHash, err := store.GetUserPassword(c.DB, r.Context(), userInfo.Login)
 		if err != nil || !auth.CheckPasswordHash(userInfo.Password, passwordHash) {
-			http.Error(w, "Invalid login or password", http.StatusUnauthorized)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid login or password",
+			})
 			return
 		}
 		if err := c.Session.RenewToken(r.Context()); err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Internal Server Error",
+			})
 			return
 		}
 		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Internal Server Error",
+			})
 			return
 		}
 		c.Session.Put(r.Context(), "user_id", userID)
