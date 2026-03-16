@@ -30,7 +30,7 @@ export function DisplayOneMod({mod, refreshMods, boardID}) {
 	
 		return (
 			<Tooltip content = {"Remove from the moderator team"}>
-				<button className="flex items-center justify-center text-black/80 text-base font-bold pl-0 pr-3 border-r border-black/20"
+				<button className="flex items-center justify-center text-black/80 text-base font-bold pl-0 pr-2 border-r border-g_black-600"
 					onClick = {onDeleteMod}>
 					x
 				</button>
@@ -39,7 +39,7 @@ export function DisplayOneMod({mod, refreshMods, boardID}) {
 	}
 
 	return (
-	<div className="flex items-center gap-2 px-3 py-1 rounded-xl border"
+	<div className="flex items-center gap-2 px-3 py-1 rounded-xl border  border-g_black-600"
 		style={{ backgroundColor: colorBg }}>
 		{ mod.role != "admin" &&
 			deleteMod(mod.username)
@@ -72,15 +72,13 @@ export function DisplayAddMod({boardID, refreshMods}) {
 	}
 
 	return (
-		<div className="flex items-center gap-3 px-4 py-1.5 rounded-full border border-black/20"
+		<div className="flex items-center gap-3 px-4 py-1.5 rounded-full border border-g_black-600"
 				style={{ backgroundColor: bgColor }}
 				onSubmit = {onSubmit}>
-			<button className="flex items-center justify-center text-black/80 text-base font-bold pr-3 border-r border-black/20"
+			<button className="flex items-center justify-center text-black/80 text-base font-bold pr-2 border-r border-g_black-600"
 				onClick = {onSubmit}>
 				+
 			</button>
-
-			{/* <input className="bg-transparent text-base font-semibold text-black/80 placeholder-black/40 outline-none w-32" */}
 			<input className="bg-transparent text-sm font-semibold text-black/80 placeholder-black/40 outline-none w-32"
 				type="text"
 				placeholder="Add moderator"
