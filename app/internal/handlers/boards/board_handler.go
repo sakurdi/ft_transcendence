@@ -31,7 +31,7 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
 		if err != nil {
-			hutils.JSON(w, http.StatusOK, map[string]any{
+			utils.JSON(w, http.StatusOK, map[string]any{
 				"success":	false,
 				"message": "Failed to create board",
 			})
@@ -114,7 +114,7 @@ func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 		}
 
 		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	tue,
+				"success":	true,
 				"message": replies,
 			})
 	}

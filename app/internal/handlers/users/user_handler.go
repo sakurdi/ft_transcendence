@@ -115,13 +115,13 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 
 		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
-			utils.JSON(w, http.StatusCreated, map[string]string{"success": false})
+			utils.JSON(w, http.StatusCreated, map[string]any{"success": false})
 			return
 		}
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		utils.JSON(w, http.StatusCreated, map[string]string{"success": true})
+		utils.JSON(w, http.StatusCreated, map[string]any{"success": true})
 	}
 }
 
@@ -147,7 +147,8 @@ func LoginPingHandler(c *config.Config) http.HandlerFunc {
 		}
 		utils.JSON(w, http.StatusOK, map[string]any{
 			"success":	true,
-			"message": []string{userID, username},
+			"message": "Success",
+			"data": []any{userID, username},
 		})
 	}
 }
@@ -220,7 +221,7 @@ func UpdateUserHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		utils.JSON(w, http.StatusInternalServerError, map[string]any{
-			"status": true
+			"status": true,
 			"message": "Successfully updated user profile",
 		})
 
@@ -267,7 +268,7 @@ func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 		}
 		c.Session.Destroy(r.Context())
 		utils.JSON(w, http.StatusNoContent, map[string]any{
-			"id":     targetUserID,
+			"id":	targetUserID,
 			"status": "User removed",
 		})
 	}
@@ -319,6 +320,11 @@ func GetUserByIDHandler(c *config.Config) http.HandlerFunc {
 			})
 			return
 		}
-		utils.JSON(w, http.StatusOK, user)
+		utils.JSON(w, http.StatusNoContent, map[string]any{
+				"id":     user.ID,
+				"status": "User not found",
+				"data": user,
+			})
+			return
 	}
 }
