@@ -11,10 +11,16 @@ const extension = {
 	"webm": "video"
 }
 
-
 export default function getFileFormat(fileExtension) {
 	if (extension[fileExtension])
 		return extension[fileExtension]
+	return "unknown"
+}
+
+export function getFileFormatWithURL(fileURL) {
+	const ext = fileURL.split('.').pop().toLowerCase()
+	if (extension[ext])
+		return extension[ext]
 	return "unknown"
 }
 

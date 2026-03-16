@@ -5,8 +5,7 @@ import Button from "../components/Button"
 import { apiPost } from "../Utils/api"
 import TextInput from "../components/TextInput"
 import getFileFormat from "../Utils/Data"
-import { buildAcceptedFormat } from "../Utils/Data"
-
+import { buildAcceptedFormat, getFileFormatWithURL } from "../Utils/Data"
 
 // type PostCreate struct {
 // 	Title    *string `json:"title"`
@@ -28,31 +27,37 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	const infoElementError = document.getElementById("input-error");
 	const infoElement = document.getElementById("input-preview");
 
+	const handleFileError = (selectedFile) => {
+		if (selectedFile.size > (5 << 20)){
+			infoElementError.textContent = "File is too big";
+			infoElementError.style.color = "red";
+			setFile("")
+			setPreviewUrl("")
+		}
+		else if (getFileFormatWithURL(selectedFile.name) == "unknown") {
+			infoElementError.textContent = "Wrong file extension";
+			infoElementError.style.color = "red";
+		}
+		else {
+			infoElementError.textContent = "";
+			infoElementError.style.color = "";
+		}
+	}
+
 	const handleFileChange = (e) => {
 		const selectedFile = e.target.files[0];
-		
+
 		if (selectedFile) {
-			if (selectedFile.size > (5 << 20)){
-				infoElementError.textContent = "File is too big";
-				infoElementError.style.color = "red";
-				setFile("")
-				setPreviewUrl("")
-			}
-			else {
-				infoElementError.textContent = "";
-				infoElementError.style.color = "";
-			}
+			handleFileError(selectedFile)
 
 			infoElement.textContent = `Selected file: ${selectedFile.name}
 									(${(selectedFile.size /1024).toFixed(2)})KB)`;
 			setFile(selectedFile);
 			setPreviewUrl(URL.createObjectURL(selectedFile));
-
 		}
 		else {
 			infoElement.textContent = '';
 		}
-		
 	}
 
 	function handleEnter(event) {
@@ -64,9 +69,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		}
 	}
 
-	async function onSubmit() {	
-		console.log(`Title: ${title}  | "${content}"`)
-
+	const buildFormData = () => {
 		const formData = new FormData();
 		formData.append('title', title);
 		formData.append('content', content);
@@ -74,11 +77,15 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		if (file) {
 			formData.append("upload", file);
 		}
+		return formData
+	}
 
-		const res = await fetch(`/api/board/${board.id}/post`,
-				{
+	async function onSubmit() {	
+		console.log(`Title: ${title}  | "${content}"`)
+
+		const res = await fetch(`/api/board/${board.id}/post`, {
 					method: 'POST',
-					body: formData
+					body: buildFormData()
 				})
 
 		// const res = await apiPost(`/board/${board.id}/post`,
@@ -103,9 +110,6 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		}
 
 	}
-	
-	// var test = buildAcceptedFormat()
-	// console.log("test", test)
 
 	return (
 		<form onSubmit={(e) => {e.preventDefault(); onSubmit()}}>
