@@ -19,7 +19,6 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
-	"math/rand/v2"
 	// base64 "encoding/base64"
 )
 
@@ -172,27 +171,15 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			defer file.Close()
 
 			ext := filepath.Ext(handler.Filename)
-			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".gif" && ext != ".mp4" && ext != ".mp3" && ext != ".webm" { 
+			_, err := utils.GetExtension(ext)
+			if (err != nil) {
 				http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
 				return
 			}
-
 			
-			// rand.Seed(time.Now().UnixNano())
-			// n := a + rand.Intn(b-a+1)
+			newFilename := utils.GenerateFilename()
 
-
-			// randBytes := make([]byte, 16)
-			// for i:=0; i<16; i++ {
-			// 	randBytes[i] = 65 + rand.Intn(25)
-			// }
-			// // rand.Read(randBytes)
-			// randomString := fmt.Sprintf("%x", randBytes)
-			// test := base64.RawURLEncoding.EncodeToString(randBytes)
-
-			n := rand.IntN(10000)
-
-			fileName := fmt.Sprintf("user_%d_%d%s", userID, n, ext)
+			fileName := fmt.Sprintf("user_%d_%d%s", userID, newFilename, ext)
 			savePath := filepath.Join("/app/uploads/database", fileName)
 
 			dst, err := os.Create((savePath))
