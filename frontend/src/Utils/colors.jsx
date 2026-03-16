@@ -1,12 +1,12 @@
 const pastel = [
 	"#FFAACC", "#FFBBCC", "#FFCCCC", "#FFDDCC", "#FFEECC", "#FFFFCC",
-	"#FFAADD", "#FFBBDD", "#FFCCDD", "#FFDDDD", "#FFEEDD", "#FFFFDD",
-	"#FFAAEE", "#FFBBEE", "#FFCCEE", "#FFDDEE", "#FFEEEE", "#FFFFEE",
-	"#FFAAFF", "#FFBBFF", "#FFCCFF", "#FFDDFF", "#FFEEFF", "#FFFFFF",
-	"#CCAAFF", "#CCBBFF", "#CCCCFF", "#CCDDFF", "#CCEEFF", "#CCFFFF",
-	"#CCAAEE", "#CCBBEE", "#CCCCEE", "#CCDDEE", "#CCEEEE", "#CCFFEE",
-	"#CCAADD", "#CCBBDD", "#CCCCDD", "#CCDDDD", "#CCEEDD", "#CCFFDD",
-	"#CCAACC", "#CCBBCC", "#CCCCCC", "#CCDDCC", "#CCEECC", "#CCFFCC",
+	"#FFAADD", "#FFBBDD", "#FFCCDD", "#FFDDDD",
+	"#FFBBEE", "#FFCCEE", "#FFDDEE", 
+	"#FFCCFF", "#FFDDFF", "#FFEEFF",
+	"#CCAAFF", "#CCBBFF", "#CCCCFF", "#CCDDFF", "#CCEEFF", 
+	"#CCAAEE", "#CCBBEE", "#CCCCEE", "#CCEEEE", 
+	"#CCAADD", "#CCBBDD", "#CCEEDD", "#CCFFDD", "#CCFFFF",
+	"#CCAACC", "#CCEECC", "#CCFFCC", "#CCFFEE",
 ]
 const Ncolors = pastel.length
 
@@ -15,3 +15,21 @@ export default function getRandomPastel(seed) {
 		return pastel[seed % Ncolors]
 	return pastel[Math.floor(Math.random() * Ncolors)]
 }
+
+function hashArcozon(string) {
+	const primeA = 17
+	const primeB = 29
+	let h = 7
+	for (let i = 0; i < string.length; i++) {
+		h = Math.abs((h * primeA) ^ (string.charCodeAt(i) * primeB) )
+	}
+	return h
+}
+
+export function getRandomPastelString(string) {
+	const hash = hashArcozon(string)
+	// console.log(hash)
+	return (getRandomPastel(hash))
+}
+
+// https://stackoverflow.com/questions/8317508/hash-function-for-a-string

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button"
 import TextInput, {EMailInputVerify, PasswordInput} from "../components/TextInput"
-import WrapError, {ErrorText} from "../components/WrapError"
 import styles from './Register.module.css';
 import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";

@@ -20,7 +20,7 @@ import DisplayPost from "./DisplayPost";
 
 
 export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
-	const userHandler = useAuth()
+	const  userHandler = useAuth()
 	const [loading, setLoading] = useState(true)
 	const [threads, setThreads] = useState([])
 	

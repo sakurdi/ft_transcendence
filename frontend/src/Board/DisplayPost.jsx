@@ -75,7 +75,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 				notifHandler.pushSuccess("Post deleted")
 				refreshKey()
 			} else
-				notifHandler.pushError("Post deleted")
+				notifHandler.pushError(res.status)
 		}
 	}
 	
