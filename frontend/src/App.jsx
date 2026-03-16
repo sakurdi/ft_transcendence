@@ -39,14 +39,15 @@ export default function App() {
 			<BrowserRouter future={{v7_relativeSplatPath: false}}>
 				<NavBar/>
 				<Routes>
-					<Route path='/loading' element={<Loading/>} />
 					<Route path='/' element={<Home/>} />
+
 					<Route path='/register' element={<Register/>} />
 					<Route path='/login' element={<Login/>} />
 					<Route path='/logout' element={<Logout/>} />
-					<Route path="/user/:username" element={<UserPage />} />
 					<Route path="/changepassword" element={<ChangePassword />} />
+
 					<Route path='/createBoard' element={<CreateBoard/>} />
+					<Route path="/user/:username" element={<UserPage />} />
 					<Route path='/board/:boardName' element={<DisplayBoard/>} />
 					{/* <Route path='/post/:postID' element={<DisplayPost/>} /> */}
 				</Routes>
