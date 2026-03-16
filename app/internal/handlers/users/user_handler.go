@@ -56,39 +56,54 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var userInfo models.UserRegistration
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Invalid request",
+		})
 			return
 		}
 
 		if !auth.IsValidMail(userInfo.Mail) || len(userInfo.Password) <= 3 || len(userInfo.Login) <= 2 {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Invalid request",
+		})
 			return
 		}
 
 		exists, err := store.CheckDuplicateCreds(c.DB, r.Context(), userInfo)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Internal Server Error",
+		})
 			return
 		}
 		if exists {
-			http.Error(w, "User or email already exists", http.StatusConflict)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Email or user already exists",
+		})
 			return
 		}
 
 		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
-			http.Error(w, "Failed to create user", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Failed to create user",
+		})
 			return
 		}
 
 		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusCreated, map[string]string{"success": false})
 			return
 		}
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		utils.JSON(w, http.StatusCreated, map[string]string{"status": "Registered successfully"})
+		utils.JSON(w, http.StatusCreated, map[string]string{"success": true})
 	}
 }
 
@@ -106,12 +121,15 @@ func LoginPingHandler(c *config.Config) http.HandlerFunc {
 		userID := c.Session.GetInt(r.Context(), "user_id")
 		username := c.Session.GetString(r.Context(), "username")
 		if userID == 0 || username == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Unauthorized",
+		})
 			return
 		}
 		utils.JSON(w, http.StatusOK, map[string]any{
-			"id":       userID,
-			"username": username,
+			"success":	true,
+			"message": []string{userID, username},
 		})
 	}
 }
@@ -120,7 +138,10 @@ func GetUserInfoHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if _, err := store.GetUserID(c.DB, r.Context(), chi.URLParam(r, "username")); err != nil {
-			http.Error(w, "User not found", http.StatusNotFound)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "User not found",
+		})
 			return
 		}
 		info, err := store.GetUserInfo(c.DB, r.Context(), chi.URLParam(r, "username"))
@@ -140,32 +161,49 @@ func UpdateUserHandler(c *config.Config) http.HandlerFunc {
 		sessionUserID := middleware.GetUserID(c, r)
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
-			http.Error(w, "Invalid user ID", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Invalid user id",
+		})
 			return
 		}
 		if sessionUserID != targetUserID {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Forbidden",
+		})
+
 			return
 		}
 		var input models.UserEdit
 		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Invalid request",
+		})
 			return
 		}
 		if input.Password != "" {
 			hashed, err := auth.HashPassword(input.Password)
 			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				utils.JSON(w, http.StatusOK, map[string]any{
+					"success":	false,
+					"message": "Internal Server Error",
+				})
 				return
 			}
 			input.Password = hashed
 		}
 		if err := store.EditUserInfo(c.DB, r.Context(), targetUserID, input); err != nil {
-			http.Error(w, "Could not update user", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+			"success":	false,
+			"message": "Could not update user",
+		})
 			return
 		}
 		utils.JSON(w, http.StatusInternalServerError, map[string]any{
-			"status": "Successfully updated user profile",
+			"status": true
+			"message": "Successfully updated user profile",
 		})
 
 	}
