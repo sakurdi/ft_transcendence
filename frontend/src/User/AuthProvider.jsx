@@ -19,18 +19,7 @@ export function AuthProvider( { children } ) {
 	const [user, setUser] = useState(null)
 	const [refreshUser, setRefreshUser] = useState(0)
 
-	// const update = 
-
-	const getUser = async () => {
-		setLoading(true)
-		const res = await apiGet("/user/me")
-		if (!res.ok) {
-			setUser(null)
-		} else {
-			setUser(res.json)
-		}
-		setLoading(false)
-	}
+	const update = () => { setRefreshUser(refreshUser + 1) }
 
 	const login = async (username, password) => {
 		const res = await apiPost('/login', {
@@ -42,7 +31,7 @@ export function AuthProvider( { children } ) {
 		if (!res.ok) {
 			throw (res.status)
 		}
-		await getUser()
+		update()
 	}
 
 	const register = async (username, email, password) => {
@@ -56,7 +45,7 @@ export function AuthProvider( { children } ) {
 		if (!response.ok) {
 			throw (await response.status)
 		}
-		await getUser()
+		update()
 	}
 
 	const logout = async () => {
@@ -68,14 +57,21 @@ export function AuthProvider( { children } ) {
 	}
 
 	useEffect(() => {
-		const getUserInit = async () => {
-			await getUser();
+		setLoading(true)
+		const getUser = async () => {
+			const res = await apiGet("/user/me")
+			if (!res.ok) {
+				setUser(null)
+			} else {
+				setUser(res.json)
+			}
 		}
-		getUserInit()
+		getUser()
+		setLoading(false)
 	}, [refreshUser])
 
 	return (
-		<AuthContext.Provider value = {{user, loading, login, register, logout}}>
+		<AuthContext.Provider value = {{user, loading, update, login, register, logout}}>
 			{children}
 		</AuthContext.Provider>
 	)

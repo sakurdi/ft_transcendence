@@ -1,8 +1,8 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
 import useNotif	from "../components/Notif"
-import { apiGet } from "../Utils/api";
+import { apiDelete, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, { ButtonLink } from "../components/Button"
 import TextButton from "../components/TextButton"
@@ -24,6 +24,36 @@ const getStrTimeDate = (dateISO) => {
 // 	Password string `json:"password"`
 // }
 
+export function UserSettings({username, userID, updateUser}) {
+	const notifHandler = useNotif()
+	const navigate = useNavigate();
+
+	const deleteUser = async () => {
+		if (window.confirm(`Are you sure you want to delete ${username}`)) {
+			const res = await apiDelete(`/users/${userID}`);
+			console.log(res)
+			if (!res.ok) {
+				notifHandler.pushError(res.status)
+			} else {
+				notifHandler.pushSuccess(`The user ${username} has been deleted`)
+				updateUser()
+				navigate('/')
+			}
+		}
+	}
+
+	return (
+	<>
+		<Button onClick = {deleteUser}>
+			Delete User
+		</Button>
+		<ButtonLink link = "/changepassword">
+			Change password
+		</ButtonLink>
+	</>
+	)
+}
+
 export default function UserPage() {
 	const notifHandle = useNotif()
 	const userHandle = useAuth()
@@ -31,51 +61,39 @@ export default function UserPage() {
 	const { username } = useParams()
 	const [refreshKey, setRefreshKey] = useState(0)
 	const [loading, setLoading] = useState(true)
-	const [canEdit, setCanEdit] = useState(false)
 	const [edit, setEdit] = useState(false)
 	const [userinfo, setUserinfo] = useState(null)
 
 	const refreshPage = () => setRefreshKey(refreshKey + 1)
 
 	useEffect(() => {
-		if (userHandle.loading) return
 		const fetchUserinfo = async (username) => {
 			const res = await apiGet(`/user/${username}`)
 			if (res.ok) {
 				setUserinfo(res.json)
-				setCanEdit(res.json.username === userHandle.user?.username)
 			} else {
 				notifHandle.pushError(res.status)
 			}
+			setLoading(false)
 		}
-		if (userHandle.user?.username === username)
-			setCanEdit(true)
 		fetchUserinfo(username)
-		setLoading(false)
-	}, [refreshKey, userHandle.loading])
+	}, [refreshKey])
 
 	if (loading || userHandle.loading) return <Loading/>
 	if (!userinfo) return "User does not exist"
-
-	console.log(userinfo)
+	const canEdit = (userHandle.user?.username == userinfo.username) 
 	console.log(userHandle.user)
-
 	return (
 		<div>
-			<image src={userinfo.avatar_url}/>
+			<img src={userinfo.avatar_url}/>
 			{userinfo.username}
 			<time dateTime = {userinfo.member_since}>
 				{getStrTimeDate(userinfo.member_since)}
 			</time>
 			{canEdit &&
-				<>
-					<Button>
-						Delete User
-					</Button>
-					<ButtonLink link = "/changepassword">
-						Change password
-					</ButtonLink>
-				</>
+				<UserSettings username = {username}
+					updateUser = {userHandle.update}
+					userID = {userHandle.user.id}/>
 			}
 		</div>
 	)
