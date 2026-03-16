@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import {apiGet, apiPost} from "../Utils/api"
-
+import useNotif from "../components/Notif";
 
 const AuthContext = createContext();
 
@@ -13,17 +13,20 @@ export default function useAuth() {
 
 
 export function AuthProvider( { children } ) {
+	const notifHandle = useNotif()
+
+	const [loading, setLoading] = useState(true)
 	const [user, setUser] = useState(null)
 
 	const getUser = async () => {
+		setLoading(true)
 		const res = await apiGet("/user/me")
 		if (!res.ok) {
 			setUser(null)
-			// console.log(response.status)
 		} else {
-			// console.log(res.json)
 			setUser(res.json)
 		}
+		setLoading(false)
 	}
 
 	const login = async (username, password) => {
@@ -66,14 +69,14 @@ export function AuthProvider( { children } ) {
 			try {
 				await getUser();
 			} catch (err) {
-				// console.log("Setup getUser error: " + err)
+				
 			}
 		}
 		getUserInit()
 	}, [])
 
 	return (
-		<AuthContext.Provider value = {{user, login, register, logout}}>
+		<AuthContext.Provider value = {{user, loading, login, register, logout}}>
 			{children}
 		</AuthContext.Provider>
 	)

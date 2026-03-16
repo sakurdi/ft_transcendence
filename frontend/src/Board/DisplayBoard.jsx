@@ -81,7 +81,7 @@ export function DisplayBoardHeader({board, privilegeLvl, children}) {
 				<h1>{board.name}</h1>
 				<div>
 					<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
-					<time dateTime= {board.created_at}>
+					<time dateTime = {board.created_at}>
 						{getDateDifferenceISO(board.created_at)}
 					</time>
 				</div>
@@ -110,6 +110,8 @@ export default function DisplayBoard() {
 	})
 
 	useEffect(() => {
+		if (userHandle.loading) return
+
 		const checkIsMod = async (boardname) =>  {
 			try {
 				const response = await apiGet(`/board/${boardname}/ismod`);
@@ -150,7 +152,7 @@ export default function DisplayBoard() {
 		fetchBoard(boardName)
 		
 		setLoading(false)
-	}, [refreshKeyBoard, userHandle])
+	}, [refreshKeyBoard, userHandle.loading])
 
 	if (loading) {
 		return ("loading")

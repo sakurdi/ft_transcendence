@@ -19,11 +19,12 @@ export default function CreateBoard() {
 	const notifHandle = useNotif()
 
 	useEffect(() => {
+		if (userHandler.loading) return
 		if (!userHandler.user) {
 			notifHandle.pushError("You need to be logged in to create a board")
 			navigate('/');
 		}
-	}, [])
+	}, [userHandler.loading])
 
 	const [boardName, setBoardName] = useState("")
 	const [boardDescription, setBoardDescription] = useState("")

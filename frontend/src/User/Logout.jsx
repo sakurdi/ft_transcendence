@@ -1,54 +1,37 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/Button"
+import { ButtonLink } from "../components/Button"
 import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";
 
 export function LogoutButton() {
-	const userHandle = useAuth()
-	const navigate = useNavigate() 
-
-	async function onClick() {
-		try {
-			userHandle.logout()
-			navigate("/");
-		} catch (error) {
-			console.log(error.message)
-		}
-	}
-
 	return (
-		<Button onClick={onClick}>Logout</Button>
+		<ButtonLink link = "/logout">
+			Logout
+		</ButtonLink>
 	)
 }
 
-export default function LogoutPage() {
+
+export default function Logout() {
 	const userHandle = useAuth()
+	const navigate = useNavigate() 
 	const notifHandle = useNotif()
 
-	const navigate = useNavigate()
-
-	async function onClick() {
-		try {
-			userHandle.logout()
-			notifHandle.pushSuccess("Logged out")
-			navigate("/");
-		} catch (error) {
-			setLogoutError(error)
+	
+	useEffect(() => {
+		if (userHandle.loading) return
+		if (userHandle.user) {
+			try {
+				userHandle.logout()
+				notifHandle.pushSuccess("Logged out")
+			} catch (error) {
+				notifHandle.pushError(error)
+			}
+		} else {
+			notifHandle.pushError("You are not logged in")	
 		}
-	}
-
-	useEffect(() => { 
-		if (!userHandle.user) {
-			notifHandle.pushError("Not logged in")
-			navigate('/')
-		}
-		}, []
-	)
-
-	return (
-		<>
-			<Button onClick={onClick}>Logout</Button>
-		</>
-	)
+		navigate("/");
+	}, [userHandle.loading])
+	if (userHandle.loading) return "Loading"
 }

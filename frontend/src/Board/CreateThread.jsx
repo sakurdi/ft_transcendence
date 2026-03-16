@@ -1,20 +1,13 @@
 import { useState } from "react"
-import useAuth from "../User/AuthProvider"
 import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import { apiPost } from "../Utils/api"
 import TextInput from "../components/TextInput"
-
-// type PostCreate struct {
-// 	Title    *string `json:"title"`
-// 	Content  string  `json:"content"`
-// 	ParentID *int    `json:"parent_id"`
-// }
-
+import useNotif from "../components/Notif"
 
 export default function CreatePost({board, setRefreshKeyThread}) {
 	const navigate = useNavigate();
-
+	const notifHandle = useNotif()
 
 	const [title, setTitle] = useState("")
 	const [content, setContent] = useState("")
@@ -29,7 +22,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	}
 
 	async function onSubmit() {	
-		console.log(`Title: ${title}  | "${content}"`)
+		// console.log(`Title: ${title}  | "${content}"`)
 		const res = await apiPost(`/board/${board.id}/post`,
 				{body: JSON.stringify({
 					'title': title,
@@ -38,15 +31,15 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 				})
 			})
 		if (!res.ok) {
-			console.log(res.status)
+			notifHandle.pushError(res.status)
 		} else {
 			const json = res.json
-			console.log(res)
+			notifHandle.pushSuccess(`Post "${title} created"`)
 			setTitle("")
 			setContent("")
+			navigate(`/post/${json.id}`)
 			setRefreshKeyThread()
 		}
-
 	}
 
 	return (

@@ -72,11 +72,13 @@ export default function Register() {
 	}
 
 	useEffect(() => { 
+		if (userHandle.loading) return
 		if (userHandle.user) {
 			notifHandle.pushSuccess("You are already logged in")
 			navigate('/')
 		}
-	}, [])
+	}, [userHandle.loading])
+	if (userHandle.loading) return "Loading"
 
 	function handleEnter(event) {
 		if (event.key == "Enter") {

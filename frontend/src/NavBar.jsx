@@ -1,17 +1,16 @@
+import { useEffect } from "react"
+import useAuth from "./User/AuthProvider"
 import {ButtonLink} from "./components/Button"
 import { LogoutButton } from "./User/Logout"
-import useAuth from "./User/AuthProvider"
 
-function NavBarUser() {
-	const userHandle = useAuth()
-	const user = userHandle.user
+function NavBarUser({username}) {
 
 	const classDiv = "ml-auto flex gap-5"
 
 	return (
 		<div className={classDiv}>
-			<ButtonLink link={"/user/" + user.username}>
-				{user.username}
+			<ButtonLink link={"/user/" + username}>
+				{username}
 			</ButtonLink>
 			<LogoutButton/>
 		</div>
@@ -37,16 +36,20 @@ function NavBarLogin() {
 export default function NavBar() {
 	const userHandle = useAuth()
 
-	const NavBarHandle = (loggedIn) => {
-		if (loggedIn) {
-			// console.log("Logged In")
-			return <NavBarUser/>;
+	useEffect(() => {
+		if (userHandle.loading) return	
+	}, [userHandle.loading])
+	
+	const NavBarHandle = (user) => {
+		if (user) {
+			return <NavBarUser username = {user.username}/>;
 		} else {
-			// console.log("Not Logged In")
 			return <NavBarLogin/>;
 		}
 	}
-	
+
+	if (userHandle.loading)	return "loading"
+
 	const classNav = "flex items-center h-fit\
 		bg-gradient-to-t from-g_seagreen to-g_seagreen-300"
 	return (
@@ -60,4 +63,3 @@ export default function NavBar() {
 		</header>
 	)
 }
-

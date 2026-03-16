@@ -35,11 +35,13 @@ function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 export default function DisplayPost({post, privilegeLvl, refreshKey})
 {
 	const navigate = useNavigate()
-	const user = useAuth().user
-	const notifHandler = useNotif()
+	const userHandle = useAuth()
+	const notifHandle = useNotif()
 
-	const canEdit = (!user ? false : (post.author_id === user.id))
-	const canDelete = privilegeLvl >= 2 || canEdit
+	const [loading, setLoading] = useState(true)
+
+	const [canEdit, setCanEdit] = useState(false)
+	const [canDelete, setCanDelete] = useState(privilegeLvl >= 2)
 
 	const [isEditing, setIsEditing] = useState(false)
 	const [postInfo, setPostInfo] = useState({title: post.title, content: post.content})
@@ -57,6 +59,19 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 		}
 	}, [isEditing])
 
+	useEffect(() => {
+		if (userHandle.loading) return
+		if (userHandle.user) {
+			const userID = userHandle.user.userID
+			setCanEdit(userID === post.author_id)
+			if (!canDelete)
+				setCanDelete(userID === post.author_id)
+		}
+		setLoading(false)
+	}, [userHandle.loading])
+
+	if (loading) return "Loading"
+
 	function onEnterTitle() {
 		if (contentRef.current) {
 			const refArea = contentRef.current
@@ -72,10 +87,10 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
-				notifHandler.pushSuccess("Post deleted")
+				notifHandle.pushSuccess("Post deleted")
 				refreshKey()
 			} else
-				notifHandler.pushError(res.status)
+				notifHandle.pushError(res.status)
 		}
 	}
 	

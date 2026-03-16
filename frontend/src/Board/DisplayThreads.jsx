@@ -1,11 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-// import { useNavigate } from "react-router-dom"
-import useAuth from "../User/AuthProvider";
-import { apiDelete, apiGet } from "../Utils/api";
-// import TextButton, { TextLink } from "../components/TextButton";
-// import getRandomPastel from "../Utils/colors";
-// import TextArea, { TextAreaTitle } from "../components/TextArea";
-// import Tooltip from "../components/Tooltip";
+import { apiGet } from "../Utils/api";
 import DisplayPost from "./DisplayPost";
 
 // author_id: 2
@@ -20,7 +14,6 @@ import DisplayPost from "./DisplayPost";
 
 
 export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
-	const  userHandler = useAuth()
 	const [loading, setLoading] = useState(true)
 	const [threads, setThreads] = useState([])
 	

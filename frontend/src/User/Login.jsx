@@ -22,12 +22,12 @@ export default function Login() {
 	}
 
 	useEffect(() => { 
-			if (userHandle.user) {
-				notifHandle.pushSuccess("You are already logged in")
-				navigate('/')
-			}
-		}, []
-	)
+		if (userHandle.loading) return
+		if (userHandle.user) {
+			notifHandle.pushSuccess("You are already logged in")
+			navigate('/')
+		}
+	}, [userHandle.loading])
 
 	function handleEnter(event) {
 		if (event.key == "Enter") {
@@ -44,7 +44,6 @@ export default function Login() {
 			notifHandle.pushSuccess(`Logged in as ${values.username}`)
 			navigate('/')
 		} catch (error) {
-			console.log(error)
 			notifHandle.pushError(error)
 		}
 	}
