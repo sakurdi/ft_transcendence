@@ -19,6 +19,7 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
+	// "math/rand"
 	// base64 "encoding/base64"
 )
 
@@ -179,7 +180,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			
 			newFilename := utils.GenerateFilename()
 
-			fileName := fmt.Sprintf("user_%d_%d%s", userID, newFilename, ext)
+			fileName := fmt.Sprintf("user_%d_%s%s", userID, newFilename, ext)
 			savePath := filepath.Join("/app/uploads/database", fileName)
 
 			dst, err := os.Create((savePath))

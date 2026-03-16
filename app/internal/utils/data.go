@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 	"github.com/google/uuid"
-	"fmt"
 )
 
 var extension = map[string]string {
