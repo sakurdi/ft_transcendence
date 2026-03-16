@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import { apiPost } from "../Utils/api"
 import TextInput from "../components/TextInput"
+import getFileFormat from "../Utils/Data"
+import { buildAcceptedFormat } from "../Utils/Data"
+
 
 // type PostCreate struct {
 // 	Title    *string `json:"title"`
@@ -29,11 +32,15 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		const selectedFile = e.target.files[0];
 		
 		if (selectedFile) {
-			if (selectedFile.size > (1 << 20)){
-				infoElementError.textContent = `File is too big`;
+			if (selectedFile.size > (5 << 20)){
+				infoElementError.textContent = "File is too big";
 				infoElementError.style.color = "red";
 				setFile("")
 				setPreviewUrl("")
+			}
+			else {
+				infoElementError.textContent = "";
+				infoElementError.style.color = "";
 			}
 
 			infoElement.textContent = `Selected file: ${selectedFile.name}
@@ -96,6 +103,9 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		}
 
 	}
+	
+	// var test = buildAcceptedFormat()
+	// console.log("test", test)
 
 	return (
 		<form onSubmit={(e) => {e.preventDefault(); onSubmit()}}>
@@ -114,7 +124,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 			<p id="input-error"></p>
 			<input type="file"
 				onChange={handleFileChange}
-				accept="image/png, image/jpeg, image/jpg, video/mp4, audio/*"
+				accept={buildAcceptedFormat()}
 				id="input-file"
 				/>
 

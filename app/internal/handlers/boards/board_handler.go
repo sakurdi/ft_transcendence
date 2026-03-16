@@ -172,7 +172,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			defer file.Close()
 
 			ext := filepath.Ext(handler.Filename)
-			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".mp4" && ext != ".mp3" {
+			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".gif" && ext != ".mp4" && ext != ".mp3" && ext != ".webm" { 
 				http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
 				return
 			}

@@ -1,4 +1,4 @@
-const BASE = '/api'
+export const BASE = '/api'
 
 export default async function api(path, options = {}) {
 	try {

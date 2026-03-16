@@ -6,6 +6,8 @@ import TextButton, { TextLink } from "../components/TextButton";
 import getRandomPastel from "../Utils/colors";
 import TextArea, { TextAreaTitle } from "../components/TextArea";
 import Tooltip from "../components/Tooltip";
+import getFileFormat from "../Utils/Data";
+import { BASE } from "../Utils/api.jsx";
 
 function getSeedpostColor(post) {
 	const date = new Date(post.created_at)
@@ -30,26 +32,36 @@ function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	)
 }
 
+function MediaRenderer({url}) {
+	var ext = url.substr(url.lastIndexOf('.') + 1);
+	var format = getFileFormat(ext);
+	switch (format) {
+		case 'image':
+			return <p>
+				<img src={`${BASE}`+url}
+							alt="upload123"
+							className="w-24 h-24 object-cover border-2 border-stone-200"/>
+			</p>
 
+		case 'audio':
+			return <p>
+				<audio controls src={`${BASE}`+url}/>
+			</p>
+
+		case 'video':
+			return <p>
+					<video controls src={`${BASE}`+url}/>
+			</p>
+
+		default:
+			<></>
+	}
+}
 
 function DisplayFile({post}) {
-
-	var ext = post.upload_path.substr(post.upload_path.lastIndexOf('.') + 1);
-
-	return <section>
-				<p>
-					<p>{post.upload_path}</p>
-					<img src={"/api"+post.upload_path}
-								alt="upload123"
-								className="w-24 h-24 object-cover border-2 border-stone-200"/>
-
-					<audio controls src={"/api"+post.upload_path}/>
-
-					<video controls src={"/api"+post.upload_path}/>
-				</p>
-				:
-				<></>
-		</section>
+	return <div>
+		<MediaRenderer url={post.upload_path} />
+	</div>
 }
 
 export default function DisplayPost({post, privilegeLvl, refreshKey})
@@ -168,24 +180,8 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 					setEditing = {() => {setIsEditing(true)}}
 				/>
 			}
+			<DisplayFile post={post}/>
 		</section>
-
-		<DisplayFile post={post}/>
-		{/* <section>
-			{ post.upload_path ?
-				<p>
-					<img src={"/api"+post.upload_path}
-								alt="upload123"
-								className="w-24 h-24 object-cover border-2 border-stone-200"/>
-
-					<audio controls src={"/api"+post.upload_path}/>
-
-					<video controls src={"/api"+post.upload_path}/>
-				</p>
-				:
-				<p></p>
-			}
-		</section> */}
 
 	</article>
 	)
