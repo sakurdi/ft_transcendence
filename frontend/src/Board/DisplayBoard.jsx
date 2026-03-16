@@ -9,6 +9,7 @@ import { apiGet } from "../Utils/api";
 
 import TextEdit from "../components/TextEdit";
 import CreatePost from "./CreateThread";
+import Loading from "../components/Loading";
 
 // type Board struct {
 // 	ID          int       `json:"id"`
@@ -111,6 +112,7 @@ export default function DisplayBoard() {
 
 	useEffect(() => {
 		if (userHandle.loading) return
+		setLoading(true)
 
 		const checkIsMod = async (boardname) =>  {
 			try {
@@ -149,14 +151,12 @@ export default function DisplayBoard() {
 				console.log(error)
 			}
 		}
+
 		fetchBoard(boardName)
-		
 		setLoading(false)
 	}, [refreshKeyBoard, userHandle.loading])
 
-	if (loading) {
-		return ("loading")
-	}
+	if (loading) return <Loading/>
 	if (!board.id) {
 		return ("Pas de board")
 	}

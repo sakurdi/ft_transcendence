@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
 import useNotif	from "../components/Notif"
 import { apiGet } from "../Utils/api";
+import Loading from "../components/Loading";
 
 const getStrTimeDate = (dateISO) => {
 	const dateAPI = new Date(dateISO);
@@ -51,7 +52,8 @@ export default function UserPage() {
 	}, [refreshKey, userHandle.loading])
 
 	console.log(userinfo)
-	if (loading || userHandle.loading) return "Loading"
+	if (loading || userHandle.loading) return <Loading/>
+
 	if (!userinfo) return "No User"
 
 	console.log(userinfo)

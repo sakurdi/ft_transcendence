@@ -8,6 +8,7 @@ import TextArea, { TextAreaTitle } from "../components/TextArea";
 import Tooltip from "../components/Tooltip";
 import useNotif from "../components/Notif";
 import getDateDifferenceISO from "../Utils/date";
+import Loading from "../components/Loading";
 
 function getSeedpostColor(post) {
 	const date = new Date(post.created_at)
@@ -70,7 +71,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 		setLoading(false)
 	}, [userHandle.loading])
 
-	if (loading) return "Loading"
+	if (loading) return <Loading/>
 
 	function onEnterTitle() {
 		if (contentRef.current) {

@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import useAuth from "./User/AuthProvider"
 import {ButtonLink} from "./components/Button"
 import { LogoutButton } from "./User/Logout"
+import Loading from "./components/Loading"
 
 function NavBarUser({username}) {
 
@@ -48,7 +49,7 @@ export default function NavBar() {
 		}
 	}
 
-	if (userHandle.loading)	return "loading"
+	if (userHandle.loading)	return <Loading/>
 
 	const classNav = "flex items-center h-fit\
 		bg-gradient-to-t from-g_seagreen to-g_seagreen-300"

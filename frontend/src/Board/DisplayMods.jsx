@@ -6,6 +6,7 @@ import { TextAreaTitle } from "../components/TextArea"
 import useNotif from "../components/Notif"
 import getRandomPastel, { getRandomPastelString } from "../Utils/colors"
 import Tooltip from "../components/Tooltip"
+import Loading from "../components/Loading"
 
 // r.Post("/board/{boardID}/mod/{userID}", boards.AddModHandler(c))
 // r.Delete("/board/{boardID}/mod/{userID}", boards.RemoveModHandler(c))
@@ -114,8 +115,8 @@ export default function DisplayMods({boardID, }) {
 	}, [refreshKey])
 	
 	
+	if (loading) return <Loading/>
 
-	if (loading) return "loading"
 	return (
 		<div className="flex gap-2">
 			{modTeam.map((oneMod, i) => 

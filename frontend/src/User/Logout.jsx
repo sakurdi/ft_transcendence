@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ButtonLink } from "../components/Button"
 import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";
+import Loading from "../components/Loading";
 
 export function LogoutButton() {
 	return (
@@ -33,5 +34,6 @@ export default function Logout() {
 		}
 		navigate("/");
 	}, [userHandle.loading])
-	if (userHandle.loading) return "Loading"
+
+	if (userHandle.loading) return <Loading/>
 }

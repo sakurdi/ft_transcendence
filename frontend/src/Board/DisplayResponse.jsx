@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useAuth from "../User/AuthProvider";
+import Loading from "../components/Loading";
 
 // type Post struct {
 // 	ID        int       `json:"id"`
@@ -24,8 +25,8 @@ export default function DisplayResponse({resposeID}) {
 		content: "Salut",
 	})
 
-	if (loading) return "Loading"
-
+	if (loading) return <Loading/>
+	
 	
 	
 

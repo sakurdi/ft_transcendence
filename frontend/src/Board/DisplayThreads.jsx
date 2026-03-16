@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { apiGet } from "../Utils/api";
 import DisplayPost from "./DisplayPost";
+import Loading from "../components/Loading";
 
 // author_id: 2
 // board_id: 3
@@ -18,6 +19,7 @@ export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, s
 	const [threads, setThreads] = useState([])
 	
 	useEffect(() => {
+		setLoading(true)
 		const fetchThreads = async (boardName) => {
 			const res = await apiGet(`/board/${boardName}/threads`)
 			if (res.ok) {
@@ -28,7 +30,7 @@ export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, s
 		fetchThreads(board.name)
 	}, [refreshKeyThread])
 
-	if (loading) return "loading"
+	if (loading) return <Loading/>
 	if (!threads) {
 		return "This board has no posts"
 	} else {

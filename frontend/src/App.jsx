@@ -13,6 +13,8 @@ import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
 
+import Loading from "./components/Loading"
+
 const Home = () => {
 	return (
 		<>
@@ -23,6 +25,7 @@ const Home = () => {
 			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
 			<ButtonLink link="/board/league">Board league</ButtonLink>
 			<ButtonLink link="/changepassword">Change password</ButtonLink>
+			<ButtonLink link="/loading">Loading</ButtonLink>
 		</>
 	)
 }
@@ -36,6 +39,7 @@ export default function App() {
 			<BrowserRouter future={{v7_relativeSplatPath: false}}>
 				<NavBar/>
 				<Routes>
+					<Route path='/loading' element={<Loading/>} />
 					<Route path='/' element={<Home/>} />
 					<Route path='/register' element={<Register/>} />
 					<Route path='/login' element={<Login/>} />

@@ -5,6 +5,7 @@ import TextInput, {EMailInputVerify, PasswordInput} from "../components/TextInpu
 import styles from './Register.module.css';
 import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";
+import Loading from "../components/Loading";
 
 function checkEmail(email, pushError) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
@@ -78,7 +79,8 @@ export default function Register() {
 			navigate('/')
 		}
 	}, [userHandle.loading])
-	if (userHandle.loading) return "Loading"
+	if (userHandle.loading) return <Loading/>
+	
 
 	function handleEnter(event) {
 		if (event.key == "Enter") {
