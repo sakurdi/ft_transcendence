@@ -7,94 +7,67 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				g_black: {
-					DEFAULT: "#221F21",
-					50: "#F1F0F1",
-					100: "#E7E5E6",
-					200: "#CFCBCD",
-					300: "#B5AFB3",
-					400: "#9F969C",
-					500: "#887F85",
-					600: "#70686E",
-					700: "#575155",
-					800: "#413C40",
-					900: "#2D292B",
-					950: "#221F21"
+				// Professional Slate-based Palette
+				brand: {
+					50: "#f0f9f9",
+					100: "#d9f2f2",
+					200: "#b5e5e5",
+					300: "#89d3d2",
+					400: "#57b8b6",
+					500: "#3d9c9b", // Primary Brand Color (Muted Teal)
+					600: "#2d7d7d",
+					700: "#276565",
+					800: "#235152",
+					900: "#214545",
+					950: "#0e2829",
+				},
+				surface: {
+					50: "#f8fafc",
+					100: "#f1f5f9",
+					200: "#e2e8f0",
+					300: "#cbd5e1",
+					400: "#94a3b8",
+					500: "#64748b",
+					600: "#475569",
+					700: "#334155",
+					800: "#1e293b",
+					900: "#0f172a",
+				},
+				// Legacy compatibility (re-mapping to new palette)
+				g_seagreen: {
+					DEFAULT: "#3d9c9b",
+					400: "#57b8b6",
+					600: "#2d7d7d",
+				},
+				g_aqua: {
+					DEFAULT: "#b5e5e5",
+					400: "#89d3d2",
+					500: "#57b8b6",
 				},
 				g_glaucous: {
-					DEFAULT: "#728BB4",
-					50: "#F1F4F8",
-					100: "#E0E5F0",
-					200: "#C5CFE3",
-					300: "#A7B7D5",
-					400: "#8BA1C8",
-					500: "#728BB4",
-					600: "#5A6E8F",
-					700: "#41516A",
-					800: "#2C374A",
-					900: "#171E2A",
-					950: "#0E141D"
-				},
-				g_white: {
-					DEFAULT: "#F4F4F9",
-					50: "#F4F4F9",
-					100: "#E4E4F1",
-					200: "#C7C7E1",
-					300: "#AAAAD2",
-					400: "#8F8FC3",
-					500: "#7373B3",
-					600: "#5959A0",
-					700: "#3F3F83",
-					800: "#2B2B5D",
-					900: "#181839",
-					950: "#0E0E27"
-				},
-				g_seagreen: {
-					DEFAULT: "#03B5AA",
-					50: "#C4FFF8",
-					100: "#66FFF2",
-					200: "#05E7D9",
-					300: "#04CEC2",
-					400: "#03B5AA",
-					500: "#02948B",
-					600: "#01756E",
-					700: "#015852",
-					800: "#003C38",
-					900: "#002220",
-					950: "#001715"
-					},
-				g_aqua: {
-					DEFAULT: "#a8dcd9",
-					50:  "#f1fafa",
-					100: "#dcf1f0",
-					200: "#a8dcd9",
-					300: "#8fd1cd",
-					400: "#5ab6b3",
-					500: "#3e9c9b",
-					600: "#368284",
-					700: "#316a6d",
-					800: "#2f575b",
-					900: "#2b4a4e",
-					950: "#183134",
-				},
-
+					DEFAULT: "#64748b",
+					900: "#1e293b",
+				}
 			},
-			animation: {
-				"gradient-x": "gradient-x 6s ease infinite",
+			fontFamily: {
+				sans: [
+					'Inter', 
+					'ui-sans-serif', 
+					'system-ui', 
+					'-apple-system', 
+					'BlinkMacSystemFont', 
+					'Segoe UI', 
+					'Roboto', 
+					'Helvetica Neue', 
+					'Arial', 
+					'sans-serif'
+				],
 			},
-			keyframes: {
-				"gradient-x": {
-				"0%, 100%": { backgroundPosition: "0% 50%" },
-				"50%": { backgroundPosition: "100% 50%" },
-				},
-			},
-			backgroundSize: {
-				"200%": "200% 200%",
-			},
+			boxShadow: {
+				'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+				'soft-lg': '0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+			}
 		},
 	},
-	plugins: [
-	],
+	plugins: [],
 };
-
-// https://coolors.co/221f21-728bb4-f4f4f9-03b5aa-a8dcd9
