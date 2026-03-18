@@ -136,6 +136,8 @@ export default function DisplayBoard() {
 				}
 				// console.log(response.json)
 				setBoard(response.json)
+				console.log(userHandle.loading, userHandle.user)
+				console.log(userHandle)
 				if (userHandle.user) {
 					setPrivilegeLvl(1)
 					const user = userHandle.user

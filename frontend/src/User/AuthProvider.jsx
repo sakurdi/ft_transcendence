@@ -53,21 +53,23 @@ export function AuthProvider( { children } ) {
 		if (!response.ok) {
 			throw (response.status)
 		}
-		setUser(null)
+		update()
 	}
 
 	useEffect(() => {
-		setLoading(true)
 		const getUser = async () => {
+			setLoading(true)
 			const res = await apiGet("/user/me")
+			console.log(res)
 			if (!res.ok) {
 				setUser(null)
 			} else {
+				console.log(res.json)
 				setUser(res.json)
 			}
+			setLoading(false)
 		}
 		getUser()
-		setLoading(false)
 	}, [refreshUser])
 
 	return (
