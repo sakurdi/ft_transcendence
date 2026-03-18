@@ -22,6 +22,8 @@ import (
 	// base64 "encoding/base64"
 )
 
+const upload_database_path string = "/app/uploads/database"
+
 func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
@@ -184,11 +186,11 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 				http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
 				return
 			}
-			
+
 			newFilename := utils.GenerateFilename()
 
 			fileName := fmt.Sprintf("user_%d_%s%s", userID, newFilename, ext)
-			savePath := filepath.Join("/app/uploads/database", fileName)
+			savePath := filepath.Join(upload_database_path, fileName)
 
 			dst, err := os.Create((savePath))
 			if err != nil {
