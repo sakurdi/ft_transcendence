@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strconv"
 
+
+	"fmt"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -92,31 +94,22 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
-// func GetHash(c *config.Config) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-
-// 		hash, _ := auth.HashPassword(chi.URLParam(r, "pass"))
-// 		utils.JSON(w, http.StatusOK, map[string]string{"status": hash})
-// 	}
-// }
-
 func LoginPingHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		userID := c.Session.GetInt(r.Context(), "user_id")
 		username := c.Session.GetString(r.Context(), "username")
 		if userID == 0 || username == "" {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Unauthorized",
-		})
-			return
+			utils.WriteNewResponse(w, false, "Not logged in")
+		} else {
+			fmt.Printf("Username: %v |\n", username)
+			userInfo, err := store.GetUserInfo(c.DB, r.Context(), username)
+			if err != nil {
+				utils.WriteNewResponse(w, false, "Internal Server Error")
+				} else {
+				utils.WriteNewResponse(w, true, "Logged in", userInfo)
+			}
 		}
-		utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	true,
-			"message": "Success",
-			"data": []any{userID, username},
-		})
 	}
 }
 
@@ -124,20 +117,15 @@ func GetUserInfoHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if _, err := store.GetUserID(c.DB, r.Context(), chi.URLParam(r, "username")); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "User not found",
-		})
+			utils.WriteNewResponse(w, false, "User not found")
 			return
 		}
 		info, err := store.GetUserInfo(c.DB, r.Context(), chi.URLParam(r, "username"))
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"status": "error",
-			})
-			return
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+		} else {
+			utils.WriteNewResponse(w, true, "Success", info)
 		}
-		utils.JSON(w, http.StatusOK, info)
 	}
 }
 
@@ -147,51 +135,31 @@ func UpdateUserHandler(c *config.Config) http.HandlerFunc {
 		sessionUserID := middleware.GetUserID(c, r)
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Invalid user id",
-		})
+			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
 		if sessionUserID != targetUserID {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Forbidden",
-		})
-
+			utils.WriteNewResponse(w, false, "Forbiden")
 			return
 		}
 		var input models.UserEdit
 		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Invalid request",
-		})
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
 		if input.Password != "" {
 			hashed, err := auth.HashPassword(input.Password)
 			if err != nil {
-				utils.JSON(w, http.StatusOK, map[string]any{
-					"success":	false,
-					"message": "Internal Server Error",
-				})
+				utils.WriteNewResponse(w, false, "Internal Server Error")
 				return
 			}
 			input.Password = hashed
 		}
 		if err := store.EditUserInfo(c.DB, r.Context(), targetUserID, input); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Could not update user",
-		})
-			return
+			utils.WriteNewResponse(w, false, "Could'nt update user")
+		} else {
+			utils.WriteNewResponse(w, true, "Successfully updated user profile")
 		}
-		utils.JSON(w, http.StatusInternalServerError, map[string]any{
-			"status": true,
-			"message": "Successfully updated user profile",
-		})
-
 	}
 }
 
@@ -199,12 +167,10 @@ func ListUsersHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		users, err := store.GetAllUsers(c.DB, r.Context())
 		if err != nil {
-			utils.JSON(w, http.StatusInternalServerError, map[string]any{
-				"status": "Internal Server Error",
-			})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
-		utils.JSON(w, http.StatusOK, users)
+		utils.WriteNewResponse(w, true, "Success", users)
 	}
 }
 
@@ -213,31 +179,19 @@ func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 		sessionUserID := middleware.GetUserID(c, r)
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
-			utils.JSON(w, http.StatusBadRequest, map[string]any{
-				"id":     targetUserID,
-				"status": "Error",
-			})
+			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
 		if sessionUserID != targetUserID {
-			utils.JSON(w, http.StatusForbidden, map[string]any{
-				"id":     targetUserID,
-				"status": "Forbidden",
-			})
+			utils.WriteNewResponse(w, false, "Forbiden")
 			return
 		}
 		if err := store.DeleteUser(c.DB, r.Context(), targetUserID); err != nil {
-			utils.JSON(w, http.StatusInternalServerError, map[string]any{
-				"id":     targetUserID,
-				"status": "Error",
-			})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 		c.Session.Destroy(r.Context())
-		utils.JSON(w, http.StatusNoContent, map[string]any{
-			"id":	targetUserID,
-			"status": "User removed",
-		})
+		utils.WriteNewResponse(w, true, "User deleted")
 	}
 }
 
@@ -245,26 +199,16 @@ func SetRoleHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
-			utils.JSON(w, http.StatusBadRequest, map[string]any{
-				"id":     targetUserID,
-				"status": "Invalid user ID",
-			})
+			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
 		var userInfo models.UserProfile
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil || userInfo.Role == "" {
-			utils.JSON(w, http.StatusNoContent, map[string]any{
-				"id":     userInfo.ID,
-				"status": "Error",
-			})
-			return
-		}
-		if err := store.SetUserRole(c.DB, r.Context(), targetUserID, userInfo.Role); err != nil {
-			utils.JSON(w, http.StatusNoContent, map[string]any{
-				"id":     targetUserID,
-				"status": "Role updated",
-			})
-			return
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+		} else if err := store.SetUserRole(c.DB, r.Context(), targetUserID, userInfo.Role); err != nil {
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+		} else {
+			utils.WriteNewResponse(w, false, "Role set")
 		}
 	}
 }
@@ -273,25 +217,14 @@ func GetUserByIDHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
-			utils.JSON(w, http.StatusBadRequest, map[string]any{
-				"id":     userID,
-				"status": "Error",
-			})
+			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
 		user, err := store.GetUserByID(c.DB, r.Context(), userID)
 		if err != nil {
-			utils.JSON(w, http.StatusNoContent, map[string]any{
-				"id":     user.ID,
-				"status": "User not found",
-			})
-			return
+			utils.WriteNewResponse(w, false, "User not found")
+			} else {
+			utils.WriteNewResponse(w, true, "User found", user)
 		}
-		utils.JSON(w, http.StatusNoContent, map[string]any{
-				"id":     user.ID,
-				"status": "User not found",
-				"data": user,
-			})
-			return
 	}
 }

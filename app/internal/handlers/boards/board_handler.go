@@ -34,7 +34,7 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Failed to create board")
 			return
 		}
-		utils.WriteNewResponse(w, true, "Board crated", id)
+		utils.WriteNewResponse(w, true, "Board created", id)
 	}
 }
 
@@ -66,8 +66,10 @@ func IsModHandler(c *config.Config) http.HandlerFunc {
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Internal server error")
 			return
+		} else {
+			utils.WriteNewResponse(w, true, "Success", struct {
+				IsMod bool `json:"ismod"`}{IsMod: isMod})
 		}
-		utils.JSON(w, http.StatusOK, isMod)
 	}
 }
 
@@ -144,11 +146,6 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			log.Printf("ws: broadcasting new_thread to %s", room)
 			c.Hub.Broadcast(room, ws.Event{Type: "new_thread", Data: post})
 		}
-
-		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	true,
-				"message": id,
-			})
 		utils.WriteNewResponse(w, true, "Post created", id)
 	}
 }

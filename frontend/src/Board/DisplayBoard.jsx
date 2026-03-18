@@ -111,16 +111,17 @@ export default function DisplayBoard() {
 	})
 
 	useEffect(() => {
-		if (userHandle.loading) return
 		setLoading(true)
+		if (userHandle.loading) return
 
 		const checkIsMod = async (boardname) =>  {
 			try {
 				const response = await apiGet(`/board/${boardname}/ismod`);
+				console.log(response)
 				if (!response.ok) {
-					throw (response.success)
+					throw (response.status)
 				}
-				return true;
+				return response.json.ismod;
 			} catch (error) {
 				// console.log(error)
 				return false;

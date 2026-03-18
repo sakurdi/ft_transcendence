@@ -51,6 +51,9 @@ func routes(c *config.Config) http.Handler {
 		r.Put("/user/{username}", users.UpdateUserHandler(c))
 
 		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
+		
+		
+		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardAdmin(c))
