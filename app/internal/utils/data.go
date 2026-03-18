@@ -22,6 +22,22 @@ var extension = map[string]string {
 	".txt": "text",
 }
 
+var contentTypeData = map[string]string {
+	"image/jpg": ".jpg",
+	"image/jpeg": ".jpeg",
+	"image/png": ".png",
+	"image/gif": ".gif",
+
+	"audio/mp3": ".mp3",
+	"audio/mpeg": ".mp3",
+
+	"video/mp4": ".mp4",
+	"video/webm": ".webm",
+
+	"application/pdf": ".pdf",
+	"text/plain": ".txt",
+}
+
 func GetExtension(ext string) (string, error) {
 	ext = strings.ToLower(ext)
 
@@ -35,4 +51,14 @@ func GetExtension(ext string) (string, error) {
 func GenerateFilename() (string) {
 	newuuid := uuid.New()
 	return newuuid.String()
+}
+
+func GetContentType(contentType string) (string, error) {
+	
+	mediaType, exist := contentTypeData[contentType]
+	if (!exist) {
+		return "", errors.New("Content Type not supported")
+	}
+
+	return mediaType, nil
 }

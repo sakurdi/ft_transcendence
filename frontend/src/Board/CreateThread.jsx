@@ -65,7 +65,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	const infoElement = document.getElementById("input-preview");
 
 	const handleFileError = (selectedFile) => {
-		if (selectedFile.size > (5 << 20)){
+		if (selectedFile.size > (1 << 20)){
 			infoElementError.textContent = "File is too big";
 			infoElementError.style.color = "red";
 			setFile("")

@@ -166,12 +166,20 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		file, handler, err := r.FormFile("upload")
+		file, _, err := r.FormFile("upload")
 		if (err == nil) {
 			defer file.Close()
 
-			ext := filepath.Ext(handler.Filename)
-			_, err := utils.GetExtension(ext)
+			buffer := make([]byte, 512)
+			_, err = file.Read(buffer)
+			if err != nil {
+				return
+			}
+			file.Seek(0, 0)
+
+			contentType := http.DetectContentType(buffer)
+
+			ext, err := utils.GetContentType(contentType)
 			if (err != nil) {
 				http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
 				return
