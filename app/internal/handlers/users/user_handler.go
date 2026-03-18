@@ -17,16 +17,10 @@ import (
 func LogoutHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := c.Session.Destroy(r.Context()); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Internal Server Error",
-			})
-			return
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+		} else {
+			utils.WriteNewResponse(w, true, "Logged out")
 		}
-		utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	true,
-			"message": "Successfully logged out",
-		})
 	}
 }
 
@@ -34,39 +28,27 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var userInfo models.UserLogin
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid request",
-			})
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
 		passwordHash, err := store.GetUserPassword(c.DB, r.Context(), userInfo.Login)
 		if err != nil || !auth.CheckPasswordHash(userInfo.Password, passwordHash) {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid login or password",
-			})
+			utils.WriteNewResponse(w, false, "Invalid login or password")
 			return
 		}
 		if err := c.Session.RenewToken(r.Context()); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Internal Server Error",
-			})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Internal Server Error",
-			})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "Logged in"})
+		utils.WriteNewResponse(w, true, "Logged in")
 	}
 }
 
@@ -74,54 +56,39 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var userInfo models.UserRegistration
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Invalid request",
-		})
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
 
 		if !auth.IsValidMail(userInfo.Mail) || len(userInfo.Password) <= 3 || len(userInfo.Login) <= 2 {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Invalid request",
-		})
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
 
 		exists, err := store.CheckDuplicateCreds(c.DB, r.Context(), userInfo)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Internal Server Error",
-		})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 		if exists {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Email or user already exists",
-		})
+			utils.WriteNewResponse(w, false, "Email or user already exists")
 			return
 		}
-
+		
 		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-			"success":	false,
-			"message": "Failed to create user",
-		})
+			utils.WriteNewResponse(w, false, "Failed to create user")
 			return
 		}
 
 		userID, err := store.GetUserID(c.DB, r.Context(), userInfo.Login)
 		if err != nil {
-			utils.JSON(w, http.StatusCreated, map[string]any{"success": false})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
-		utils.JSON(w, http.StatusCreated, map[string]any{"success": true})
+		utils.WriteNewResponse(w, true, "Registered")
 	}
 }
 
