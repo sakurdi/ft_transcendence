@@ -25,7 +25,9 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/board/{boardName}", boards.GetBoardHandler(c))
 	mux.Get("/board/{boardName}/threads", boards.GetThreadsHandler(c))
-	mux.Get("/thread/{postID}/replies", boards.GetRepliesHandler(c))
+	
+	mux.Get("/post/{postID}", boards.GetPostHandler(c))
+	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
@@ -52,7 +54,6 @@ func routes(c *config.Config) http.Handler {
 
 		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
 		
-		
 		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
 
 		r.Group(func(r chi.Router) {
@@ -62,6 +63,8 @@ func routes(c *config.Config) http.Handler {
 			r.Post("/board/{boardID}/mod/{userID}", boards.AddModHandler(c))
 			r.Delete("/board/{boardID}/mod/{userID}", boards.RemoveModHandler(c))
 		})
+.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
+		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))

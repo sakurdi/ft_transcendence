@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 	"ft_transcendence/internal/models"
-
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -79,6 +79,7 @@ func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, er
 		WHERE p.id=$1`,
 		postID,
 	).Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt)
+	fmt.Printf("Salut %v\n", p)
 	return p, err
 }
 

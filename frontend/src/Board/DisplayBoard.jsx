@@ -10,6 +10,7 @@ import { apiGet } from "../Utils/api";
 import TextEdit from "../components/TextEdit";
 import CreatePost from "./CreateThread";
 import Loading from "../components/Loading";
+import useNotif from "../components/Notif";
 
 // type Board struct {
 // 	ID          int       `json:"id"`
@@ -52,7 +53,7 @@ function DisplayBoardDescription({board, privilegeLvl}) {
 	}
 }
 
-export function DisplayBoardHeader({board, privilegeLvl, children}) {
+export function DisplayBoardHeader({board, privilegeLvl}) {
 	const navigate = useNavigate()
 	const baseOwnerName = "<undefined>"
 	const [ownerName, setOwnerName] = useState(baseOwnerName)
@@ -88,13 +89,14 @@ export function DisplayBoardHeader({board, privilegeLvl, children}) {
 				</div>
 				<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
 			</header>
-			{children}
+			{privilegeLvl >= 3 && <DisplayMods boardID={board.id}/>}
 		</section>
 	)
 }
 
 export default function DisplayBoard() {
 	const userHandle = useAuth()
+	const notifHandle = useNotif()
 	const { boardName } = useParams()
 
 	const [refreshKeyThread, setRefreshKeyThread] = useState(0);
@@ -117,7 +119,7 @@ export default function DisplayBoard() {
 		const checkIsMod = async (boardname) =>  {
 			try {
 				const response = await apiGet(`/board/${boardname}/ismod`);
-				console.log(response)
+				// console.log(response)
 				if (!response.ok) {
 					throw (response.status)
 				}
@@ -136,8 +138,6 @@ export default function DisplayBoard() {
 				}
 				// console.log(response.json)
 				setBoard(response.json)
-				console.log(userHandle.loading, userHandle.user)
-				console.log(userHandle)
 				if (userHandle.user) {
 					setPrivilegeLvl(1)
 					const user = userHandle.user
@@ -151,7 +151,8 @@ export default function DisplayBoard() {
 					}
 				}
 			} catch (error) {
-				console.log(error)
+				// console.log(error)
+				notifHandle.pushError(error)
 			}
 		}
 
@@ -165,13 +166,11 @@ export default function DisplayBoard() {
 	}
 	return (
 	<>
-		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl}>
-			{privilegeLvl >= 3 && <DisplayMods boardID={board.id}/>}
-		</DisplayBoardHeader>
-		<DisplayThreads board = {board} privilegeLvl = {privilegeLvl}
+		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}/>
+		<DisplayThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
-		{privilegeLvl != 0 &&
+		{userHandle.user &&
 			<CreatePost board={board}
 				setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
 		}

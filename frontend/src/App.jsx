@@ -6,6 +6,7 @@ import Register from "./User/Register";
 import Login from "./User/Login";
 import Logout from "./User/Logout";
 import UserPage from "./User/UserPage";
+import PostPage from "./Board/Post";
 
 import {ButtonLink} from "./components/Button";
 import NavBar from "./NavBar";
@@ -13,7 +14,6 @@ import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
 
-import Loading from "./components/Loading"
 
 const Home = () => {
 	return (
@@ -47,7 +47,7 @@ export default function App() {
 					<Route path='/createBoard' element={<CreateBoard/>} />
 					<Route path="/user/:username" element={<UserPage />} />
 					<Route path='/board/:boardName' element={<DisplayBoard/>} />
-					{/* <Route path='/post/:postID' element={<DisplayPost/>} /> */}
+					<Route path='/post/:postID' element={<PostPage/>} />
 				</Routes>
 			</BrowserRouter>
 		</AuthProvider>

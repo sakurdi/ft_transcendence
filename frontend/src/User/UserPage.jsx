@@ -31,7 +31,7 @@ export function UserSettings({username, userID, updateUser}) {
 	const deleteUser = async () => {
 		if (window.confirm(`Are you sure you want to delete ${username}`)) {
 			const res = await apiDelete(`/users/${userID}`);
-			console.log(res)
+			// console.log(res)
 			if (!res.ok) {
 				notifHandler.pushError(res.status)
 			} else {

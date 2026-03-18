@@ -60,11 +60,11 @@ export function AuthProvider( { children } ) {
 		const getUser = async () => {
 			setLoading(true)
 			const res = await apiGet("/user/me")
-			console.log(res)
+			// console.log(res)
 			if (!res.ok) {
 				setUser(null)
 			} else {
-				console.log(res.json)
+				// console.log(res.json)
 				setUser(res.json)
 			}
 			setLoading(false)

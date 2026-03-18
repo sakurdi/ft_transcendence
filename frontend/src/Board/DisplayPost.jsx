@@ -54,7 +54,6 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	useEffect(() => {
 		if (isEditing == true && titleRef.current) {
 			const refArea = titleRef.current
-			console.log("Trying to focus")
 			refArea.focus()
 			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
 		}
@@ -63,7 +62,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	useEffect(() => {
 		if (userHandle.loading) return
 		if (userHandle.user) {
-			const userID = userHandle.user.userID
+			const userID = userHandle.user.id
 			setCanEdit(userID === post.author_id)
 			if (!canDelete)
 				setCanDelete(userID === post.author_id)
@@ -76,7 +75,6 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	function onEnterTitle() {
 		if (contentRef.current) {
 			const refArea = contentRef.current
-			console.log("Trying to focus on content")
 			refArea.focus()
 			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
 
@@ -84,7 +82,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	}
 
 	async function deletePost(e) {
-		console.log(post)
+		// console.log(post)
 		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
@@ -97,7 +95,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	
 	async function saveEdit() {
 		setIsEditing(false)
-		console.log(postInfo.content)
+		// console.log(postInfo.content)
 		if (false) {
 			//api TODO
 			refreshKey()

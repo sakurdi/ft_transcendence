@@ -31,7 +31,7 @@ export default function CreateBoard() {
 	
 	const _CreateBoard = async () => {
 		try {
-			console.log(boardName, boardDescription)
+			// console.log(boardName, boardDescription)
 			const response = await apiPost("//board/new",
 				{body: JSON.stringify({
 					'name': boardName,
@@ -40,11 +40,11 @@ export default function CreateBoard() {
 			if (!response.ok) {
 				throw (await response.status)
 			}
-			console.log(response.json)
+			// console.log(response.json)
 			notifHandle.pushSuccess(`Board "${boardName}" succesfully created`)
 			navigate("/board/" + boardName);
 		} catch (error) {
-			console.log(error)
+			// console.log(error)
 			notifHandle.pushError(error)
 		}
 	}

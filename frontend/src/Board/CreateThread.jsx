@@ -37,7 +37,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 			notifHandle.pushSuccess(`Post "${title} created"`)
 			setTitle("")
 			setContent("")
-			navigate(`/post/${json.id}`)
+			// navigate(`/post/${json.id}`)
 			setRefreshKeyThread()
 		}
 	}

@@ -149,6 +149,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 		utils.WriteNewResponse(w, true, "Post created", id)
 	}
 }
+
 func DeletePostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
@@ -321,5 +322,22 @@ func EditPostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		utils.WriteNewResponse(w, true, "Post updated")
+	}
+}
+
+
+func GetPostHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Invalid post ID")
+			return
+		}
+		post, err := store.GetPost(c.DB, r.Context(), postID)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal server error")
+		} else {
+			utils.WriteNewResponse(w, true, "Success", post)
+		}
 	}
 }

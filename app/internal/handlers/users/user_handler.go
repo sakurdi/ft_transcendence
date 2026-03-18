@@ -12,7 +12,7 @@ import (
 	"strconv"
 
 
-	"fmt"
+	// "fmt"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -102,7 +102,7 @@ func LoginPingHandler(c *config.Config) http.HandlerFunc {
 		if userID == 0 || username == "" {
 			utils.WriteNewResponse(w, false, "Not logged in")
 		} else {
-			fmt.Printf("Username: %v |\n", username)
+			// fmt.Printf("Username: %v |\n", username)
 			userInfo, err := store.GetUserInfo(c.DB, r.Context(), username)
 			if err != nil {
 				utils.WriteNewResponse(w, false, "Internal Server Error")

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { apiGet } from "../Utils/api";
 import DisplayPost from "./DisplayPost";
 import Loading from "../components/Loading";
+import useNotif from "../components/Notif";
 
 // author_id: 2
 // board_id: 3
@@ -14,7 +15,9 @@ import Loading from "../components/Loading";
 
 
 
-export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
+export default function DisplayThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
+	const notifHandle = useNotif()
+	
 	const [loading, setLoading] = useState(true)
 	const [threads, setThreads] = useState([])
 	
@@ -24,26 +27,26 @@ export default function DisplayThreads({board, privilegeLvl, refreshKeyThread, s
 			const res = await apiGet(`/board/${boardName}/threads`)
 			if (res.ok) {
 				setThreads(res.json)
-				setLoading(false)
+			} else {
+				notifHandle.pushError(res.status)
 			}
+			setLoading(false)
 		}
-		fetchThreads(board.name)
+		fetchThreads(boardName)
 	}, [refreshKeyThread])
 
 	if (loading) return <Loading/>
-	if (!threads) {
-		return "This board has no posts"
-	} else {
-		return(
-		<>
-			{threads.map((oneThread) =>
-				<DisplayPost key={oneThread.id}
-					post={oneThread}
-					privilegeLvl={privilegeLvl}
-					refreshKey={setRefreshKeyThread}
-				/>)
-			}
-		</>
-		)
-	}
+	if (!threads || threads.lenght == 0) return "This board has no posts"
+
+	return(
+	<>
+		{threads.map((oneThread) =>
+			<DisplayPost key={oneThread.id}
+				post={oneThread}
+				privilegeLvl={privilegeLvl}
+				refreshKey={setRefreshKeyThread}
+			/>)
+		}
+	</>
+	)
 }
