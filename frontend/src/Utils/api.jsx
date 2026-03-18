@@ -12,9 +12,10 @@ export default async function api(path, options = {}) {
 			throw (res.status)
 		try {
 			const json = await res.json()
-			if (json?.success === false)
-				return { ok: false, status: "json.success == false", json: undefined }
-			return { ok: true, status: "Success", json: json }
+			console.log(json)
+			// if (json?.success === false)
+			// 	return { ok: false, status: "json.success == false", json: undefined }
+			return { ok: json.success == true, status: json.message, json: json.data }
 		} catch(err) {
 			return { ok: true, status: "Success", json: undefined }
 		}

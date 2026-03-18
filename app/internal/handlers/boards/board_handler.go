@@ -21,27 +21,20 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 
 		var body models.BoardCreate
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid request",
-			})
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			utils.WriteNewResponse(w, false, "Invalid Request")
 			return
-		}
+		} else if  body.Name == "" {
+			utils.WriteNewResponse(w, false, "Board name cannot be empty")
+			return
+		} // else if () Check for [A-Za-z0-9_]{1,}
 
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Failed to create board",
-			})
+			utils.WriteNewResponse(w, false, "Failed to create board")
 			return
 		}
-
-		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	true,
-				"message": id,
-			})
+		utils.WriteNewResponse(w, true, "Board crated", id)
 	}
 }
 
@@ -51,16 +44,10 @@ func GetBoardHandler(c *config.Config) http.HandlerFunc {
 
 		board, err := store.GetBoard(c.DB, r.Context(), boardName)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Board not found",
-			})
+			utils.WriteNewResponse(w, false, "Board not found")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	true,
-				"message": board,
-			})
+		utils.WriteNewResponse(w, true, "Board found", board)
 	}
 }
 
@@ -71,13 +58,13 @@ func IsModHandler(c *config.Config) http.HandlerFunc {
 
 		board, err := store.GetBoard(c.DB, r.Context(), boardName)
 		if err != nil {
-			http.Error(w, "Board not found", http.StatusNotFound)
+			utils.WriteNewResponse(w, false, "Board not found")
 			return
 		}
 
 		isMod, err := store.IsBoardMod(c.DB, r.Context(), board.ID, userID)
-		if err != nil || !isMod {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal server error")
 			return
 		}
 		utils.JSON(w, http.StatusOK, isMod)
@@ -90,26 +77,16 @@ func GetThreadsHandler(c *config.Config) http.HandlerFunc {
 
 		board, err := store.GetBoard(c.DB, r.Context(), boardName)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Board not found",
-			})
+			utils.WriteNewResponse(w, false, "Board not found")
 			return
 		}
 
 		threads, err := store.GetThreads(c.DB, r.Context(), board.ID, 25, 0)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Failed to fetch threads",
-			})
+			utils.WriteNewResponse(w, false, "Failed to fetch threads")
 			return
 		}
-
-		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	true,
-				"message": threads,
-			})
+		utils.WriteNewResponse(w, true, "Success", threads)
 	}
 }
 
@@ -117,26 +94,15 @@ func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid post ID",
-			})
+			utils.WriteNewResponse(w, false, "Invalid post ID")
 			return
 		}
-
 		replies, err := store.GetReplies(c.DB, r.Context(), postID)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Failed to fetch replies",
-			})
+			utils.WriteNewResponse(w, false, "Failed to fetch replies")
 			return
 		}
-
-		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	true,
-				"message": replies,
-			})
+		utils.WriteNewResponse(w, true, "Success", replies)
 	}
 }
 
@@ -145,36 +111,24 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid board ID",
-			})
+			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
 
 		var body models.PostCreate
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid request",
-			})
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
-
+		
 		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Threads need a title",
-			})
+			utils.WriteNewResponse(w, false, "Title must not be empty")
 			return
 		}
 
 		id, err := store.CreatePost(c.DB, r.Context(), body, boardID, userID)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Internal Server Error",
-			})
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 
@@ -195,6 +149,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 				"success":	true,
 				"message": id,
 			})
+		utils.WriteNewResponse(w, true, "Post created", id)
 	}
 }
 func DeletePostHandler(c *config.Config) http.HandlerFunc {
@@ -202,41 +157,30 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Invalid post ID",
-			})
+			utils.WriteNewResponse(w, false, "Invalid post ID")
 			return
 		}
-
+		
 		boardID, err := store.GetPostBoardID(c.DB, r.Context(), postID)
 		if err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Post not found",
-			})
+			utils.WriteNewResponse(w, false, "Post does not exist")
 			return
 		}
-
+		
 		isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
-		if err != nil || !isMod {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Forbidden",
-			})
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal server error")
+			return
+		} else if !isMod{
+			utils.WriteNewResponse(w, false, "You dont have the rights to delete this post")
 			return
 		}
 
 		if err := store.DeletePost(c.DB, r.Context(), postID); err != nil {
-			utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	false,
-				"message": "Failed to delete post",
-			})
+			utils.WriteNewResponse(w, false, "Failed to delete post")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]any{
-				"success":	true,
-			})
+		utils.WriteNewResponse(w, true, "Post deleted")
 	}
 }
 
@@ -245,26 +189,27 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
-			http.Error(w, "Invalid board ID", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
 		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		fmt.Printf("AddMod: UserId: %v BoardUd: %v\n", userID, boardID)
 		if err != nil {
-			http.Error(w, "Invalid user ID", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
-
+		
 		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 		if err != nil || !isAdmin {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			utils.WriteNewResponse(w, false, "Forbiden")
 			return
 		}
-
+		
 		if err := store.AddModerator(c.DB, r.Context(), boardID, targetID); err != nil {
-			http.Error(w, "Failed to add moderator", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to add moderator")
 			return
 		}
+		utils.WriteNewResponse(w, true, "Moderator added")
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
@@ -275,68 +220,80 @@ func RemoveModHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
-			http.Error(w, "Invalid board ID", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
 		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
-			http.Error(w, "Invalid user ID", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
-
+		
 		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 		if err != nil || !isAdmin {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			utils.WriteNewResponse(w, false, "Forbidden")
 			return
 		}
 		if err := store.RemoveModerator(c.DB, r.Context(), boardID, targetID); err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to remove moderator")
 			return
 		}
-		w.WriteHeader(http.StatusNoContent)
+		utils.WriteNewResponse(w, true, "Moderator removed")
 	}
 }
 
 func UpdateBoardHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		boardID, errBoardID := strconv.Atoi(chi.URLParam(r, "boardID"))
+		if errBoardID != nil {
+			utils.WriteNewResponse(w, false, "Invalid board ID")
+			return
+		}
 		var body models.BoardCreate
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
 		if err := store.UpdateBoard(c.DB, r.Context(), boardID, body); err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusNoContent)
+		utils.WriteNewResponse(w, true, "Board updated")
 	}
 }
 
 func DeleteBoardHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
-		if err := store.DeleteBoard(c.DB, r.Context(), boardID); err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		boardID, errBoardID := strconv.Atoi(chi.URLParam(r, "boardID"))
+		if errBoardID != nil {
+			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-		w.WriteHeader(http.StatusNoContent)
+		if err := store.DeleteBoard(c.DB, r.Context(), boardID); err != nil {
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+			return
+		}
+		utils.WriteNewResponse(w, true, "Board deleted")
 	}
 }
 
 func GetBoardModTeamHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		boardID, _ := strconv.Atoi(chi.URLParam(r, "boardID"))
+		boardID, errBoardID := strconv.Atoi(chi.URLParam(r, "boardID"))
+		if errBoardID != nil {
+			utils.WriteNewResponse(w, false, "Invalid board ID")
+			return
+		}
 		members, err := store.GetBoardTeam(c.DB, r.Context(), boardID)
 		if err != nil {
 			log.Printf("GetBoardModTeamHandler error: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
-		utils.JSON(w, http.StatusOK, members)
+		utils.WriteNewResponse(w, true, "Success", members)
 	}
 }
 
@@ -345,27 +302,27 @@ func EditPostHandler(c *config.Config) http.HandlerFunc {
 		sessionUserID := middleware.GetUserID(c, r)
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
 		if err != nil {
-			utils.JSON(w, http.StatusBadRequest, map[string]string{"status": "Invalid post ID"})
+			utils.WriteNewResponse(w, false, "Invalid post ID")
 			return
 		}
 		authorID, err := store.GetPostAuthorID(c.DB, r.Context(), postID)
 		if err != nil {
-			utils.JSON(w, http.StatusNotFound, map[string]string{"status": "Post not found"})
+			utils.WriteNewResponse(w, false, "Post not found")
 			return
 		}
 		if sessionUserID != authorID {
-			utils.JSON(w, http.StatusForbidden, map[string]string{"status": "Forbidden"})
+			utils.WriteNewResponse(w, false, "Forbiden")
 			return
 		}
 		var body models.PostEdit
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
-			utils.JSON(w, http.StatusBadRequest, map[string]string{"status": "Invalid request"})
+			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
 		if err := store.UpdatePost(c.DB, r.Context(), postID, body.Content); err != nil {
-			utils.JSON(w, http.StatusInternalServerError, map[string]string{"status": "Internal Server Error"})
+			utils.WriteNewResponse(w, false, "Internal server error")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "Post updated"})
+		utils.WriteNewResponse(w, true, "Post updated")
 	}
 }

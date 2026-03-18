@@ -18,14 +18,12 @@ import Loading from "./components/Loading"
 const Home = () => {
 	return (
 		<>
-			<ButtonLink>Home</ButtonLink>
+			{/* <ButtonLink>Home</ButtonLink>
 			<ButtonLink link="/login">Login</ButtonLink>
 			<ButtonLink link="/register">Register</ButtonLink>
-			<ButtonLink link="/logout">Logout</ButtonLink>
+			<ButtonLink link="/logout">Logout</ButtonLink> */}
 			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
 			<ButtonLink link="/board/league">Board league</ButtonLink>
-			<ButtonLink link="/changepassword">Change password</ButtonLink>
-			<ButtonLink link="/loading">Loading</ButtonLink>
 		</>
 	)
 }
