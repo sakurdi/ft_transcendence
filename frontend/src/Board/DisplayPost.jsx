@@ -32,35 +32,39 @@ function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	)
 }
 
-function MediaRenderer({url}) {
-	var ext = url.substr(url.lastIndexOf('.') + 1);
+function MediaRenderer({path}) {
+	if (!path)
+		return
+
+	var ext = path.substr(path.lastIndexOf('.') + 1);
 	var format = getFileFormat(ext);
+	
 	switch (format) {
 		case 'image':
 			return <p>
-				<img src={`${BASE}`+url}
+				<img src={path}
 							alt="upload123"
 							className="w-24 h-24 object-cover border-2 border-stone-200"/>
 			</p>
 
 		case 'audio':
 			return <p>
-				<audio controls src={`${BASE}`+url}/>
+				<audio controls src={path}/>
 			</p>
 
 		case 'video':
 			return <p>
-					<video controls src={`${BASE}`+url}/>
+					<video controls src={path}/>
 			</p>
 		
 		case 'application':
 			return <p>
-					<embed src={`${BASE}`+url} width="600px" height="300px"/>
+					<embed src={path} width="600px" height="300px"/>
 			</p>
 
 		case 'text':
 			return <p>
-					<embed src={`${BASE}`+url} />
+					<a href src={path} download="file">Download</a> <a/>
 			</p>
 			
 		default:
@@ -70,7 +74,7 @@ function MediaRenderer({url}) {
 
 function DisplayFile({post}) {
 	return <div>
-		<MediaRenderer url={post.upload_path} />
+		<MediaRenderer path={`${BASE}`+post.upload_path} />
 	</div>
 }
 

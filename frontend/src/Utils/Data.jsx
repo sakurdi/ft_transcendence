@@ -30,6 +30,22 @@ const mime = {
 	"txt": "text/plain"
 }
 
+const contentTypeData = {
+	"image/jpeg": "image",
+	"image/jpg": "image",
+	"image/png": "image",
+	"image/gif": "image",
+
+	"audio/mpeg": "audio",
+	"audio/mp4": "audio",
+
+	"video/mp4": "video",
+	"video/webm": "video",
+
+	"application/pdf": "application",
+	"text/plain": "text"
+}
+
 export default function getFileFormat(fileExtension) {
 	if (extension[fileExtension])
 		return extension[fileExtension]
@@ -44,7 +60,13 @@ export function getFileFormatWithURL(fileURL) {
 }
 
 export function buildAcceptedFormat() {
-	var accepted = Object.entries(extension).map(([ext, type]) => `${type}`).join(", ");
+	var accepted = Object.entries(mime).map(([ext, type]) => `${type}`).join(", ");
 	console.log("accepetd", accepted)
 	return accepted;
+}
+
+export function getContentTypeData(type) {
+	if (contentTypeData[type])
+		return contentTypeData[type]
+	return "unknown"
 }

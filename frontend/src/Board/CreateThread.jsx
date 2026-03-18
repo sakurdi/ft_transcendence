@@ -5,14 +5,51 @@ import Button from "../components/Button"
 import { apiPost } from "../Utils/api"
 import TextInput from "../components/TextInput"
 import getFileFormat from "../Utils/Data"
-import { buildAcceptedFormat, getFileFormatWithURL } from "../Utils/Data"
+import { buildAcceptedFormat, getFileFormatWithURL, getContentTypeData } from "../Utils/Data"
 
 // type PostCreate struct {
 // 	Title    *string `json:"title"`
 // 	Content  string  `json:"content"`
 // 	ParentID *int    `json:"parent_id"`
 // }
+function MediaPreview({file, previewUrl}) {
+	if (!file)
+		return
 
+	var format = getContentTypeData(file.type);
+
+	switch (format) {
+		case 'image':
+			return <p>
+				<img src={previewUrl}
+							alt="upload123"
+							className="w-24 h-24 object-cover border-2 border-stone-200"/>
+			</p>
+
+		case 'audio':
+			return <p>
+				<audio controls src={previewUrl}/>
+			</p>
+
+		case 'video':
+			return <p>
+					<video controls src={previewUrl}/>
+			</p>
+		
+		case 'application':
+			return <p>
+					<embed src={previewUrl} width="600px" height="300px"/>
+			</p>
+
+		case 'text':
+			return <p>
+					<a href src={previewUrl} download="file">Download</a> <a/>
+			</p>
+			
+		default:
+			<></>
+	}
+}
 
 export default function CreatePost({board, setRefreshKeyThread}) {
 	const navigate = useNavigate();
@@ -123,7 +160,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 				placeholder = "Content"
 				/>
 
-			<img src={previewUrl} className="max-w-xs object-cover border border-stone-300"></img>
+
 			<p id="input-preview"></p>
 			<p id="input-error"></p>
 			<input type="file"
@@ -131,6 +168,8 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 				accept={buildAcceptedFormat()}
 				id="input-file"
 				/>
+
+			<MediaPreview file={file} previewUrl={previewUrl}/>
 
 			<Button type = "submit">
 				Confirm
