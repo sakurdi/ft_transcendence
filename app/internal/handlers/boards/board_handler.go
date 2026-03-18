@@ -22,17 +22,26 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 
 		var body models.BoardCreate
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid request",
+			})
 			return
 		}
 
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
 		if err != nil {
-			http.Error(w, "Failed to create board", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Failed to create board",
+			})
 			return
 		}
 
-		utils.JSON(w, http.StatusCreated, map[string]int{"id": id})
+		utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	true,
+				"message": id,
+			})
 	}
 }
 
@@ -42,11 +51,16 @@ func GetBoardHandler(c *config.Config) http.HandlerFunc {
 
 		board, err := store.GetBoard(c.DB, r.Context(), boardName)
 		if err != nil {
-			http.Error(w, "Board not found", http.StatusNotFound)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Board not found",
+			})
 			return
 		}
-
-		utils.JSON(w, http.StatusOK, board)
+		utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	true,
+				"message": board,
+			})
 	}
 }
 
@@ -76,17 +90,26 @@ func GetThreadsHandler(c *config.Config) http.HandlerFunc {
 
 		board, err := store.GetBoard(c.DB, r.Context(), boardName)
 		if err != nil {
-			http.Error(w, "Board not found", http.StatusNotFound)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Board not found",
+			})
 			return
 		}
 
 		threads, err := store.GetThreads(c.DB, r.Context(), board.ID, 25, 0)
 		if err != nil {
-			http.Error(w, "Failed to fetch threads", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Failed to fetch threads",
+			})
 			return
 		}
 
-		utils.JSON(w, http.StatusOK, threads)
+		utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	true,
+				"message": threads,
+			})
 	}
 }
 
@@ -94,17 +117,26 @@ func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
 		if err != nil {
-			http.Error(w, "Invalid post ID", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid post ID",
+			})
 			return
 		}
 
 		replies, err := store.GetReplies(c.DB, r.Context(), postID)
 		if err != nil {
-			http.Error(w, "Failed to fetch replies", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Failed to fetch replies",
+			})
 			return
 		}
 
-		utils.JSON(w, http.StatusOK, replies)
+		utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	true,
+				"message": replies,
+			})
 	}
 }
 
@@ -113,24 +145,36 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
-			http.Error(w, "Invalid board ID", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid board ID",
+			})
 			return
 		}
 
 		var body models.PostCreate
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid request",
+			})
 			return
 		}
 
 		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
-			http.Error(w, "Threads need a title", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Threads need a title",
+			})
 			return
 		}
 
 		id, err := store.CreatePost(c.DB, r.Context(), body, boardID, userID)
 		if err != nil {
-			http.Error(w, "Failed to create post", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Internal Server Error",
+			})
 			return
 		}
 
@@ -147,7 +191,10 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			c.Hub.Broadcast(room, ws.Event{Type: "new_thread", Data: post})
 		}
 
-		utils.JSON(w, http.StatusCreated, map[string]int{"id": id})
+		utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	true,
+				"message": id,
+			})
 	}
 }
 func DeletePostHandler(c *config.Config) http.HandlerFunc {
@@ -155,27 +202,41 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
 		if err != nil {
-			http.Error(w, "Invalid post ID", http.StatusBadRequest)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Invalid post ID",
+			})
 			return
 		}
 
 		boardID, err := store.GetPostBoardID(c.DB, r.Context(), postID)
 		if err != nil {
-			http.Error(w, "Post not found", http.StatusNotFound)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Post not found",
+			})
 			return
 		}
 
 		isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
 		if err != nil || !isMod {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Forbidden",
+			})
 			return
 		}
 
 		if err := store.DeletePost(c.DB, r.Context(), postID); err != nil {
-			http.Error(w, "Failed to delete post", http.StatusInternalServerError)
+			utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	false,
+				"message": "Failed to delete post",
+			})
 			return
 		}
-		w.WriteHeader(http.StatusNoContent)
+		utils.JSON(w, http.StatusOK, map[string]any{
+				"success":	true,
+			})
 	}
 }
 
