@@ -1,23 +1,20 @@
-const Card = ({ title, description, children }) => {
+const Card = ({ title, description, children, className = "" }) => {
   return (
-    <div className="group relative max-w-sm w-full p-8 bg-white border border-gray-100 rounded-2xl 
-                    shadow-sm hover:shadow-xl hover:shadow-blue-500/5 
-                    transition-all duration-500 ease-out mx-auto mt-10">
+    <div className={`bg-white border border-surface-200 rounded-2xl shadow-soft transition-all duration-300 p-6 sm:p-8 ${className}`}>
       
       {title && (
-        <h3 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight text-center">
+        <h3 className="text-xl sm:text-2xl font-bold text-surface-900 mb-2 tracking-tight">
           {title}
         </h3>
       )}
       
       {description && (
-        <p className="text-gray-500 leading-relaxed text-sm text-center mb-6">
+        <p className="text-surface-500 leading-relaxed text-sm mb-6">
           {description}
         </p>
       )}
 
-      {}
-      <div className="mt-4">
+      <div className="relative">
         {children}
       </div>
     </div>
