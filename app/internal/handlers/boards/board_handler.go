@@ -2,14 +2,13 @@ package boards
 
 import (
 	"encoding/json"
+	"fmt"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/middleware"
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
-	"ft_transcendence/internal/ws"
-	"log"
-	"fmt"
 	"ft_transcendence/internal/utils"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -24,7 +23,7 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			utils.WriteNewResponse(w, false, "Invalid Request")
 			return
-		} else if  body.Name == "" {
+		} else if body.Name == "" {
 			utils.WriteNewResponse(w, false, "Board name cannot be empty")
 			return
 		} // else if () Check for [A-Za-z0-9_]{1,}
@@ -68,7 +67,8 @@ func IsModHandler(c *config.Config) http.HandlerFunc {
 			return
 		} else {
 			utils.WriteNewResponse(w, true, "Success", struct {
-				IsMod bool `json:"ismod"`}{IsMod: isMod})
+				IsMod bool `json:"ismod"`
+			}{IsMod: isMod})
 		}
 	}
 }
@@ -108,33 +108,46 @@ func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
-func CreatePostHandler(c *config.Config) http.HandlerFunc {
+func PostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-
 		var body models.PostCreate
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
 			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
-		
-		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
+		if body.Title == nil || *body.Title == "" {
 			utils.WriteNewResponse(w, false, "Title must not be empty")
 			return
 		}
-
+		pID := chi.URLParam(r, "postID")
+		if pID != "" {
+			parentID, err := strconv.Atoi(pID)
+			if err != nil {
+				utils.WriteNewResponse(w, false, "Invalid post ID")
+				return
+			}
+			parent, err := store.GetPost(c.DB, r.Context(), parentID)
+			if err != nil {
+				utils.WriteNewResponse(w, false, "Post not found")
+				return
+			}
+			body.ParentID = &parentID
+			body.Title = nil
+			boardID = parent.BoardID
+		}
 		id, err := store.CreatePost(c.DB, r.Context(), body, boardID, userID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
-
-		post, err := store.GetPost(c.DB, r.Context(), id)
+		/*post, err := store.GetPost(c.DB, r.Context(), id)
 		if err != nil {
 			log.Printf("ws: failed to get post %d: %v", id, err)
 		} else if body.ParentID != nil {
@@ -145,8 +158,48 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			room := ws.BoardRoom(boardID)
 			log.Printf("ws: broadcasting new_thread to %s", room)
 			c.Hub.Broadcast(room, ws.Event{Type: "new_thread", Data: post})
-		}
+		}*/
 		utils.WriteNewResponse(w, true, "Post created", id)
+	}
+}
+
+func ReplyHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID := middleware.GetUserID(c, r)
+		parentID, err := strconv.Atoi(chi.URLParam(r, "postID"))
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Invalid post ID")
+			return
+		}
+		parent, err := store.GetPost(c.DB, r.Context(), parentID)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Post not found")
+			return
+		}
+		var body models.PostCreate
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
+			utils.WriteNewResponse(w, false, "Invalid request")
+			return
+		}
+
+		body.ParentID = &parentID
+		body.Title = nil
+		id, err := store.CreatePost(c.DB, r.Context(), body, parent.BoardID, userID)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+			return
+		}
+		/*
+			post, err := store.GetPost(c.DB, r.Context(), id)
+			if err != nil {
+				log.Printf("ws: failed to get post %d: %v", id, err)
+			} else {
+				room := ws.ThreadRoom(parentID)
+				log.Printf("ws: broadcasting new_reply to %s", room)
+				c.Hub.Broadcast(room, ws.Event{Type: "new_reply", Data: post})
+			}*/
+		utils.WriteNewResponse(w, true, "Reply created", id)
 	}
 }
 
@@ -158,18 +211,18 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid post ID")
 			return
 		}
-		
+
 		boardID, err := store.GetPostBoardID(c.DB, r.Context(), postID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Post does not exist")
 			return
 		}
-		
+
 		isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Internal server error")
 			return
-		} else if !isMod{
+		} else if !isMod {
 			utils.WriteNewResponse(w, false, "You dont have the rights to delete this post")
 			return
 		}
@@ -196,13 +249,13 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
-		
+
 		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 		if err != nil || !isAdmin {
 			utils.WriteNewResponse(w, false, "Forbiden")
 			return
 		}
-		
+
 		if err := store.AddModerator(c.DB, r.Context(), boardID, targetID); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to add moderator")
 			return
@@ -226,7 +279,7 @@ func RemoveModHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
-		
+
 		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 		if err != nil || !isAdmin {
 			utils.WriteNewResponse(w, false, "Forbidden")
@@ -324,7 +377,6 @@ func EditPostHandler(c *config.Config) http.HandlerFunc {
 		utils.WriteNewResponse(w, true, "Post updated")
 	}
 }
-
 
 func GetPostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

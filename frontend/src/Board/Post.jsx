@@ -73,7 +73,7 @@ export function DisplayPostReplies({postID}) {
 		{/* map replies */}
 		{(!userHandle.loading && userHandle.user) &&
 			<InputReply updateReplies = {updateReplies}
-				postID = {postID} boardID={}/>
+				postID = {postID}/>
 		}
 		</>
 	)

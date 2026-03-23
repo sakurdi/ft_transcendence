@@ -14,12 +14,11 @@ type UserRegistration struct {
 }
 
 type UserInfo struct {
+	ID            int       `json:"id"`
 	Login         string    `json:"username"`
-	ID				int		`json:"id"`
+	Email         string    `json:"email"`
 	Role          string    `json:"role"`
-	Password      string    `json:"-"`
-	Email         string    `json:"-"`
-	Avatar        string    `json:"avatar_url"`
+	Avatar        string    `json:"avatar_url,omitempty"`
 	Creation_date time.Time `json:"member_since"`
 }
 

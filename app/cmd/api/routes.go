@@ -25,14 +25,14 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/board/{boardName}", boards.GetBoardHandler(c))
 	mux.Get("/board/{boardName}/threads", boards.GetThreadsHandler(c))
-	
+
 	mux.Get("/post/{postID}", boards.GetPostHandler(c))
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
 
-	mux.Get("/user/me", users.LoginPingHandler((c)))
+	mux.Get("/user/me", users.MeHandler((c)))
 	mux.Get("/user/{username}", users.GetUserInfoHandler((c)))
 	mux.Get("/users/id/{userID}", users.GetUserByIDHandler(c))
 
@@ -45,7 +45,10 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/logout", users.LogoutHandler(c))
 		r.Post("/board/new", boards.CreateBoardHandler(c))
 
-		r.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
+		r.Post("/board/{boardID}/post", boards.PostHandler(c))
+		r.Post("/post/{postID}/reply", boards.ReplyHandler(c))
+		r.Put("/post/{postID}", boards.EditPostHandler(c))
+
 		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
@@ -53,7 +56,7 @@ func routes(c *config.Config) http.Handler {
 		r.Put("/user/{username}", users.UpdateUserHandler(c))
 
 		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
-		
+
 		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
 
 		r.Group(func(r chi.Router) {
@@ -63,8 +66,6 @@ func routes(c *config.Config) http.Handler {
 			r.Post("/board/{boardID}/mod/{userID}", boards.AddModHandler(c))
 			r.Delete("/board/{boardID}/mod/{userID}", boards.RemoveModHandler(c))
 		})
-.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
-		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardMod(c))

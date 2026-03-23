@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"strconv"
 
-
 	// "fmt"
 	"github.com/go-chi/chi/v5"
 )
@@ -76,7 +75,7 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Email or user already exists")
 			return
 		}
-		
+
 		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to create user")
 			return
@@ -94,7 +93,7 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
-func LoginPingHandler(c *config.Config) http.HandlerFunc {
+func MeHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		userID := c.Session.GetInt(r.Context(), "user_id")
@@ -106,7 +105,7 @@ func LoginPingHandler(c *config.Config) http.HandlerFunc {
 			userInfo, err := store.GetUserInfo(c.DB, r.Context(), username)
 			if err != nil {
 				utils.WriteNewResponse(w, false, "Internal Server Error")
-				} else {
+			} else {
 				utils.WriteNewResponse(w, true, "Logged in", userInfo)
 			}
 		}
@@ -223,7 +222,7 @@ func GetUserByIDHandler(c *config.Config) http.HandlerFunc {
 		user, err := store.GetUserByID(c.DB, r.Context(), userID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "User not found")
-			} else {
+		} else {
 			utils.WriteNewResponse(w, true, "User found", user)
 		}
 	}
