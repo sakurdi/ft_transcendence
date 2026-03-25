@@ -132,7 +132,7 @@ export default function PostPage({}) {
 			<Post key={post.id}
 				post = {post}
 				privilegeLvl={privilegeLvl}
-				refreshKey={refreshPost}
+				update={refreshPost}
 				canClickLink = {false}/>
 			<DisplayPostReplies postID={post.id}/>
 		</>
