@@ -49,8 +49,6 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/post/{postID}/reply", boards.ReplyHandler(c))
 		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
-		r.Put("/post/{postID}", boards.EditPostHandler(c))
-
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
 		r.Put("/user/{username}", users.UpdateUserHandler(c))

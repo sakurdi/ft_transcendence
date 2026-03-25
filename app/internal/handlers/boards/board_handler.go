@@ -370,7 +370,7 @@ func EditPostHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
-		if err := store.UpdatePost(c.DB, r.Context(), postID, body.Content); err != nil {
+		if err := store.UpdatePost(c.DB, r.Context(), postID, body); err != nil {
 			utils.WriteNewResponse(w, false, "Internal server error")
 			return
 		}
