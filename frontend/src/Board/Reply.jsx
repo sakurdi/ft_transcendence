@@ -32,12 +32,7 @@ function getCanDelete({userId, replyAuthorId, userRole, boardName}) {
 	return false
 }
 
-// Object { id: 12, board_id: 2, author_id: 2,
-// username: "gaeudes", title: null, content: "g",
-// parent_id: 7, created_at: "2026-03-25T15:22:36.881258Z" }
-
-
-export default function DisplayReply({reply, updateReplies}) {
+export default function DisplayReplye({reply, updateReplies}) {
 	const navigate = useNavigate()
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
@@ -60,7 +55,7 @@ export default function DisplayReply({reply, updateReplies}) {
 			setCanDelete(getCanDelete(userHandle.user.id, reply.author_id, userHandle.user.role, "<Undefined>"))
 		}
 	}, [userHandle.loading])
-	console.log(reply)
+	// console.log(reply)
 
 	const saveEdit = async () => {
 		const res = await apiPut(`/post/${reply.id}`, {
@@ -70,8 +65,8 @@ export default function DisplayReply({reply, updateReplies}) {
 		})
 		if (res.ok) {
 			notifHandle.pushSuccess("Post edited")
-			updateReplies()
 			setIsEditing(false)
+			updateReplies()
 		} else {
 			notifHandle.pushError(res.message)
 		}

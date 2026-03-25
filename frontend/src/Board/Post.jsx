@@ -46,7 +46,7 @@ export function InputReply({updateReplies, postID, boardID}) {
 	)
 }
 
-export function DisplayPostReplies({postID}) {
+export function DisplayPostReplies({postID, privilegeLvl}) {
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
@@ -71,7 +71,6 @@ export function DisplayPostReplies({postID}) {
 	}, [keyReplies])
 
 	if (loading) return <Loading/>
-	// if (replies?.length != 0)
 	// 	console.log(replies)
 	return (
 		<>
@@ -80,10 +79,10 @@ export function DisplayPostReplies({postID}) {
 				?	"No replies"
 				:	<WrapReplies>
 						{replies.map((oneReply) =>
-							<DisplayReply key={oneReply.id}
-								reply={oneReply}
+							<DisplayPost key={oneReply.id}
+								post={oneReply}
 								user={null}
-								updateReplies={updateReplies}/>
+								update={updateReplies}/>
 						)}
 					</WrapReplies>
 		}
@@ -97,17 +96,18 @@ export function DisplayPostReplies({postID}) {
 
 export default function PostPage({}) {
 	const { postID } = useParams()
-	const userHandle = useAuth()
+	// const userHandle = useAuth()
 	const notifHandle = useNotif()
-	const navigate = useNavigate()
 
 	const [loading, setLoading] = useState(true)
 	const [post, setPost] = useState(null)
 	const [refreshPostKey, setRefreshPostKey] = useState(0)
 
+	const [privilegeLvl, setPrivilegeLvl] = useState(0)
+
 	const refreshPost = () => {setRefreshPostKey(refreshPostKey + 1)}
 
-	useState(() => {
+	useEffect(() => {
 		const fetchPost = async () => {
 			setLoading(true)
 			const res = await apiGet(`/post/${postID}`)
@@ -125,13 +125,21 @@ export default function PostPage({}) {
 
 	if (loading) return <Loading/>
 	if (!post) return "No post"
-	// console.log(post)
+	console.log(post)
 	return (
 		<>
-			<DisplayPost key={post.id}
-				post = {post}
-				privilegeLvl={0}
-				refreshKey={refreshPost}/>
+			{post.parent_id == null ?	
+				<DisplayPost key={post.id}
+					post = {post}
+					privilegeLvl={privilegeLvl}
+					refreshKey={refreshPost}
+					canClickLink = {false}/>
+			:	<>Reply<DisplayPost key={post.id}
+					post = {post}
+					privilegeLvl={privilegeLvl}
+					refreshKey={refreshPost}
+					canClickLink = {false}/> </>
+			}
 			<DisplayPostReplies postID={post.id}/>
 		</>
 	)

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import useAuth from "../User/AuthProvider";
 import useNotif from "../components/Notif";
 
-import { apiDelete, apiGet, apiPost } from "../Utils/api";
+import { apiDelete, apiPut } from "../Utils/api";
 import { getRandomPastelDate } from "../Utils/colors";
 import getDateDifferenceISO from "../Utils/date";
 
@@ -31,7 +31,7 @@ export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditi
 	)
 }
 
-export default function DisplayPost({post, privilegeLvl, refreshKey})
+export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
 {
 	const navigate = useNavigate()
 	const userHandle = useAuth()
@@ -50,6 +50,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	const postColor = getRandomPastelDate(post.created_at) 
 	
 	useEffect(() => {
+		// if (postInfo.title === null) return
 		if (isEditing == true && titleRef.current) {
 			const refArea = titleRef.current
 			refArea.focus()
@@ -66,7 +67,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 				setCanDelete(userID === post.author_id)
 		}
 		setLoading(false)
-	}, [userHandle.loading])
+	}, [userHandle.loading, userHandle.user])
 
 	if (loading) return <Loading/>
 
@@ -75,7 +76,6 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 			const refArea = contentRef.current
 			refArea.focus()
 			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
-
 		}
 	}
 
@@ -92,11 +92,17 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	}
 	
 	async function saveEdit() {
-		setIsEditing(false)
-		// console.log(postInfo.content)
-		if (false) {
-			//api TODO
-			refreshKey()
+		const res = await apiPut(`/post/${post.id}`, {
+			body: JSON.stringify({
+				'content': postInfo.content
+			})
+		})
+		if (res.ok) {
+			notifHandle.pushSuccess("Post edited")
+			setIsEditing(false)
+			update()
+		} else {
+			notifHandle.pushError(res.message)
 		}
 	}
 
@@ -106,23 +112,25 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	}
 
 	return (
-	<article onClick={() => (!isEditing && navigate(`/post/${post.id}`))}
+	<article onClick={() => ((canClickLink && !isEditing) && navigate(`/post/${post.id}`))}
 			className="bg-zinc-700 rounded-xl p-2 cursor-pointer hover:bg-zinc-700 transition"
 			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: postColor }}>
 		<header className="mb-2">
-			{isEditing ?
-				<TextAreaTitle
-					value = {postInfo.title}
-					setValue = {(value) => {setPostInfo(prev => ({...prev, "title": value}))}}
-					onEscape = {discardEdit}
-					bgColor = {postColor}
-					onEnter = {() => onEnterTitle()}
-					ref = {titleRef}
-				/>
-			:
-				<h6 className="text-white font-bold text-base">
-					{postInfo.title}
-				</h6>
+			{	postInfo.title != null &&
+				(isEditing ?
+					<TextAreaTitle
+						value = {postInfo.title}
+						setValue = {(value) => {setPostInfo(prev => ({...prev, "title": value}))}}
+						onEscape = {discardEdit}
+						bgColor = {postColor}
+						onEnter = {() => onEnterTitle()}
+						ref = {titleRef}
+					/>
+				:
+					<h6 className="text-white font-bold text-base">
+						{postInfo.title}
+					</h6>
+				)
 			}
 			<div className="flex items-center gap-3">
 				<time dateTime={post.created_at}
