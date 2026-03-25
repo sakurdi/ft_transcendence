@@ -30,22 +30,16 @@ export default function CreateBoard() {
 	const [boardDescription, setBoardDescription] = useState("")
 	
 	const _CreateBoard = async () => {
-		try {
-			// console.log(boardName, boardDescription)
-			const response = await apiPost("//board/new",
-				{body: JSON.stringify({
-					'name': boardName,
-					'description': boardDescription}
-			)} )
-			if (!response.ok) {
-				throw (await response.status)
-			}
-			// console.log(response.json)
+		const response = await apiPost("//board/new",
+			{body: JSON.stringify({
+				'name': boardName,
+				'description': boardDescription}
+		)} )
+		if (!response.ok) {
+			notifHandle.pushError(response.status)
+		} else {
 			notifHandle.pushSuccess(`Board "${boardName}" succesfully created`)
 			navigate("/board/" + boardName);
-		} catch (error) {
-			// console.log(error)
-			notifHandle.pushError(error)
 		}
 	}
 

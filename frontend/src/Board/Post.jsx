@@ -9,17 +9,27 @@ import DisplayPost from "./DisplayPost";
 import TextArea from "../components/TextArea";
 import Button from "../components/Button"
 
+import DisplayReply, {WrapReplies} from "./Reply"
+
+// type PostCreate struct {
+// 	Title    *string `json:"title"`
+// 	Content  string  `json:"content"`
+// 	ParentID *int    `json:"parent_id"`
+// }
 
 export function InputReply({updateReplies, postID, boardID}) {
 	const notifHandle = useNotif()
 	const [content, setContent] = useState("")
 
-	const onSubmit = () => {
-		const res = apiPost(`/post/${postID}/reply`)
+	const onSubmit = async () => {
+		const res = await apiPost(`/post/${postID}/reply`, {
+			body: JSON.stringify({
+				'content': content,
+			})
+		})
 		if (!res.ok) {
 			notifHandle.pushError(res.status)
 		} else {
-			
 			notifHandle.pushSuccess("Reply posted")
 			updateReplies()
 		}
@@ -54,7 +64,6 @@ export function DisplayPostReplies({postID}) {
 				setReplies(res.json)
 			} else {
 				notifHandle.pushError(res.status)
-				console.log('2')
 			}
 			setLoading(false)
 		}
@@ -62,20 +71,21 @@ export function DisplayPostReplies({postID}) {
 	}, [keyReplies])
 
 	if (loading) return <Loading/>
-	// if (!replies || replies.length == 0) return "No replies"
-	if (replies?.length != 0)
-		console.log(replies)
+	// if (replies?.length != 0)
+	// 	console.log(replies)
 	return (
 		<>
 		{
 			!replies || replies.length == 0
 				?	"No replies"
-				:	replies.map((oneReply) =>
-						<DisplayReply key={oneReply.id}
-							post={oneReply}
-							privilegeLvl={privilegeLvl}
-							refreshKey={setRefreshKeyThread}
-						/>)
+				:	<WrapReplies>
+						{replies.map((oneReply) =>
+							<DisplayReply key={oneReply.id}
+								reply={oneReply}
+								user={null}
+								updateReplies={updateReplies}/>
+						)}
+					</WrapReplies>
 		}
 		{(!userHandle.loading && userHandle.user) &&
 			<InputReply updateReplies = {updateReplies}
@@ -104,7 +114,6 @@ export default function PostPage({}) {
 			// console.log(res)
 			if (!res.ok) {
 				notifHandle.pushError(res.status)
-				console.log('1')
 				setPost(null)
 			} else {
 				setPost(res.json)
@@ -112,7 +121,8 @@ export default function PostPage({}) {
 			setLoading(false)
 		}
 		fetchPost()
-	}, [refreshPostKey])
+		console.log(postID)
+	}, [refreshPostKey, postID])
 
 	if (loading) return <Loading/>
 	if (!post) return "No post"
@@ -122,8 +132,8 @@ export default function PostPage({}) {
 			<DisplayPost key={post.id}
 				post = {post}
 				privilegeLvl={0}
-				refreshKey={refreshPostKey}/>
-			<DisplayPostReplies post={post}/>
+				refreshKey={refreshPost}/>
+			<DisplayPostReplies postID={post.id}/>
 		</>
 	)
 }

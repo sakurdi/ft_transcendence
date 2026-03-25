@@ -1,21 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
+
 import useAuth from "../User/AuthProvider";
-import { apiDelete, apiGet } from "../Utils/api";
+import useNotif from "../components/Notif";
+
+import { apiDelete, apiGet, apiPost } from "../Utils/api";
+import { getRandomPastelDate } from "../Utils/colors";
+import getDateDifferenceISO from "../Utils/date";
+
 import TextButton, { TextLink } from "../components/TextButton";
-import getRandomPastel from "../Utils/colors";
 import TextArea, { TextAreaTitle } from "../components/TextArea";
 import Tooltip from "../components/Tooltip";
-import useNotif from "../components/Notif";
-import getDateDifferenceISO from "../Utils/date";
 import Loading from "../components/Loading";
 
-function getSeedpostColor(post) {
-	const date = new Date(post.created_at)
-	return date.getMilliseconds() + (date.getSeconds() + date.getMinutes() * 60) * 1000 
-}
-
-function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
+export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	return (
 		<div>
 		{ isEditing ?
@@ -49,7 +47,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	const titleRef = useRef(null)
 	const contentRef = useRef(null)
 
-	const postColor = getRandomPastel(getSeedpostColor(post)) 
+	const postColor = getRandomPastelDate(post.created_at) 
 	
 	useEffect(() => {
 		if (isEditing == true && titleRef.current) {
@@ -87,7 +85,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
 				notifHandle.pushSuccess("Post deleted")
-				refreshKey()
+				navigate(`/board/${post.board_id}`)
 			} else
 				notifHandle.pushError(res.status)
 		}
@@ -156,6 +154,8 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 					{postInfo.content}
 				</p>
 			}
+		</section>
+		<footer>
 			{canEdit &&
 				<EditComponentButtons isEditing = {isEditing}
 					saveEdit = {() => {saveEdit()}}
@@ -163,7 +163,7 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 					setEditing = {() => {setIsEditing(true)}}
 				/>
 			}
-		</section>
+		</footer>
 	</article>
 	)
 }

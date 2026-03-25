@@ -32,4 +32,12 @@ export function getRandomPastelString(string) {
 	return (getRandomPastel(hash))
 }
 
+export function getRandomPastelDate(dateIso) {
+	const date = new Date(dateIso)
+	const seed = date.getMilliseconds() + (date.getSeconds() + date.getMinutes() * 60) * 1000 
+
+	return getRandomPastel(seed) 
+}
+
+
 // https://stackoverflow.com/questions/8317508/hash-function-for-a-string
