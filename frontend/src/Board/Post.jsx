@@ -111,7 +111,6 @@ export default function PostPage({}) {
 		const fetchPost = async () => {
 			setLoading(true)
 			const res = await apiGet(`/post/${postID}`)
-			// console.log(res)
 			if (!res.ok) {
 				notifHandle.pushError(res.status)
 				setPost(null)
