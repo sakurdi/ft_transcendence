@@ -5,6 +5,8 @@ import (
 	"ft_transcendence/internal/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"net/url"
 )
 
 func CreateBoard(db *pgxpool.Pool, ctx context.Context, board models.BoardCreate, ownerID int) (int, error) {
@@ -110,4 +112,72 @@ func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.
 		members = append(members, m)
 	}
 	return members, rows.Err()
+}
+
+
+func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]models.Board, error) {
+// page
+	page, err := query.Get("page")
+	if (err != nil) {
+		page = 1
+	}
+	if (page < 1) {
+		page = 1
+	}
+
+// limit
+	limit, err := query.Get("limit")
+	if (err != nil) {
+		limit = 10
+	}
+	if (limit < 1) {
+		limit = 10
+	}
+
+// sort
+	sort, err := query.Get("sort")
+	if (err != nil) {
+		sort = nil
+	}
+	// if (sort != "test1" && sort != "test2") {
+		// sort = "test1"
+	// }
+
+// order
+	order, err := query.Get("order")
+	if (err != nil) {
+		order = "asc"
+	}
+	if (order != "asc" && order != "desc") {
+		order = "asc"
+	}
+
+// // name
+// 	name, err := query.Get("name")
+// 	if (err := nil) {
+// 		name = ""
+// 	}
+
+//offset
+	offset = (page - 1) * limit
+
+	board, err := db.Query(ctx,
+		`SELECT * FROM boards WHERE name LIKE '%$3%' ORDER BY $4 LIMIT $2 OFFSET $1`
+	), offset, limit, sort, order,
+	if (err != nil) {
+		retur nil, err
+	}
+	defer board.Close()
+
+	boardsList := []models.Board{}
+	for board.Next() {
+		var m models.Board
+		if err := board.Scan(&m.); err != nil {
+			return nil, err	
+		}
+		boardList = append(boardsList, m)
+	}
+	
+	return boardsList, board.Err()
+
 }

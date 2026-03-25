@@ -24,6 +24,8 @@ const Home = () => {
 			<ButtonLink link="/logout">Logout</ButtonLink> */}
 			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
 			<ButtonLink link="/board/league">Board league</ButtonLink>
+			<ButtonLink link="/board/42">42</ButtonLink>
+			<ButtonLink link="/board/noexist">no exist</ButtonLink>
 		</>
 	)
 }

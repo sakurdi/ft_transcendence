@@ -10,6 +10,7 @@ import (
 	"ft_transcendence/internal/utils"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -386,6 +387,22 @@ func GetPostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		post, err := store.GetPost(c.DB, r.Context(), postID)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal server error")
+		} else {
+			utils.WriteNewResponse(w, true, "Success", post)
+		}
+	}
+}
+
+func GetBoard(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		query, err := r.URL.Query()
+		if (err != nil) {
+			utils.WriteNewResponse(w, false, "Error")
+			return
+		}
+		board, err := store.GetBoardList(c.DB, r.Context(), query)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Internal server error")
 		} else {

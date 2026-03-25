@@ -68,7 +68,18 @@ CREATE INDEX IF NOT EXISTS idx_board_moderators_user ON board_moderators(user_id
 INSERT INTO boards (name, description, owner_id) VALUES
     ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
     ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saal-kur'))
+
 ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO boards (name, description, owner_id)
+SELECT
+    format('BOARD_TEST_%s', i),
+    format('Board_testing_%s', i),
+    u.id
+FROM generate_series(1, 100) AS i
+JOIN users u ON u.login = 'kevwang'
+ON CONFLICT (name) DO NOTHING;
+
 
 -- =========================
 -- POSTS
@@ -146,6 +157,39 @@ JOIN users u ON u.login = 'gaeudes'
 JOIN posts p ON p.title = 'poppy'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, title, content)
+SELECT
+        b.id,
+        u.id,
+        'POST_TEMP_TEST',
+        format('Temp post test for %s', b.name)
+FROM boards b
+JOIN users u ON u.login = 'kevwang'
+WHERE b.name LIKE 'BOARD_TEST_%'
+    AND NOT EXISTS (
+            SELECT 1
+            FROM posts p
+            WHERE p.board_id = b.id
+                AND p.title = 'POST_TEMP_TEST'
+    );
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+        b.id,
+        r.id,
+        format('Temp rep test for %s', b.name),
+        p.id
+FROM boards b
+JOIN users r ON r.login = 'gaeudes'
+JOIN posts p ON p.board_id = b.id
+WHERE b.name LIKE 'BOARD_TEST_%'
+    AND p.title = 'POST_TEMP_TEST'
+    AND NOT EXISTS (
+            SELECT 1
+            FROM posts rp
+            WHERE rp.parent_id = p.id
+    );
 
 
 

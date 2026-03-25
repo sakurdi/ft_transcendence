@@ -59,6 +59,8 @@ func routes(c *config.Config) http.Handler {
 
 		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
 
+		r.Get("/board", boards.GetBoard(c))
+
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardAdmin(c))
 			r.Put("/board/{boardID}", boards.UpdateBoardHandler(c))
