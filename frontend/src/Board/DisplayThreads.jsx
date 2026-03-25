@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { apiGet } from "../Utils/api";
-import DisplayPost from "./DisplayPost";
+import Post from "./DisplayPost/Post";
 import Loading from "../components/Loading";
 import useNotif from "../components/Notif";
 
@@ -12,8 +12,6 @@ import useNotif from "../components/Notif";
 // parent_id: null
 // title: "Bonjour"
 // username: "gaeudes"
-
-
 
 export default function DisplayThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
 	const notifHandle = useNotif()
@@ -41,7 +39,7 @@ export default function DisplayThreads({boardName, privilegeLvl, refreshKeyThrea
 	return(
 	<>
 		{threads.map((oneThread) =>
-			<DisplayPost key={oneThread.id}
+			<Post key={oneThread.id}
 				post={oneThread}
 				privilegeLvl={privilegeLvl}
 				refreshKey={setRefreshKeyThread}

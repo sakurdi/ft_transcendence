@@ -1,17 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
 
-import useAuth from "../User/AuthProvider";
-import useNotif from "../components/Notif";
+import useAuth from "../../User/AuthProvider";
+import useNotif from "../../components/Notif";
 
-import { apiDelete, apiPut } from "../Utils/api";
-import { getRandomPastelDate } from "../Utils/colors";
-import getDateDifferenceISO from "../Utils/date";
+import { apiDelete, apiPut } from "../../Utils/api";
+import { getRandomPastelDate } from "../../Utils/colors";
+import getDateDifferenceISO from "../../Utils/date";
 
-import TextButton, { TextLink } from "../components/TextButton";
-import TextArea, { TextAreaTitle } from "../components/TextArea";
-import Tooltip from "../components/Tooltip";
-import Loading from "../components/Loading";
+import TextButton, { TextLink } from "../../components/TextButton";
+import TextArea, { TextAreaTitle } from "../../components/TextArea";
+import Tooltip from "../../components/Tooltip";
+import Loading from "../../components/Loading";
 
 export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	return (
@@ -31,7 +31,7 @@ export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditi
 	)
 }
 
-export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
+export default function Post({post, privilegeLvl, update, canClickLink = true})
 {
 	const navigate = useNavigate()
 	const userHandle = useAuth()

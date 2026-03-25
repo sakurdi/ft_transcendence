@@ -6,7 +6,7 @@ import Register from "./User/Register";
 import Login from "./User/Login";
 import Logout from "./User/Logout";
 import UserPage from "./User/UserPage";
-import PostPage from "./Board/Post";
+import PostPage from "./Board/DisplayPost/PostPage";
 
 import {ButtonLink} from "./components/Button";
 import NavBar from "./NavBar";

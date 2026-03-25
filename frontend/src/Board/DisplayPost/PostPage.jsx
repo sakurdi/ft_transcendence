@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import useAuth from "../User/AuthProvider";
-import useNotif from "../components/Notif";
+import useAuth from "../../User/AuthProvider";
+import useNotif from "../../components/Notif";
 
-import Loading from "../components/Loading";
-import { apiGet, apiPost } from "../Utils/api";
-import DisplayPost from "./DisplayPost";
-import TextArea from "../components/TextArea";
-import Button from "../components/Button"
+import Loading from "../../components/Loading";
+import { apiGet, apiPost } from "../../Utils/api";
+import Post from "./Post";
 
-import DisplayReply, {WrapReplies} from "./Reply"
+import TextArea from "../../components/TextArea";
+import Button from "../../components/Button"
+
+import WrapReplies from "./WrapReply"
 
 // type PostCreate struct {
 // 	Title    *string `json:"title"`
@@ -79,7 +80,7 @@ export function DisplayPostReplies({postID, privilegeLvl}) {
 				?	"No replies"
 				:	<WrapReplies>
 						{replies.map((oneReply) =>
-							<DisplayPost key={oneReply.id}
+							<Post key={oneReply.id}
 								post={oneReply}
 								user={null}
 								update={updateReplies}/>
@@ -128,18 +129,11 @@ export default function PostPage({}) {
 	console.log(post)
 	return (
 		<>
-			{post.parent_id == null ?	
-				<DisplayPost key={post.id}
-					post = {post}
-					privilegeLvl={privilegeLvl}
-					refreshKey={refreshPost}
-					canClickLink = {false}/>
-			:	<>Reply<DisplayPost key={post.id}
-					post = {post}
-					privilegeLvl={privilegeLvl}
-					refreshKey={refreshPost}
-					canClickLink = {false}/> </>
-			}
+			<Post key={post.id}
+				post = {post}
+				privilegeLvl={privilegeLvl}
+				refreshKey={refreshPost}
+				canClickLink = {false}/>
 			<DisplayPostReplies postID={post.id}/>
 		</>
 	)

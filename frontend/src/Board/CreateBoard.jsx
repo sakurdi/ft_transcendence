@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/Button"
-import TextInput from  "../components/TextInput"
+
 import useAuth from "../User/AuthProvider";
 import useNotif from "../components/Notif";
 
 import { apiPost } from "../Utils/api";
+
+import TextInput from  "../components/TextInput"
+import Button from "../components/Button"
 
 // type BoardCreate struct {
 // 	Name        string `json:"name"`
