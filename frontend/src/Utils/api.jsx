@@ -1,8 +1,21 @@
 export const BASE = '/api'
 
+/**
+ * Helper to ensure the path has the correct /api prefix without doubling up.
+ * Correctly handles edge cases like /api-keys vs /api/users
+ */
+function normalizePath(path) {
+	if (path.startsWith(BASE + '/') || path === BASE) {
+		return path
+	}
+	// Ensure we don't end up with // if the path already starts with /
+	const cleanPath = path.startsWith('/') ? path : `/${path}`
+	return `${BASE}${cleanPath}`
+}
+
 export default async function api(path, options = {}) {
 	try {
-		const route = path.startsWith(BASE) ? path : `${BASE}${path}`
+		const route = normalizePath(path)
 		const res = await fetch(route, {
 			credentials: "include",
 			headers: { "Content-Type": "application/json" },
@@ -12,9 +25,6 @@ export default async function api(path, options = {}) {
 			throw (res.status)
 		try {
 			const json = await res.json()
-			// console.log(json)
-			// if (json?.success === false)
-			// 	return { ok: false, status: "json.success == false", json: undefined }
 			return { ok: json.success == true, status: json.message, json: json.data }
 		} catch(err) {
 			return { ok: true, status: "Success", json: undefined }
@@ -42,7 +52,7 @@ export async function apiDelete(path, options = {}) {
 
 export async function apiFormData(path, options = {}) {
 	try {
-		const route = path.startsWith(BASE) ? path : `${BASE}/${path}`
+		const route = normalizePath(path)
 		const res = await fetch(route, {
 			credentials: "include",
 			...options,
@@ -51,8 +61,6 @@ export async function apiFormData(path, options = {}) {
 			throw (res.status)
 		try {
 			const json = await res.json()
-			// if (json?.success === false)
-			// 	return { ok: false, status: "json.success == false", json: undefined }
 			return { ok: json.success == true, status: json.message, json: json.data }
 		} catch(err) {
 			return { ok: true, status: "Success", json: undefined }
