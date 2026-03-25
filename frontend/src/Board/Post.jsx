@@ -7,13 +7,9 @@ import Loading from "../components/Loading";
 import { apiGet, apiPost } from "../Utils/api";
 import DisplayPost from "./DisplayPost";
 import TextArea from "../components/TextArea";
+import Button from "../components/Button"
 
-// r.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
-// type PostCreate struct {
-// 	Title    *string `json:"title"`
-// 	Content  string  `json:"content"`
-// 	ParentID *int    `json:"parent_id"`
-// }
+
 export function InputReply({updateReplies, postID, boardID}) {
 	const notifHandle = useNotif()
 	const [content, setContent] = useState("")
@@ -58,6 +54,7 @@ export function DisplayPostReplies({postID}) {
 				setReplies(res.json)
 			} else {
 				notifHandle.pushError(res.status)
+				console.log('2')
 			}
 			setLoading(false)
 		}
@@ -65,12 +62,21 @@ export function DisplayPostReplies({postID}) {
 	}, [keyReplies])
 
 	if (loading) return <Loading/>
-	console.log(replies)
-	if (!replies || replies.length == 0) return "No replies"
-
+	// if (!replies || replies.length == 0) return "No replies"
+	if (replies?.length != 0)
+		console.log(replies)
 	return (
 		<>
-		{/* map replies */}
+		{
+			!replies || replies.length == 0
+				?	"No replies"
+				:	replies.map((oneReply) =>
+						<DisplayReply key={oneReply.id}
+							post={oneReply}
+							privilegeLvl={privilegeLvl}
+							refreshKey={setRefreshKeyThread}
+						/>)
+		}
 		{(!userHandle.loading && userHandle.user) &&
 			<InputReply updateReplies = {updateReplies}
 				postID = {postID}/>
@@ -98,6 +104,7 @@ export default function PostPage({}) {
 			// console.log(res)
 			if (!res.ok) {
 				notifHandle.pushError(res.status)
+				console.log('1')
 				setPost(null)
 			} else {
 				setPost(res.json)
@@ -109,7 +116,7 @@ export default function PostPage({}) {
 
 	if (loading) return <Loading/>
 	if (!post) return "No post"
-	console.log(post)
+	// console.log(post)
 	return (
 		<>
 			<DisplayPost key={post.id}
