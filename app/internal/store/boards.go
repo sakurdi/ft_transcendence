@@ -150,9 +150,24 @@ func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]mo
 	name := query.Get("name")
 	offset := (page - 1) * limit
 
-	sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
+	sql := `SELECT id, name, description, owner_id, created_at
+		FROM boards
+		WHERE name ILIKE '%' || $1 || '%'
+		ORDER BY
+			CASE WHEN $4 = 'id' AND $5 = 'asc' THEN id END ASC,
+			CASE WHEN $4 = 'id' AND $5 = 'desc' THEN id END DESC,
+			CASE WHEN $4 = 'name' AND $5 = 'asc' THEN name END ASC,
+			CASE WHEN $4 = 'name' AND $5 = 'desc' THEN name END DESC,
+			CASE WHEN $4 = 'created_at' AND $5 = 'asc' THEN created_at END ASC,
+			CASE WHEN $4 = 'created_at' AND $5 = 'desc' THEN created_at END DESC
+		LIMIT $2 OFFSET $3`
+	rows, err := db.Query(ctx, sql, name, limit, offset, sortField, order)
+
+	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
 	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name LIKE '%$1%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
-	rows, err := db.Query(ctx, sql, name, limit, offset)
+	// sql := fmt.Sprintf("SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY %s %s LIMIT $2 OFFSET $3", sortField, order)
+	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY $4 $5 LIMIT $2 OFFSET $3"
+	// rows, err := db.Query(ctx, sql, name, limit, offset)
 	if err != nil {
 		return nil, err
 	}
