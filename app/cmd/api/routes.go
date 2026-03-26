@@ -38,6 +38,8 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/board/{boardID}/members", boards.GetBoardModTeamHandler(c))
 
+	mux.Get("/board", boards.GetBoard(c))
+
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
 		r.Use(AppMiddleware.DjangoFreeman(c))
@@ -59,7 +61,6 @@ func routes(c *config.Config) http.Handler {
 
 		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
 
-		r.Get("/board", boards.GetBoard(c))
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardAdmin(c))

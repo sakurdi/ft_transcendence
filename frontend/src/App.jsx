@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { AuthProvider } from "./User/AuthProvider";
 import { NotifProvider } from "./components/Notif";
 
@@ -13,7 +14,7 @@ import NavBar from "./NavBar";
 import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
-
+import BoardList from "./Board/DisplayBoardSearch";
 
 const Home = () => {
 	return (
@@ -23,13 +24,13 @@ const Home = () => {
 			<ButtonLink link="/register">Register</ButtonLink>
 			<ButtonLink link="/logout">Logout</ButtonLink> */}
 			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
+			<ButtonLink link="/board">Voir les boards</ButtonLink>
 			<ButtonLink link="/board/league">Board league</ButtonLink>
 			<ButtonLink link="/board/42">42</ButtonLink>
 			<ButtonLink link="/board/noexist">no exist</ButtonLink>
 		</>
 	)
 }
-
 
 
 export default function App() {
@@ -40,13 +41,13 @@ export default function App() {
 				<NavBar/>
 				<Routes>
 					<Route path='/' element={<Home/>} />
-
 					<Route path='/register' element={<Register/>} />
 					<Route path='/login' element={<Login/>} />
 					<Route path='/logout' element={<Logout/>} />
 					<Route path="/changepassword" element={<ChangePassword />} />
 
 					<Route path='/createBoard' element={<CreateBoard/>} />
+					<Route path='/board' element={<BoardList/>} />
 					<Route path="/user/:username" element={<UserPage />} />
 					<Route path='/board/:boardName' element={<DisplayBoard/>} />
 					<Route path='/post/:postID' element={<PostPage/>} />

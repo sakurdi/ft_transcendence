@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"ft_transcendence/internal/models"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -116,68 +117,55 @@ func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.
 
 
 func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]models.Board, error) {
-// page
-	page, err := query.Get("page")
-	if (err != nil) {
-		page = 1
-	}
-	if (page < 1) {
-		page = 1
-	}
-
-// limit
-	limit, err := query.Get("limit")
-	if (err != nil) {
-		limit = 10
-	}
-	if (limit < 1) {
-		limit = 10
+	page := 1
+	if p := query.Get("page"); p != "" {
+		parsedPage, err := strconv.Atoi(p)
+		if err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
 	}
 
-// sort
-	sort, err := query.Get("sort")
-	if (err != nil) {
-		sort = nil
+	limit := 10
+	if l := query.Get("limit"); l != "" {
+		parsedLimit, err := strconv.Atoi(l)
+		if err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
 	}
-	// if (sort != "test1" && sort != "test2") {
-		// sort = "test1"
-	// }
-
-// order
-	order, err := query.Get("order")
-	if (err != nil) {
-		order = "asc"
-	}
-	if (order != "asc" && order != "desc") {
-		order = "asc"
+	if limit > 100 {
+		limit = 100
 	}
 
-// // name
-// 	name, err := query.Get("name")
-// 	if (err := nil) {
-// 		name = ""
-// 	}
-
-//offset
-	offset = (page - 1) * limit
-
-	board, err := db.Query(ctx,
-		`SELECT * FROM boards WHERE name LIKE '%$3%' ORDER BY $4 LIMIT $2 OFFSET $1`
-	), offset, limit, sort, order,
-	if (err != nil) {
-		retur nil, err
+	sortField := "created_at"
+	sort := query.Get("sort")
+	if sort == "name" || sort == "id" || sort == "created_at" {
+		sortField = sort
 	}
-	defer board.Close()
+
+	order := "asc"
+	if query.Get("order") == "desc" {
+		order = "desc"
+	}
+
+	name := query.Get("name")
+	offset := (page - 1) * limit
+
+	sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
+	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name LIKE '%$1%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
+	rows, err := db.Query(ctx, sql, name, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	boardsList := []models.Board{}
-	for board.Next() {
-		var m models.Board
-		if err := board.Scan(&m.); err != nil {
-			return nil, err	
+	for rows.Next() {
+		var board models.Board
+		if err := rows.Scan(&board.ID, &board.Name, &board.Description, &board.OwnerID, &board.CreatedAt); err != nil {
+			return nil, err
 		}
-		boardList = append(boardsList, m)
+		boardsList = append(boardsList, board)
 	}
-	
-	return boardsList, board.Err()
 
+	return boardsList, rows.Err()
 }
