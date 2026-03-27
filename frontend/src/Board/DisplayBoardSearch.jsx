@@ -14,11 +14,12 @@ export default function BoardList() {
 	const [loading, setLoading] = useState(true)
 	const [boards, setBoards] = useState([])
 
-	const [page, setPage] = useState("1")
-	const [limit, setLimit] = useState("10")
+	const [page, setPage] = useState(1)
+	const [limit, setLimit] = useState(10)
 	const [sort, setSort] = useState("name")
 	const [order, setOrder] = useState("asc")
 	const [filter, setFilter] = useState("")
+	const [totalResult, setTotalResult] = useState(0)
 
 	function buildQuery() {
 		const params = new URLSearchParams({
@@ -40,10 +41,22 @@ export default function BoardList() {
 		if (!response.ok) {
 			notifHandle.pushError(response.status)
 			setBoards([])
+			setTotalResult(0)
 			setLoading(false)
 			return
 		}
-		setBoards(Array.isArray(response.json) ? response.json : [])
+
+		if (Array.isArray(response.json)) {
+			setBoards(response.json)
+			setTotalResult(response.json.length)
+		} else {
+			const parsedBoards = Array.isArray(response.json?.board_list)
+				? response.json.board_list
+				: []
+			setBoards(parsedBoards)
+			setTotalResult(response.json?.total_result || 0)
+		}
+
 		setLoading(false)
 		console.log("board", boards)
 		console.log("response", response)
@@ -56,6 +69,15 @@ export default function BoardList() {
 		fetchBoards()
 	}, [userHandle.loading])
 
+	const totalPages = Math.max(1, Math.ceil(totalResult / (limit)))
+	const pages = [...Array(totalPages).keys()].map((n) => n + 1)
+
+	useEffect(() => {
+		if (page > totalPages) {
+			setPage(totalPages)
+		}
+	}, [page, totalPages])
+
 	if (loading)
 		return <Loading/>
 
@@ -64,12 +86,13 @@ export default function BoardList() {
 		<label>
 			SELECT PAGE:
 			<select name="page"
-					defaultValue="1"
 					value={page}
-					onChange={e => setPage(e.target.value)}>
-				<option value="1">page 1</option>
-				<option value="2">page 2</option>
-				<option value="3">page 3</option>
+					onChange={e => setPage(Number(e.target.value))}>
+				{pages.map((pageNumber) => (
+					<option key={pageNumber} value={pageNumber}>
+						page {pageNumber}
+					</option>
+				))}
 			</select>
 		</label>
 <br/>
@@ -78,7 +101,7 @@ export default function BoardList() {
 			<select name="limit"
 					defaultValue="10"
 					value={limit}
-					onChange={e => setLimit(e.target.value)}>
+					onChange={e => setLimit(Number(e.target.value))}>
 				<option value="10">10</option>
 				<option value="25">25</option>
 				<option value="50">50</option>
@@ -121,6 +144,7 @@ export default function BoardList() {
 
 		<section >
 			<h1>Boards</h1>
+			<p>{totalResult} result found</p>
 			{boards.length === 0 ? (
 				<p>no board found</p>
 			) : (
