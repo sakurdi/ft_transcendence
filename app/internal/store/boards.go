@@ -116,7 +116,7 @@ func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.
 }
 
 
-func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]models.Board, error) {
+func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) (models.BoardData, error) {
 	page := 1
 	if p := query.Get("page"); p != "" {
 		parsedPage, err := strconv.Atoi(p)
@@ -150,6 +150,15 @@ func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]mo
 	name := query.Get("name")
 	offset := (page - 1) * limit
 
+	totalResult := 0
+	err := db.QueryRow(ctx,
+		"SELECT COUNT(*) FROM boards WHERE name ILIKE '%' || $1 || '%'",
+		name,
+	).Scan(&totalResult)
+	if err != nil {
+		return models.BoardData{}, err
+	}
+
 	sql := `SELECT id, name, description, owner_id, created_at
 		FROM boards
 		WHERE name ILIKE '%' || $1 || '%'
@@ -162,14 +171,8 @@ func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]mo
 			CASE WHEN $4 = 'created_at' AND $5 = 'desc' THEN created_at END DESC
 		LIMIT $2 OFFSET $3`
 	rows, err := db.Query(ctx, sql, name, limit, offset, sortField, order)
-
-	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
-	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name LIKE '%$1%' ORDER BY " + sortField + " " + order + " LIMIT $2 OFFSET $3"
-	// sql := fmt.Sprintf("SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY %s %s LIMIT $2 OFFSET $3", sortField, order)
-	// sql := "SELECT id, name, description, owner_id, created_at FROM boards WHERE name ILIKE '%' || $1 || '%' ORDER BY $4 $5 LIMIT $2 OFFSET $3"
-	// rows, err := db.Query(ctx, sql, name, limit, offset)
 	if err != nil {
-		return nil, err
+		return models.BoardData{}, err
 	}
 	defer rows.Close()
 
@@ -177,14 +180,16 @@ func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]mo
 	for rows.Next() {
 		var board models.Board
 		if err := rows.Scan(&board.ID, &board.Name, &board.Description, &board.OwnerID, &board.CreatedAt); err != nil {
-			return nil, err
+			return models.BoardData{}, err
 		}
 		boardsList = append(boardsList, board)
 	}
 
-	// boardData := []models.BoardData{}
-	// boardData.BoardList = boardsList
-	// boardData.TotalResult = 
+	boardData := models.BoardData{
+		BoardList:   boardsList,
+		TotalResult: totalResult,
+	}
 
-	return boardsList, rows.Err()
+	// return boardsList, rows.Err()
+	return boardData, rows.Err()
 }

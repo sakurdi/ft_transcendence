@@ -11,8 +11,8 @@ type Board struct {
 }
 
 type BoardData struct {
-	BoardList	Board	  `json:"board"`
-	TotalResult int 	  `json:"total_result"`
+	BoardList   []Board `json:"board_list"`
+	TotalResult int     `json:"total_result"`
 }
 
 type Post struct {
