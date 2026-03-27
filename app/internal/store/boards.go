@@ -182,5 +182,9 @@ func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) ([]mo
 		boardsList = append(boardsList, board)
 	}
 
+	// boardData := []models.BoardData{}
+	// boardData.BoardList = boardsList
+	// boardData.TotalResult = 
+
 	return boardsList, rows.Err()
 }

@@ -45,6 +45,8 @@ export default function BoardList() {
 		}
 		setBoards(Array.isArray(response.json) ? response.json : [])
 		setLoading(false)
+		console.log("board", boards)
+		console.log("response", response)
 	}
 
 	useEffect(() => {
