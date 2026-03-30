@@ -14,7 +14,6 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	const notifHandle = useNotif()
 
 	const refInfinitScrolling = useRef(null)
-	const refScrollAnchor = useRef(null)
 	const refSentinelBot = useRef(null)
 	const [connectObserver, setConnectObserver] = useState(0)
 	const reconnectObserver = () => setConnectObserver(connectObserver + 1)
@@ -30,13 +29,14 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
 	const fetchTop = async () => {
-		refScrollAnchor.current = refInfinitScrolling.current.scrollHeight
 		setLoadingTop(true)
 		const newLowIndex = (lowIndex >= nPostOnPage) ? (lowIndex - nPostOnPage) : 0
 		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${newLowIndex}&limit=${nPostOnScreen}`) //post
 		if (res.ok) {
 			setLowIndex(newLowIndex)
 			setPosts(res.json)
+			if (res.json.length === nPostOnScreen)
+				reconnectObserver()
 			setHasMorePost(res.json.length === nPostOnScreen)
 			notifHandle.pushSuccess(`Fetched post ${newLowIndex}-${newLowIndex + res.json.length}`)
 		} else
@@ -79,13 +79,6 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 		
 		return () => observer.disconnect()
 	}, [connectObserver, loading])
-
-	useLayoutEffect(() => {
-		if (refScrollAnchor.current === null) return
-		const newHeight = refInfinitScrolling.current.scrollHeight
-		refInfinitScrolling.current.scrollTop += newHeight - refScrollAnchor.current
-		refScrollAnchor.current = null
-	}, [posts])
 
 	useEffect(() => {
 		setLoading(true)
