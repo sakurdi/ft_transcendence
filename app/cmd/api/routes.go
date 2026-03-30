@@ -26,6 +26,8 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/board/{boardName}", boards.GetBoardHandler(c))
 	mux.Get("/board/{boardName}/threads", boards.GetThreadsHandler(c))
 
+	mux.Get("/board/{boardName}/newthreads", boards.GetScrollThreadsHandler(c))
+
 	mux.Get("/post/{postID}", boards.GetPostHandler(c))
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 
