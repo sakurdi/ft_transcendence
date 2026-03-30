@@ -1,17 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState} from "react";
+
 import { apiGet } from "../Utils/api";
-import Post from "./DisplayPost/Post";
-import Loading from "../components/Loading";
 import useNotif from "../components/Notif";
 
-// author_id: 2
-// board_id: 3
-// content: "A tous"
-// created_at: "2026-03-09T15:22:33.048745Z"
-// id: 4
-// parent_id: null
-// title: "Bonjour"
-// username: "gaeudes"
+import Post from "./DisplayPost/Post";
+import Loading from "../components/Loading";
 
 export default function DisplayThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread}) {
 	const notifHandle = useNotif()
@@ -36,7 +29,7 @@ export default function DisplayThreads({boardName, privilegeLvl, refreshKeyThrea
 	if (loading) return <Loading/>
 	if (!threads || threads.lenght == 0) return "This board has no posts"
 
-	return(
+	return (
 	<>
 		{threads.map((oneThread) =>
 			<Post key={oneThread.id}
