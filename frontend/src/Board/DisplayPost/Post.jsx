@@ -85,7 +85,10 @@ export default function Post({post, privilegeLvl, update, canClickLink = true})
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
 				notifHandle.pushSuccess("Post deleted")
-				navigate(`/board/${post.board_id}`)
+				if (update)
+					update()
+				else
+					navigate(`/board/${post.board_id}`) //need to get boardName
 			} else
 				notifHandle.pushError(res.status)
 		}

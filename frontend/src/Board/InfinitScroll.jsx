@@ -67,7 +67,6 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 				entries.forEach( entry => {
 					if (!entry.isIntersecting) return
 					if (entry.target === refSentinelBot.current) {
-						notifHandle.pushNotif(`BotShow`)
 						if (!loadingBotRef.current)
 							fetchBot()
 					}
@@ -83,15 +82,14 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	useEffect(() => {
 		setLoading(true)
 		const fetchPosts = async () => {
-			const newLowIndex = 0
-			const res = await apiGet(`/board/${boardName}/newthreads?cursor=${newLowIndex}&limit=${nPostOnScreen}`) //post
+			const cLowIndex = lowIndex 
+			const res = await apiGet(`/board/${boardName}/newthreads?cursor=${cLowIndex}&limit=${nPostOnScreen}`) //post
 			if (res.ok) {
-				setLowIndex(newLowIndex)
 				setPosts(res.json)
 				setHasMorePost(res.json.length === nPostOnScreen)
 				if (res.json.length === nPostOnScreen)
 					reconnectObserver()
-				notifHandle.pushSuccess(`Fetched post ${newLowIndex}-${newLowIndex + res.json.length}`)
+				notifHandle.pushSuccess(`Fetched post ${cLowIndex}-${cLowIndex + res.json.length}`)
 			} else
 				notifHandle.pushError(res.message)
 			setLoading(false)
@@ -99,13 +97,13 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 		fetchPosts()
 	}, [refreshKeyThread])
 
-	useEffect(() => {
-		notifHandle.pushNotif(`LowIndex ${lowIndex}`)
-	}, [lowIndex])
+	// useEffect(() => {
+	// 	notifHandle.pushNotif(`LowIndex ${lowIndex}`)
+	// }, [lowIndex])
 
 	return (
 		<div ref={refInfinitScrolling}
-				className="h-screen overflow-y-scroll">
+				className="h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto ">
 			{lowIndex !== 0 && (
 				<button onClick = {fetchTop}>
 					{loadingTop ? <Loading/> : "Load previous"}
@@ -115,7 +113,7 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 					<Post key={oneThread.id}
 						post={oneThread}
 						privilegeLvl={privilegeLvl}
-						refreshKey={setRefreshKeyThread}
+						update={setRefreshKeyThread}
 					/>)
 			}
 			{(loadingBot && !loading)
