@@ -24,7 +24,7 @@ type FriendRequest struct {
 	Username  string      `json:"username"`
 }
 
-type UserProfile struct {
-	Username 	string    `json:"username"`
-	AvatarURL   string    `json:"avatar_url"`
-}
+// type UserProfile struct {
+// 	Username 	string    `json:"username"`
+// 	AvatarURL   string    `json:"avatar_url"`
+// }

@@ -161,8 +161,8 @@ func GetUserProfileHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		utils.JSON(w, http.StatusOK, models.UserProfile{
-			Username: username,
-			AvatarURL: store.GetAvatarURL(c.DB, r.Context(), username),
+			Login: username,
+			Avatar: store.GetAvatarURL(c.DB, r.Context(), username),
 		})
 	}
 }

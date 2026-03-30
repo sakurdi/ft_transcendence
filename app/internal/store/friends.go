@@ -177,7 +177,7 @@ func GetPendingFriendRequests(db *pgxpool.Pool, ctx context.Context, userID int)
 
 func GetUserProfile(db *pgxpool.Pool, ctx context.Context, username string) (models.UserProfile, error) {
 	var profile models.UserProfile
-	err := db.QueryRow(ctx, "SELECT login, avatar_url FROM users WHERE login=$1", username).Scan(&profile.Username, &profile.AvatarURL)
+	err := db.QueryRow(ctx, "SELECT login, avatar_url FROM users WHERE login=$1", username).Scan(&profile.Login, &profile.Avatar)
 	if err != nil {
 		return models.UserProfile{}, err
 	}
