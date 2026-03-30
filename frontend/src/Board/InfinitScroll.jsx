@@ -6,6 +6,19 @@ import { apiGet } from "../Utils/api";
 import Loading from "../components/Loading"
 import Post from "./DisplayPost/Post";
 
+function ButtonScrollTop({fetchTop, reloadPost})
+{
+	return (
+		<div className="max-w-screen-xl w-full flex items-center gap-2 h-fit">
+			<button onClick = {fetchTop}>
+				Load previous
+			</button>
+			<button onClick = {reloadPost}>
+				Back to the top
+			</button>
+		</div>
+	)
+}
 
 export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
 {
@@ -28,35 +41,36 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	const loadingBotRef = useRef(false)
 	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
-	const fetchTop = async () => {
-		setLoadingTop(true)
-		const newLowIndex = (lowIndex >= nPostOnPage) ? (lowIndex - nPostOnPage) : 0
-		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${newLowIndex}&limit=${nPostOnScreen}`) //post
+	const fetchPost = async (lowIndex) => {
+		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${lowIndex}&limit=${nPostOnScreen}`) //post
 		if (res.ok) {
-			setLowIndex(newLowIndex)
+			setLowIndex(lowIndex)
 			setPosts(res.json)
 			if (res.json.length === nPostOnScreen)
 				reconnectObserver()
 			setHasMorePost(res.json.length === nPostOnScreen)
-			notifHandle.pushSuccess(`Fetched post ${newLowIndex}-${newLowIndex + res.json.length}`)
+			notifHandle.pushSuccess(`Fetched post ${lowIndex}-${lowIndex + res.json.length}`)
 		} else
 			notifHandle.pushError(res.message)
+	}
+
+	const fetchIndex0 = async () => {
+		setLoading(true)
+		await fetchPost(0)
+		setLoading(false)
+	}
+
+	const fetchTop = async () => {
+		setLoadingTop(true)
+		const newLowIndex = (lowIndex >= nPostOnPage) ? (lowIndex - nPostOnPage) : 0
+		await fetchPost(newLowIndex)
 		setLoadingTop(false)
 	}
 
 	const fetchBot = async () => {
 		setLoadingBot(true)
 		const newLowIndex = lowIndex + nPostOnPage
-		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${newLowIndex}&limit=${nPostOnScreen}`) //post
-		if (res.ok) {
-			setLowIndex(newLowIndex)
-			setPosts(res.json)
-			if (res.json.length === nPostOnScreen)
-				reconnectObserver()
-			setHasMorePost(res.json.length === nPostOnScreen)
-			notifHandle.pushSuccess(`Fetched post ${newLowIndex}-${newLowIndex + res.json.length}`)
-		} else
-			notifHandle.pushError(res.message)
+		await fetchPost(newLowIndex)
 		setLoadingBot(false)
 	}
 
@@ -71,7 +85,7 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 							fetchBot()
 					}
 				})
-		}, {root: refInfinitScrolling.current, rootMargin: '0px 0px 50px 0px'})
+		}, {root: refInfinitScrolling.current, rootMargin: '0px 0px 100px 0px'})
 		
 		if (refSentinelBot.current)
 			observer.observe(refSentinelBot.current)
@@ -82,16 +96,7 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	useEffect(() => {
 		setLoading(true)
 		const fetchPosts = async () => {
-			const cLowIndex = lowIndex 
-			const res = await apiGet(`/board/${boardName}/newthreads?cursor=${cLowIndex}&limit=${nPostOnScreen}`) //post
-			if (res.ok) {
-				setPosts(res.json)
-				setHasMorePost(res.json.length === nPostOnScreen)
-				if (res.json.length === nPostOnScreen)
-					reconnectObserver()
-				notifHandle.pushSuccess(`Fetched post ${cLowIndex}-${cLowIndex + res.json.length}`)
-			} else
-				notifHandle.pushError(res.message)
+			await fetchPost(lowIndex)
 			setLoading(false)
 		}
 		fetchPosts()
@@ -105,9 +110,9 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 		<div ref={refInfinitScrolling}
 				className="h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto ">
 			{lowIndex !== 0 && (
-				<button onClick = {fetchTop}>
-					{loadingTop ? <Loading/> : "Load previous"}
-				</button>
+				loadingTop
+					? <Loading/>
+					: <ButtonScrollTop fetchTop={fetchTop} reloadPost={fetchIndex0}/>
 			)}
 			{posts.map((oneThread) =>
 					<Post key={oneThread.id}
