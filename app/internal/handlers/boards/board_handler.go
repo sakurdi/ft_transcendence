@@ -92,6 +92,37 @@ func GetThreadsHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
+func GetScrollThreadsHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		boardName := chi.URLParam(r, "boardName")
+
+		board, err := store.GetBoard(c.DB, r.Context(), boardName)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Board not found")
+			return
+		}
+
+		limitStr := r.URL.Query().Get("limit")
+		cursorStr := r.URL.Query().Get("cursor")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 25
+		}
+		cursor, err := strconv.Atoi(cursorStr)
+		if err != nil || cursor < 0 {
+			cursor = 0
+		}
+		
+		threads, err := store.GetScrollThreads(c.DB, r.Context(), board.ID, limit, cursor)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Failed to fetch threads")
+			return
+		}
+		utils.WriteNewResponse(w, true, "Success", threads)
+	}
+}
+
 func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))

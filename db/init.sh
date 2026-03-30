@@ -123,6 +123,21 @@ JOIN users u ON u.login = 'saal-kur'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
 
+
+INSERT INTO posts (board_id, author_id, title, content, created_at)
+SELECT
+    b.id,
+    u.id,
+    'League Thread #' || LPAD(gs.n::text, 3, '0'),
+    'Test content for thread #' || gs.n || ' - ' ||  NOW() - ((100 - gs.n) * interval '1 minute'),
+    NOW() - ((100 - gs.n) * interval '1 minute')
+FROM boards b
+JOIN users u ON u.login = 'kevwang'
+JOIN generate_series(1, 100) AS gs(n) ON TRUE
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
+
+
 INSERT INTO posts (board_id, author_id, content, parent_id)
 SELECT
     b.id,
