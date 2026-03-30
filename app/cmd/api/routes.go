@@ -29,7 +29,7 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/post/{postID}", boards.GetPostHandler(c))
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 
-	mux.Get("/api/uploads/avatars/{fileName}", users.ServeAvatar(c))
+	mux.Get("/uploads/avatars/{fileName}", users.ServeAvatar(c))
 
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
@@ -55,18 +55,18 @@ func routes(c *config.Config) http.Handler {
 
 		r.Get("/ws/dm/{username}", wshandler.DMSocket(c))
 
-		r.Post("/api/friends/{friendUsername}", users.FriendHandler(c))
-		r.Delete("/api/friends/{friendUsername}", users.UnfriendHandler(c))
-		r.Get("/api/friends", users.GetFriendsHandler(c))
+		r.Post("/friends/{friendUsername}", users.FriendHandler(c))
+		r.Delete("/friends/{friendUsername}", users.UnfriendHandler(c))
+		r.Get("/friends", users.GetFriendsHandler(c))
 
-		r.Post("/api/friends/request/{friendUsername}", users.SendFriendRequestHandler(c))
-		r.Post("/api/friends/request/{friendUsername}/accept", users.AcceptFriendRequestHandler(c))
-		r.Post("/api/friends/request/{friendUsername}/decline", users.DeclineFriendRequestHandler(c))
-		r.Get("/api/friends/requests", users.GetFriendRequestHandler(c))
+		r.Post("/friends/request/{friendUsername}", users.SendFriendRequestHandler(c))
+		r.Post("/friends/request/{friendUsername}/accept", users.AcceptFriendRequestHandler(c))
+		r.Post("/friends/request/{friendUsername}/decline", users.DeclineFriendRequestHandler(c))
+		r.Get("/friends/requests", users.GetFriendRequestHandler(c))
 
-		r.Get("/api/users/{username}", users.GetUserProfileHandler(c))
+		r.Get("/users/{username}", users.GetUserProfileHandler(c))
 
-		r.Post("/api/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
+		r.Post("/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
 
 		r.Get("/ws/presence", wshandler.CheckPresence(c))
 

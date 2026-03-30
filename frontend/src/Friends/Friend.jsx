@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { createContext, useContext } from "react"
 
-
 const BASE = "https://localhost:1043/api"
 const WS   = "wss://localhost:1043"
 
@@ -206,78 +205,6 @@ function AuthSection({ auth, onLogin }) {
     )
 }
 
-// ── Board socket ──────────────────────────────────────────────────────────────
-
-function BoardSection() {
-    const { entries, push } = useLog()
-    const socket = useSocket(push)
-    const [boardID, setBoardID] = useState("1")
-
-    return (
-        <Section title="Board Socket — new thread notifications">
-            <Row>
-                <Input placeholder="board ID" value={boardID} onChange={setBoardID} />
-                <Btn onClick={() => socket.connect(`${WS}/ws/board/${boardID}`)}>Connect</Btn>
-                <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
-            </Row>
-            <Log entries={entries} />
-        </Section>
-    )
-}
-
-// ── Thread socket ─────────────────────────────────────────────────────────────
-
-function ThreadSection() {
-    const { entries, push } = useLog()
-    const socket = useSocket(push)
-    const [threadID, setThreadID] = useState("1")
-
-    return (
-        <Section title="Thread Socket — new reply notifications">
-            <Row>
-                <Input placeholder="thread ID" value={threadID} onChange={setThreadID} />
-                <Btn onClick={() => socket.connect(`${WS}/ws/thread/${threadID}`)}>Connect</Btn>
-                <Btn onClick={socket.disconnect} variant="ghost">Disconnect</Btn>
-            </Row>
-            <Log entries={entries} />
-        </Section>
-    )
-}
-
-// ── Create post ───────────────────────────────────────────────────────────────
-
-function CreatePostSection() {
-    const { entries, push } = useLog()
-    const [boardID,  setBoardID]  = useState("1")
-    const [title,    setTitle]    = useState("")
-    const [content,  setContent]  = useState("test post")
-    const [parentID, setParentID] = useState("")
-
-    async function createPost() {
-        const { ok, body } = await api(`/board/${boardID}/post`, {
-            method: "POST",
-            body: JSON.stringify({
-                title:     title    || null,
-                content,
-                parent_id: parentID ? parseInt(parentID) : null,
-            }),
-        })
-        push(ok ? `created: ${body}` : `error: ${body}`, ok ? "sent" : "err")
-    }
-
-    return (
-        <Section title="Create Post">
-            <Row>
-                <Input placeholder="board ID"  value={boardID}  onChange={setBoardID} />
-                <Input placeholder="title"     value={title}    onChange={setTitle}    className="w-48" />
-                <Input placeholder="content"   value={content}  onChange={setContent}  className="w-48" />
-                <Input placeholder="parent ID" value={parentID} onChange={setParentID} />
-                <Btn onClick={createPost}>Post</Btn>
-            </Row>
-            <Log entries={entries} />
-        </Section>
-    )
-}
 
 // ── Friend Provider ───────────────────────────────────────────────────────────────
 
@@ -368,10 +295,11 @@ function ProfileAvatar() {
         });
 
         if (res.ok) {
-            // const data = await res.json();
-            // setPreviewUrl(data.avatar_url);
 			setPreviewUrl(null);
         }
+		else {
+			console.error("Failed to upload avatar");
+		}
     };
 		return (
 			<div className="flex flex-col items-center border rounded bg-white w-64">
@@ -573,6 +501,10 @@ function SendRequest(props) {
 		if (res.ok) {
 			// props.onChange("");
 			user.setNewFriendId("")
+		}
+		else {
+			// handle error
+			console.error("Failed to send friend request ", user.newFriendId);
 		}
 	};
 		
@@ -788,7 +720,7 @@ function DMSection({ auth }) {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
-function TestPage() {
+export function FriendChat() {
     const auth = useAuth()
 
     return (
@@ -799,7 +731,7 @@ function TestPage() {
                 </p>
                 <h1 className="text-2xl font-bold text-stone-900 mt-1">WebSocket Test</h1>
             </div>
-            <AuthSection auth={auth} />
+            {/* <AuthSection auth={auth} /> */}
             {/* <BoardSection />
             <ThreadSection />
             <CreatePostSection /> */}
@@ -810,12 +742,12 @@ function TestPage() {
     )
 }
 
-export default function App() {
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/*" element={<TestPage />} />
-            </Routes>
-        </BrowserRouter>
-    )
-}
+// export default function App() {
+//     return (
+//         <BrowserRouter>
+//             <Routes>
+//                 <Route path="/*" element={<TestPage />} />
+//             </Routes>
+//         </BrowserRouter>
+//     )
+// }

@@ -8,7 +8,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-
+	"github.com/google/uuid"
+	
 	"ft_transcendence/internal/middleware"
 
     "io"
@@ -198,7 +199,9 @@ func UploadAvatarHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		fileName := fmt.Sprintf("user_%d%s", userID, ext)
+		newuuid := uuid.New()
+
+		fileName := fmt.Sprintf("user_%d_%s%s", userID, newuuid.String(), ext)
 		savePath := filepath.Join("/app/uploads/avatars", fileName)
 		
 		dst, err := os.Create(savePath)

@@ -13,7 +13,8 @@ import NavBar from "./NavBar";
 import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
-
+// import { useAuth } from "./User/AuthProvider";
+import {FriendChat} from "./Friends/Friend";
 
 const Home = () => {
 	return (
@@ -24,6 +25,7 @@ const Home = () => {
 			<ButtonLink link="/logout">Logout</ButtonLink> */}
 			<ButtonLink link="/createBoard">Create a new Board</ButtonLink>
 			<ButtonLink link="/board/league">Board league</ButtonLink>
+			<FriendChat />
 		</>
 	)
 }
