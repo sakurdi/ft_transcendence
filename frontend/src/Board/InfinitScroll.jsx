@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef} from "react"
+import {useState, useEffect, useLayoutEffect, useRef} from "react"
 
 import useNotif from "../components/Notif"
 import { apiGet } from "../Utils/api";
@@ -14,15 +14,23 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	const notifHandle = useNotif()
 
 	const refInfinitScrolling = useRef(null)
-	const refSentinelTop = useRef(null)
+	const refScrollAnchor = useRef(null)
 	const refSentinelBot = useRef(null)
+	const [connectObserver, setConnectObserver] = useState(0)
+	const reconnectObserver = () => setConnectObserver(connectObserver + 1)
+
 	const [lowIndex, setLowIndex] = useState(0)
-	const [loadingTop, setLoadingTop] = useState(false)
-	const [loadingBot, setLoadingBot] = useState(true)
 	const [hasMorePost, setHasMorePost] = useState(true)
 	const [posts, setPosts] = useState([])
+	
+	const [loading, setLoading] = useState(true)
+	const [loadingTop, setLoadingTop] = useState(false)
+	const [loadingBot, setLoadingBotState] = useState(false)
+	const loadingBotRef = useRef(false)
+	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
 	const fetchTop = async () => {
+		refScrollAnchor.current = refInfinitScrolling.current.scrollHeight
 		setLoadingTop(true)
 		const newLowIndex = (lowIndex >= nPostOnPage) ? (lowIndex - nPostOnPage) : 0
 		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${newLowIndex}&limit=${nPostOnScreen}`) //post
@@ -43,6 +51,8 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 		if (res.ok) {
 			setLowIndex(newLowIndex)
 			setPosts(res.json)
+			if (res.json.length === nPostOnScreen)
+				reconnectObserver()
 			setHasMorePost(res.json.length === nPostOnScreen)
 			notifHandle.pushSuccess(`Fetched post ${newLowIndex}-${newLowIndex + res.json.length}`)
 		} else
@@ -51,33 +61,34 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	}
 
 	useEffect(() => {
+		if (loading) return
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach( entry => {
 					if (!entry.isIntersecting) return
 					if (entry.target === refSentinelBot.current) {
 						notifHandle.pushNotif(`BotShow`)
-						if (!loadingBot) {
+						if (!loadingBotRef.current)
 							fetchBot()
-						}
-					}
-					if (entry.target === refSentinelTop.current) {
-						notifHandle.pushNotif(`TopShow`)
-						if (!loadingTop && lowIndex != 0)
-							fetchTop()
 					}
 				})
-		}, {root: refInfinitScrolling.current, rootMargin: '0px 0px 200px 0px'})
+		}, {root: refInfinitScrolling.current, rootMargin: '0px 0px 50px 0px'})
 		
-		if (refSentinelTop.current)
-			observer.observe(refSentinelTop.current)
 		if (refSentinelBot.current)
 			observer.observe(refSentinelBot.current)
 		
 		return () => observer.disconnect()
-	}, [loadingBot, loadingTop, hasMorePost])
+	}, [connectObserver, loading])
+
+	useLayoutEffect(() => {
+		if (refScrollAnchor.current === null) return
+		const newHeight = refInfinitScrolling.current.scrollHeight
+		refInfinitScrolling.current.scrollTop += newHeight - refScrollAnchor.current
+		refScrollAnchor.current = null
+	}, [posts])
 
 	useEffect(() => {
+		setLoading(true)
 		const fetchPosts = async () => {
 			const newLowIndex = 0
 			const res = await apiGet(`/board/${boardName}/newthreads?cursor=${newLowIndex}&limit=${nPostOnScreen}`) //post
@@ -85,10 +96,12 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 				setLowIndex(newLowIndex)
 				setPosts(res.json)
 				setHasMorePost(res.json.length === nPostOnScreen)
+				if (res.json.length === nPostOnScreen)
+					reconnectObserver()
 				notifHandle.pushSuccess(`Fetched post ${newLowIndex}-${newLowIndex + res.json.length}`)
 			} else
 				notifHandle.pushError(res.message)
-			setLoadingBot(false)
+			setLoading(false)
 		}
 		fetchPosts()
 	}, [refreshKeyThread])
@@ -100,10 +113,11 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 	return (
 		<div ref={refInfinitScrolling}
 				className="h-screen overflow-y-scroll">
-			{loadingTop
-				? <Loading/>
-				: (lowIndex != 0 && <div ref={refSentinelTop}></div>)
-			}
+			{lowIndex !== 0 && (
+				<button onClick = {fetchTop}>
+					{loadingTop ? <Loading/> : "Load previous"}
+				</button>
+			)}
 			{posts.map((oneThread) =>
 					<Post key={oneThread.id}
 						post={oneThread}
@@ -111,7 +125,7 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 						refreshKey={setRefreshKeyThread}
 					/>)
 			}
-			{loadingBot
+			{(loadingBot && !loading)
 				? <Loading/>
 				: (hasMorePost && <div ref={refSentinelBot}></div>)
 			}

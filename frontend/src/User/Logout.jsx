@@ -23,7 +23,7 @@ export function LogoutButton() {
 	}
 	return (
 		<Button onClick={logout}>
-			logout
+			Logout
 		</Button>
 	)
 	return (
