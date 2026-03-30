@@ -4,6 +4,7 @@ import useAuth from "../User/AuthProvider";
 import DisplayThreads from "./DisplayThreads";
 import DisplayMods from "./DisplayMods";
 import getDateDifferenceISO from "../Utils/date";
+import InifitScroll from "./InfinitScroll"
 
 import { apiGet } from "../Utils/api";
 
@@ -167,7 +168,10 @@ export default function DisplayBoard() {
 	return (
 	<>
 		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}/>
-		<DisplayThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
+		{/* <DisplayThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
+			refreshKeyThread={refreshKeyThread}
+			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/> */}
+		<InifitScroll boardName = {boardName} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
 		{userHandle.user &&
