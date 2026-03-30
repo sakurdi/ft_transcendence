@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('superadmin', 'user', 'banned')),
+	avatar_url VARCHAR(255) DEFAULT '/api/uploads/avatars/default.jpg',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -100,6 +101,26 @@ CREATE INDEX idx_dm_conversation ON dm_messages (
     created_at DESC
 );
 
+CREATE TABLE IF NOT EXISTS friend_list (
+	user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	friend_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	PRIMARY KEY(user_id, friend_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_friend_list ON friend_list(user_id);
+
+INSERT INTO friend_list (user_id, friend_id) VALUES
+	(1, 2)
+ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS friend_requests (
+	id SERIAL PRIMARY KEY,
+	from_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	to_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
+	created_at TIMESTAMP DEFAULT NOW(),
+	UNIQUE(from_user_id, to_user_id)
+);
 
 INSERT INTO posts (board_id, author_id, title, content)
 SELECT 

@@ -1,0 +1,26 @@
+.messages-list {
+	display: flex;
+	flex-direction: column-reverse;
+	overflow-y: auto;
+	max-height: 400px;
+	border: 1px solid #ccc;
+	padding: 10px;
+	margin-bottom: 10px;
+	height: 400px;
+}
+
+.message-item-self {
+	text-align: right;
+	padding: 5px;
+	margin-bottom: 5px;
+	border-radius: 5px;
+
+}
+
+.message-item-others {
+	text-align: left;
+
+	padding: 5px;
+	margin-bottom: 5px;
+	border-radius: 5px;
+}

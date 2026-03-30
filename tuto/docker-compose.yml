@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: chatdb
+    volumes:
+      - ./db/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - postgres_data_chat:/var/lib/postgresql/data
+    networks:
+      - app_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d chatdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=postgres://user:pass@db:5432/chatdb?sslmode=disable
+    networks:
+      - app_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    # network:
+      # - app_net
+
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  postgres_data_chat:
