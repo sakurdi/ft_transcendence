@@ -197,3 +197,21 @@ func GetAvatarURL(db *pgxpool.Pool, ctx context.Context, username string) string
 	}
 	return avatarURL
 }
+
+func GetFriendsID(db *pgxpool.Pool, ctx context.Context, userID int) ([]int, error) {
+	rows, err := db.Query(ctx, "SELECT friend_id FROM friend_list WHERE user_id=$1", userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var friendIDs []int
+	for rows.Next() {
+		var friendID int
+		if err := rows.Scan(&friendID); err != nil {
+			return nil, err
+		}
+		friendIDs = append(friendIDs, friendID)
+	}
+	return friendIDs, rows.Err()
+}

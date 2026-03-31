@@ -14,7 +14,7 @@ import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
 // import { useAuth } from "./User/AuthProvider";
-import {FriendChat} from "./Friends/Friend";
+import {FriendChat} from "./Chat/Friend";
 
 const Home = () => {
 	return (

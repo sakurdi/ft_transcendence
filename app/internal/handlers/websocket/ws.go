@@ -34,18 +34,26 @@ func CheckPresence(c *config.Config) http.HandlerFunc {
 
 		senderID := middleware.GetUserID(c, r)
 		senderUsername, _ := store.GetUserLogin(c.DB, r.Context(), senderID)
-		// recipientUsername := chi.URLParam(r, "username")
-		// recipientID, _ := store.GetUserID(c.DB, r.Context(), recipientUsername)
-		// log.Printf("dm: senderID=%d recipientID=%d", senderID, recipientID)
-		// room := ws.DMRoom(senderID, recipientID)
-		room := "global"
+
+		friendList, err := store.GetFriendsID(c.DB, r.Context(), senderID)
+		if err != nil {
+			http.Error(w, "Failed to get friends", http.StatusInternalServerError)
+			return
+		}
+		room := ws.FriendRoom(senderID, nil)
 
 		onConnect := func(conn *ws.Conn) {
-			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "isonline", User: senderUsername})
+			for _, friendID := range friendList {
+				friendRoom := ws.FriendRoom(friendID, nil)
+				c.Hub.Broadcast(friendRoom, ws.Event{Type: "connection", Data: "isonline", User: senderUsername})
+			}
 		}
 
 		onDisconnect := func(conn *ws.Conn) {
-			c.Hub.Broadcast(room, ws.Event{Type: "connection", Data: "isoffline", User: senderUsername})
+			for _, friendID := range friendList {
+				friendRoom := ws.FriendRoom(friendID, nil)
+				c.Hub.Broadcast(friendRoom, ws.Event{Type: "connection", Data: "isoffline", User: senderUsername})
+			}
 		}
 
 		c.Hub.Serve(w, r, room, onConnect, nil, onDisconnect)

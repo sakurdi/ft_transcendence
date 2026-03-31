@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { createContext, useContext } from "react"
+import useAuth from "../User/AuthProvider";
 
 const BASE = "https://localhost:1043/api"
 const WS   = "wss://localhost:1043"
@@ -33,26 +34,26 @@ function useLog() {
 
 // ── useAuth ───────────────────────────────────────────────────────────────────
 
-function useAuth() {
-    const [user, setUser] = useState(null)
+// function useAuth() {
+//     const [user, setUser] = useState(null)
 
-    async function login(username, password) {
-        const { ok, body } = await api("/login", {
-            method: "POST",
-            body: JSON.stringify({ username, password }),
-        })
-        if (ok) setUser({ username })
-        return { ok, body }
-    }
+//     async function login(username, password) {
+//         const { ok, body } = await api("/login", {
+//             method: "POST",
+//             body: JSON.stringify({ username, password }),
+//         })
+//         if (ok) setUser({ username })
+//         return { ok, body }
+//     }
 
-    async function logout() {
-        const res = await api("/logout", { method: "POST" })
-        if (res.ok) setUser(null)
-        return res
-    }
+//     async function logout() {
+//         const res = await api("/logout", { method: "POST" })
+//         if (res.ok) setUser(null)
+//         return res
+//     }
 
-    return { user, login, logout }
-}
+//     return { user, login, logout }
+// }
 
 // ── useSocket ─────────────────────────────────────────────────────────────────
 
@@ -442,7 +443,8 @@ function DeleteFriend(props) {
 
 function ConnectionLight(props) {
 	const user = useContext(FriendContext);
-
+	console.log("userConnected", user.userConnected);
+	console.log("props.username", props.username);
 	if (user.userConnected[props.username] !== undefined) {
 		return <div className="online-indicator"> pipi
 			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
@@ -458,6 +460,7 @@ function ConnectionLight(props) {
 function FriendList(props) {
 	const user = useContext(FriendContext);
 
+	console.log("friends", user.friends);
 	return <>
 		{/* <Row>
 			<Btn onClick={props.getFriends}>Refresh Friends</Btn>
@@ -474,14 +477,13 @@ function FriendList(props) {
 					user.friends.map(friend => (
 						<li key={friend.id}>
 							{friend.username} (ID: {friend.id})
-							{/* {props.connectionLight(friend.username)} */}
 							<ConnectionLight username={friend.username}/>
 							
 							<Btn onClick={() => props.connectDM(friend.username)}>Chat</Btn>
-							{/* <Btn onClick={() => props.checkProfil(friend.username)}>Profile</Btn> */}
+
 							<ShowProfil username={friend.username}/>
+
 							<DeleteFriend username={friend.username}/>
-							{/* <Btn onClick={() => props.removeFriend(friend.username)}>Unfriend</Btn> */}
 
 						</li>
 					))
@@ -619,6 +621,7 @@ function DMSection({ auth }) {
         if (auth.user) {
 			connectDM()
 			isConnected()
+			console.log("connectDM")
 		}
         else {
             socket.disconnect()
@@ -628,6 +631,7 @@ function DMSection({ auth }) {
     }, [auth.user])
 
 	const userWentOffline = (userToRemove) => {
+		console.log("userToRemove", userToRemove);
 		userCon.setUserConnected(friends => {
 			const { [userToRemove]: _, ...rest} = friends;
 			return rest;
@@ -635,10 +639,12 @@ function DMSection({ auth }) {
 	}
 
 	const userWentOnline = (userToAdd) => {
+		console.log("userToAdd", userToAdd);
 		userCon.setUserConnected(friends => ({...friends, [userToAdd]: userToAdd}))
 	}
 
     handlerRef.current = function(event) {
+		// console.log(event)
         if (event.type === "history") {
             userCon.setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
         }
@@ -725,12 +731,6 @@ export function FriendChat() {
 
     return (
         <div className="max-w-2xl mx-auto px-6 py-10 space-y-4">
-            <div className="mb-8">
-                <p className="text-xs font-mono uppercase tracking-widest text-stone-400">
-                    ft_transcendence
-                </p>
-                <h1 className="text-2xl font-bold text-stone-900 mt-1">WebSocket Test</h1>
-            </div>
             {/* <AuthSection auth={auth} /> */}
             {/* <BoardSection />
             <ThreadSection />
