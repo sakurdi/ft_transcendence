@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { createContext, useContext } from "react"
 import useAuth from "../User/AuthProvider";
+import "./Friend.css"
 
 const BASE = "https://localhost:1043/api"
 const WS   = "wss://localhost:1043"
@@ -155,7 +156,7 @@ function Input({ placeholder, value, onChange, onKeyDown, type = "text", classNa
     )
 }
 
-function Btn({ onClick, children, variant = "default" }) {
+function Btn({ onClick, children, variant = "default", className = "" }) {
     const styles = {
         default: "bg-stone-900 text-white hover:bg-stone-700",
         ghost:   "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50",
@@ -163,7 +164,7 @@ function Btn({ onClick, children, variant = "default" }) {
     return (
         <button
             onClick={onClick}
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${styles[variant]}`}
+			className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${styles[variant]} ${className}`}
         >
             {children}
         </button>
@@ -728,26 +729,20 @@ function DMSection({ auth }) {
 
 export function FriendChat() {
     const auth = useAuth()
+	const [isMinimized, setIsMinimized] = useState(false);
 
     return (
-        <div className="max-w-2xl mx-auto px-6 py-10 space-y-4">
-            {/* <AuthSection auth={auth} /> */}
-            {/* <BoardSection />
-            <ThreadSection />
-            <CreatePostSection /> */}
-			<FriendProvider>
-            	<DMSection auth={auth} />
-			</FriendProvider>
+        <div className="chat">
+			<div className={"chat-header " + (isMinimized ? 'chat-invis' : '')}>
+				<FriendProvider>
+					<DMSection auth={auth} />
+				</FriendProvider>
+			</div>
+
+			<Btn className="chat-btn" 
+				onClick={() => setIsMinimized(prev => !prev)} variant="ghost">
+				{isMinimized ? "Open Chat" : "Close Chat"}
+			</Btn>
         </div>
     )
 }
-
-// export default function App() {
-//     return (
-//         <BrowserRouter>
-//             <Routes>
-//                 <Route path="/*" element={<TestPage />} />
-//             </Routes>
-//         </BrowserRouter>
-//     )
-// }
