@@ -2,19 +2,35 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"ft_transcendence/internal/config"
+	"ft_transcendence/internal/vault"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	conn, err := pgxpool.New(context.Background(), os.Getenv("DB_URL"))
+
+	secrets, err := vault.LoadSecrets()
 	if err != nil {
-		log.Fatalf("Cannot connect to database: %v", err)
+		log.Fatalf("failed to load secrets: %v", err)
+	}
+	log.Printf("vault: db_password length=%d", len(secrets.DBPassword))
+
+	connStr := fmt.Sprintf(
+		"postgres://user:%s@db:5432/appdb?sslmode=disable",
+		secrets.DBPassword,
+	)
+
+	conn, err := pgxpool.New(context.Background(), connStr)
+	if err != nil {
+		log.Fatalf("failed to connect to db: %v", err)
+	}
+	if err := conn.Ping(context.Background()); err != nil {
+		log.Fatalf("failed to ping db: %v", err)
 	}
 	defer conn.Close()
 

@@ -3,14 +3,20 @@ set -e
 
 echo "Database: init script running"
 
+until [ -f /vault/secrets/db_password ]; do
+  echo "Waiting for vault password to be created"
+  sleep 1
+done
+
+POSTGRES_PASSWORD=$(cat /vault/secrets/db_password)
+
+psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+    -c "ALTER USER \"$POSTGRES_USER\" WITH PASSWORD '$POSTGRES_PASSWORD';"
+
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
--- CITEXT extension
 CREATE EXTENSION IF NOT EXISTS citext;
 
--- =========================
--- USERS
--- =========================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     login VARCHAR(30) UNIQUE NOT NULL,
@@ -25,14 +31,10 @@ INSERT INTO users (login, password, email, role) VALUES
     ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com', 'superadmin'),
     ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com', 'superadmin'),
     ('peon', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'bonjour@bonjour.com', 'user')
-
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
 
--- =========================
--- SESSIONS
--- =========================
 CREATE TABLE IF NOT EXISTS sessions (
     token TEXT PRIMARY KEY,
     data BYTEA NOT NULL,
@@ -43,9 +45,6 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expiry);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
 
--- =========================
--- BOARDS
--- =========================
 CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
     name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 50),
@@ -70,9 +69,6 @@ INSERT INTO boards (name, description, owner_id) VALUES
     ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saal-kur'))
 ON CONFLICT (name) DO NOTHING;
 
--- =========================
--- POSTS
--- =========================
 CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
@@ -86,7 +82,7 @@ CREATE TABLE IF NOT EXISTS posts (
 CREATE INDEX IF NOT EXISTS idx_posts_board_id ON posts(board_id);
 CREATE INDEX IF NOT EXISTS idx_posts_parent_id ON posts(parent_id);
 
-CREATE TABLE dm_messages (
+CREATE TABLE IF NOT EXISTS dm_messages (
     id           SERIAL PRIMARY KEY,
     sender_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
     recipient_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -94,61 +90,23 @@ CREATE TABLE dm_messages (
     created_at   TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_dm_conversation ON dm_messages (
+CREATE INDEX IF NOT EXISTS idx_dm_conversation ON dm_messages (
     LEAST(sender_id, recipient_id),
     GREATEST(sender_id, recipient_id),
     created_at DESC
 );
 
-
 INSERT INTO posts (board_id, author_id, title, content)
-SELECT 
-    b.id,
-    u.id,
-    'nouveau cursus?',
-    'daube'
-FROM boards b
-JOIN users u ON u.login = 'saal-kur'
+SELECT b.id, u.id, 'nouveau cursus?', 'daube'
+FROM boards b JOIN users u ON u.login = 'saal-kur'
 WHERE b.name = '42'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO posts (board_id, author_id, title, content)
-SELECT 
-    b.id,
-    u.id,
-    'poppy',
-    'poppy'
-FROM boards b
-JOIN users u ON u.login = 'saal-kur'
+SELECT b.id, u.id, 'poppy', 'poppy'
+FROM boards b JOIN users u ON u.login = 'saal-kur'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
-
-INSERT INTO posts (board_id, author_id, content, parent_id)
-SELECT
-    b.id,
-    u.id,
-    'Je suis d''accord, c''est dur',
-    p.id
-FROM boards b
-JOIN users u ON u.login = 'gaeudes'
-JOIN posts p ON p.title = 'ecole de merde'
-WHERE b.name = '42'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO posts (board_id, author_id, content, parent_id)
-SELECT
-    b.id,
-    u.id,
-    'Poppy',
-    p.id
-FROM boards b
-JOIN users u ON u.login = 'gaeudes'
-JOIN posts p ON p.title = 'poppy'
-WHERE b.name = 'League'
-ON CONFLICT DO NOTHING;
-
-
-
 
 EOSQL
 
