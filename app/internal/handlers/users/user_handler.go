@@ -75,7 +75,9 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Email or user already exists")
 			return
 		}
-
+		if !utils.IsLegalName(userInfo.Login) {
+			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
+		}
 		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to create user")
 			return
@@ -175,7 +177,7 @@ func ListUsersHandler(c *config.Config) http.HandlerFunc {
 
 func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessionUserID := middleware.GetUserID(c, r)
+		//sessionUserID := middleware.GetUserID(c, r)
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid user ID")

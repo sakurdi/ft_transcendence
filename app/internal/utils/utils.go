@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 )
 
 func JSON(w http.ResponseWriter, status int, data any) {
@@ -28,4 +29,10 @@ func WriteNewResponse(w http.ResponseWriter, success bool, message string, data_
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
+}
+
+func IsLegalName(s string) bool {
+
+	res := regexp.MustCompile(`^[a-zA-Z0-9+_@".<>()[]{}-]+$`)
+	return res.MatchString(s)
 }

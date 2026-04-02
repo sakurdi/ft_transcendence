@@ -26,8 +26,10 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 		} else if body.Name == "" {
 			utils.WriteNewResponse(w, false, "Board name cannot be empty")
 			return
-		} // else if () Check for [A-Za-z0-9_]{1,}
-
+		} else if !utils.IsLegalName(body.Name) {
+			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
+		}
+		
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Failed to create board")
