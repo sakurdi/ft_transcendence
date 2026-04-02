@@ -120,3 +120,21 @@ func GetBoardByID(db *pgxpool.Pool, ctx context.Context, boardID int) (models.Bo
 	).Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt)
 	return b, err
 }
+
+func ListBoards(db *pgxpool.Pool, ctx context.Context) ([]models.Board, error) {
+	rows, err := db.Query(ctx, "SELECT id, name, description, owner_id, created_at FROM boards ORDER BY name ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var boards []models.Board
+	for rows.Next() {
+		var b models.Board
+		if err := rows.Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt); err != nil {
+			return nil, err
+		}
+		boards = append(boards, b)
+	}
+	return boards, rows.Err()
+}
