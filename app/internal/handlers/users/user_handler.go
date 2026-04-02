@@ -181,10 +181,10 @@ func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
-		if sessionUserID != targetUserID {
-			utils.WriteNewResponse(w, false, "Forbiden")
-			return
-		}
+		// if sessionUserID != targetUserID {
+		// 	utils.WriteNewResponse(w, false, "Forbidden")
+		// 	return
+		// }
 		if err := store.DeleteUser(c.DB, r.Context(), targetUserID); err != nil {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return

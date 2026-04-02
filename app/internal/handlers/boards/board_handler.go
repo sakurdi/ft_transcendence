@@ -252,7 +252,7 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 
 		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 		if err != nil || !isAdmin {
-			utils.WriteNewResponse(w, false, "Forbiden")
+			utils.WriteNewResponse(w, false, "Forbidden")
 			return
 		}
 
