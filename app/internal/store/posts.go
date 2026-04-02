@@ -46,6 +46,21 @@ func GetScrollThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, off
 	}
 	defer rows.Close()
 	return scanPosts(rows)
+}
+
+func GetScrollReplies(db *pgxpool.Pool, ctx context.Context, parentID, limit, offset int) ([]models.Post, error) {
+	rows, err := db.Query(ctx, `
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at
+		FROM posts p LEFT JOIN users u ON p.author_id = u.id
+		WHERE p.parent_id=$1
+		ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
+		parentID, limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanPosts(rows)
 } 
 
 func GetReplies(db *pgxpool.Pool, ctx context.Context, parentID int) ([]models.Post, error) {

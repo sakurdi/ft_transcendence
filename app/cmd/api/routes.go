@@ -30,6 +30,7 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/post/{postID}", boards.GetPostHandler(c))
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
+	mux.Get("/post/{postID}/newreplies", boards.GetScrollRepliesHandler(c))
 
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))

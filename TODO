@@ -5,4 +5,4 @@ Ajouter un mod par userName
 Supprimer un mod par username (Ou que /api/board/{BoardID}/members return {userId, userName, role})
 Endpoint pout modifer le password acceptant {oldPassword, newPassword} en body
 
-Avoir les reponses des posts
+Avoir les reponses precedentes des posts

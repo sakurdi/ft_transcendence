@@ -123,6 +123,32 @@ func GetScrollThreadsHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
+func GetScrollRepliesHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var parentID, limit, cursor int;
+		var err error;
+
+		if parentID, err = strconv.Atoi(chi.URLParam(r, "postID")); err != nil {
+			utils.WriteNewResponse(w, false, "Invalid post ID")
+			return
+		}
+
+		if limit, err = strconv.Atoi(r.URL.Query().Get("limit")); err != nil || limit <= 0 {
+			limit = 25
+		}
+		if cursor, err = strconv.Atoi(r.URL.Query().Get("cursor")); err != nil || cursor < 0 {
+			cursor = 0
+		}
+		
+		replies, err := store.GetScrollThreads(c.DB, r.Context(), parentID, limit, cursor)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Failed to fetch replies")
+			return
+		}
+		utils.WriteNewResponse(w, true, "Success", replies)
+	}
+}
+
 func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		postID, err := strconv.Atoi(chi.URLParam(r, "postID"))
