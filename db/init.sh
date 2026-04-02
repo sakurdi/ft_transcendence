@@ -45,6 +45,20 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expiry);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
 
+CREATE TABLE IF NOT EXISTS api_keys (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    key_prefix VARCHAR(10) NOT NULL,
+    key_hash VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    last_used_at TIMESTAMP,
+    revoked_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash);
+
 CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
     name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 50),
