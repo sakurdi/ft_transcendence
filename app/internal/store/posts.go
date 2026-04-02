@@ -57,7 +57,6 @@ func GetScrollReplies(db *pgxpool.Pool, ctx context.Context, parentID, limit, of
 		ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
 		parentID, limit, offset,
 	)
-	log.Println(parentID, limit, offset)
 	if err != nil {
 		return nil, err
 	}

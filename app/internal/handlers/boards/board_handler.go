@@ -133,14 +133,14 @@ func GetScrollRepliesHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		if limit, err = strconv.Atoi(r.URL.Query().Get("limit")); err != nil || limit <= 0 {
-			limit = 25
-		}
 		if cursor, err = strconv.Atoi(r.URL.Query().Get("cursor")); err != nil || cursor < 0 {
 			cursor = 0
 		}
-		fmt.
-		replies, err := store.GetScrollThreads(c.DB, r.Context(), parentID, limit, cursor)
+		if limit, err = strconv.Atoi(r.URL.Query().Get("limit")); err != nil || limit <= 0 {
+			limit = 25
+		}
+		log.Printf("ParentId %d | Cursor: %d | Limit : %d\n", parentID, cursor, limit)
+		replies, err := store.GetScrollReplies(c.DB, r.Context(), parentID, limit, cursor)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Failed to fetch replies")
 			return
