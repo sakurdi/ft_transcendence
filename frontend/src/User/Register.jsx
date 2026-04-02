@@ -97,6 +97,8 @@ export default function Register() {
 		const validEmail = checkEmail(values.email, notifHandle.pushError)
 
 		if (!validEmail || !validUsername || !validPassword) {
+			setValue("password1", "")
+			setValue("password2", "")
 			return
 		}
 		try {
@@ -106,6 +108,8 @@ export default function Register() {
 			navigate('/')
 		} catch (error) {
 			notifHandle.pushError(error)
+			setValue("password1", "")
+			setValue("password2", "")
 		}
 	}
 
