@@ -6,21 +6,21 @@ import { apiGet } from "../Utils/api";
 import Loading from "../components/Loading"
 import Post from "./DisplayPost/Post";
 
-function ButtonScrollTop({fetchTop, reloadPost})
+function ButtonScrollTop({fetchTop, fetch0})
 {
 	return (
 		<div className="max-w-screen-xl w-full flex items-center gap-2 h-fit">
 			<button onClick = {fetchTop}>
 				Load previous
 			</button>
-			<button onClick = {reloadPost}>
+			<button onClick = {fetch0}>
 				Back to the top
 			</button>
 		</div>
 	)
 }
 
-export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
+export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
 {
 	const nReplyOnPage = 20
 	const nReplyOnScreen = nReplyOnPage * 2
@@ -32,7 +32,7 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyTh
 	const reconnectObserver = () => setConnectObserver(connectObserver + 1)
 
 	const [lowIndex, setLowIndex] = useState(0)
-	const [hasMoreReply, setHasMoreReply] = useState(true)
+	const [hasMoreReplies, setHasMoreReplies] = useState(true)
 	const [replies, setReplies] = useState([])
 	
 	const [loading, setLoading] = useState(true)
@@ -41,36 +41,37 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyTh
 	const loadingBotRef = useRef(false)
 	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
-	const fetchPost = async (lowIndex) => {
-		const res = await apiGet(`/post/${postID}/newreplies?cursor=${lowIndex}&limit=${nReplyOnScreen}`) //post
+	const fetchReplies = async (lowIndex) => {
+		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${lowIndex}&limit=${nReplyOnScreen}`)
 		if (res.ok) {
 			setLowIndex(lowIndex)
-			setPosts(res.json)
-			if (res.json.length === nReplyOnScreen)
+			setReplies(res.json)
+			const nReplyFetch = (res.json?.length ?? 0)
+			if (nReplyFetch === nReplyOnScreen)
 				reconnectObserver()
-			setHasMoreReply(res.json.length === nReplyOnScreen)
-			notifHandle.pushSuccess(`Fetched post ${lowIndex}-${lowIndex + res.json.length}`)
+			setHasMoreReplies(nReplyFetch === nReplyOnScreen)
+			notifHandle.pushSuccess(`Fetched ${nReplyFetch} pos ${nReplyFetch >= 2 ? `s from  ${lowIndex}-${lowIndex + nReplyFetch}` : ''}`)
 		} else
 			notifHandle.pushError(res.message)
 	}
 
 	const fetchIndex0 = async () => {
 		setLoading(true)
-		await fetchPost(0)
+		await fetchReplies(0)
 		setLoading(false)
 	}
 
 	const fetchTop = async () => {
 		setLoadingTop(true)
 		const newLowIndex = (lowIndex >= nReplyOnPage) ? (lowIndex - nReplyOnPage) : 0
-		await fetchPost(newLowIndex)
+		await fetchReplies(newLowIndex)
 		setLoadingTop(false)
 	}
 
 	const fetchBot = async () => {
 		setLoadingBot(true)
 		const newLowIndex = lowIndex + nReplyOnPage
-		await fetchPost(newLowIndex)
+		await fetchReplies(newLowIndex)
 		setLoadingBot(false)
 	}
 
@@ -95,27 +96,23 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyTh
 
 	useEffect(() => {
 		setLoading(true)
-		const fetchPosts = async () => {
-			await fetchPost(lowIndex)
+		const fetchRepliesInt = async () => {
+			await fetchReplies(lowIndex)
 			setLoading(false)
 		}
-		fetchPosts()
+		fetchRepliesInt()
 	}, [refreshKeyThread])
-
-	// useEffect(() => {
-	// 	notifHandle.pushNotif(`LowIndex ${lowIndex}`)
-	// }, [lowIndex])
 
 	return (
 		<div ref={refInfinitScrolling}
-				className="h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto ">
+				className="min-h-0 max-h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto">
 			{lowIndex !== 0 && (
 				loadingTop
 					? <Loading/>
-					: <ButtonScrollTop fetchTop={fetchTop} reloadPost={fetchIndex0}/>
+					: <ButtonScrollTop fetchTop={fetchTop} fetch0={fetchIndex0}/>
 			)}
-			{replies ?
-				replies.map((oneThread) =>
+			{replies
+				? replies.map((oneThread) =>
 					<Post key={oneThread.id}
 						post={oneThread}
 						privilegeLvl={privilegeLvl}
@@ -125,7 +122,7 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyTh
 			}
 			{(loadingBot && !loading)
 				? <Loading/>
-				: (hasMoreReply && <div ref={refSentinelBot}></div>)
+				: (hasMoreReplies && <div ref={refSentinelBot}></div>)
 			}
 		</div>
 	)
