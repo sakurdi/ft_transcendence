@@ -41,16 +41,24 @@ export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKe
 	const loadingBotRef = useRef(false)
 	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
-	const fetchPost = async (lowIndex) => {
-		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${lowIndex}&limit=${nPostOnScreen}`) //post
+	const fetchPost = async (nLowIndex, refetch = false) => {
+		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${nLowIndex}&limit=${nPostOnScreen}`)
 		if (res.ok) {
-			setLowIndex(lowIndex)
-			setPosts(res.json)
-			const nPostFetch = (res.json?.length ?? 0)
-			if (nPostFetch === nPostOnScreen)
-				reconnectObserver()
-			setHasMorePost(nPostFetch === nPostOnScreen)
-			notifHandle.pushSuccess(`Fetched ${nPostFetch} pos ${nPostFetch >= 2 ? `s from  ${lowIndex}-${lowIndex + nPostFetch}` : ''}`)
+			const oldNPost = (posts?.length ?? 0)
+			const postsFetch = res.json
+			const nPostsFetch = postsFetch?.length ?? 0
+
+			if (nPostsFetch < oldNPost) {
+				nLowIndex -= (oldNPost - nPostsFetch)
+				fetchPost(nLowIndex, true)
+			} else {
+				if (!refetch && nPostsFetch === nPostOnScreen)
+					reconnectObserver()
+				setLowIndex(nLowIndex)
+				setPosts(res.json)
+				setHasMorePost(nPostsFetch === nPostOnScreen)
+				notifHandle.pushSuccess(`Fetched ${nPostsFetch} pos ${nPostsFetch >= 2 ? `s from  ${nLowIndex}-${nLowIndex + nPostsFetch}` : ''}`)
+			}
 		} else
 			notifHandle.pushError(res.message)
 	}

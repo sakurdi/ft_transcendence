@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"log"
+	// "log"
 )
 
 func CreatePost(db *pgxpool.Pool, ctx context.Context, post models.PostCreate, boardID, authorID int) (int, error) {

@@ -102,7 +102,7 @@ export default function PostPage({}) {
 
 	if (loading) return <Loading/>
 	if (!post) return "No post"
-	// console.log(post)
+
 	return (
 		<>
 			<Post key={post.id}

@@ -41,16 +41,26 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyRe
 	const loadingBotRef = useRef(false)
 	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
-	const fetchReplies = async (lowIndex) => {
-		const res = await apiGet(`/post/${postID}/newreplies?cursor=${lowIndex}&limit=${nReplyOnScreen}`)
+	const fetchReplies = async (nLowIndex, refetch = false) => {
+		const res = await apiGet(`/post/${postID}/newreplies?cursor=${nLowIndex}&limit=${nReplyOnScreen}`)
 		if (res.ok) {
-			setLowIndex(lowIndex)
-			setReplies(res.json)
-			const nReplyFetch = (res.json?.length ?? 0)
-			if (nReplyFetch === nReplyOnScreen)
-				reconnectObserver()
-			setHasMoreReplies(nReplyFetch === nReplyOnScreen)
-			notifHandle.pushSuccess(`Fetched ${nReplyFetch} pos ${nReplyFetch >= 2 ? `s from  ${lowIndex}-${lowIndex + nReplyFetch}` : ''}`)
+			const oldNReplies = replies?.length ?? 0
+			const repliesFetch = res.json
+			const nRepliesFetch = repliesFetch?.length ?? 0
+
+			if (nRepliesFetch < oldNReplies) {
+				// console.log(`Had ${oldNReplies} at ${lowIndex}, have ${nRepliesFetch} at ${nLowIndex}, trying at ${nLowIndex - (oldNReplies - nRepliesFetch)}`)
+				nLowIndex -= (oldNReplies - nRepliesFetch)
+				fetchReplies(nLowIndex, true)
+			} else {
+				if (!refetch && nRepliesFetch === nReplyOnScreen) {
+					reconnectObserver()
+				}
+				setLowIndex(nLowIndex)
+				setReplies(repliesFetch)
+				setHasMoreReplies(nRepliesFetch === nReplyOnScreen)
+				notifHandle.pushSuccess(`Fetched ${nRepliesFetch} pos ${nRepliesFetch >= 2 ? `s from  ${nLowIndex}-${nLowIndex + nRepliesFetch}` : ''}`)
+			}
 		} else
 			notifHandle.pushError(res.message)
 	}
@@ -102,7 +112,7 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyRe
 		}
 		fetchRepliesInt()
 	}, [refreshKeyReplies])
-	console.log(replies)
+	// console.log(replies)
 	return (
 		<div ref={refInfinitScrolling}
 				className="min-h-0 max-h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto">

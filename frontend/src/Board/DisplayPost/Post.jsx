@@ -59,12 +59,16 @@ export default function Post({post, privilegeLvl, update, canClickLink = true})
 	}, [isEditing])
 
 	useEffect(() => {
+		console.log("Checking User")
 		if (userHandle.loading) return
 		if (userHandle.user) {
 			const userID = userHandle.user.id
 			setCanEdit(userID === post.author_id)
 			if (!canDelete)
 				setCanDelete(userID === post.author_id)
+		} else {
+			setCanEdit(false)
+			setCanDelete(false)
 		}
 		setLoading(false)
 	}, [userHandle.loading, userHandle.user])
@@ -80,7 +84,6 @@ export default function Post({post, privilegeLvl, update, canClickLink = true})
 	}
 
 	async function deletePost(e) {
-		// console.log(post)
 		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
