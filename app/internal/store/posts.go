@@ -85,7 +85,7 @@ func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, er
 }
 
 func UpdatePost(db *pgxpool.Pool, ctx context.Context, postID int, body models.PostEdit) error {
-	_, err := db.Exec(ctx, "`UPDATE posts  SET content = $1, title = COALESCE($2, title) WHERE id = $3`", body.Content, body.Title, postID)
+	_, err := db.Exec(ctx, "UPDATE posts SET content = $1, title = COALESCE($2, title) WHERE id = $3", body.Content, body.Title, postID)
 	return err
 }
 
