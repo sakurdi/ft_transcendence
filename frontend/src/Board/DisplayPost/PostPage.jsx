@@ -11,6 +11,7 @@ import TextArea from "../../components/TextArea";
 import Button from "../../components/Button"
 
 import WrapReplies from "./WrapReply"
+import InfinitScrollReplies from "./InfinitScrollReplies";
 
 // type PostCreate struct {
 // 	Title    *string `json:"title"`
@@ -49,49 +50,24 @@ export function InputReply({updateReplies, postID, boardID}) {
 
 export function DisplayPostReplies({postID, privilegeLvl}) {
 	const userHandle = useAuth()
-	const notifHandle = useNotif()
 
-	const [keyReplies, setKeyReplies] = useState(0)
-	const [loading, setLoading] = useState(true)
-	const [replies, setReplies] = useState([])
-	
-	const updateReplies = () => {setKeyReplies(keyReplies + 1)}
+	const [updateRepliesKey, setUpdateRepliesKey] = useState(0)
 
-	useEffect(() => {
-		setLoading(true)
-		const fetchReplies = async (postID) => {
-			const res = await apiGet(`/post/${postID}/replies`)
-			if (res.ok) {
-				setReplies(res.json)
-			} else {
-				notifHandle.pushError(res.status)
-			}
-			setLoading(false)
-		}
-		fetchReplies(postID)
-	}, [keyReplies])
+	const updateReplies = () => {setUpdateRepliesKey(1 +updateRepliesKey)}
 
-	if (loading) return <Loading/>
-	// 	console.log(replies)
 	return (
-		<>
-		{
-			!replies || replies.length == 0
-				?	"No replies"
-				:	<WrapReplies>
-						{replies.map((oneReply) =>
-							<Post key={oneReply.id}
-								post={oneReply}
-								user={null}
-								update={updateReplies}/>
-						)}
-					</WrapReplies>
-		}
-		{(!userHandle.loading && userHandle.user) &&
-			<InputReply updateReplies = {updateReplies}
-				postID = {postID}/>
-		}
-		</>
+		<WrapReplies>
+			<InfinitScrollReplies postID = {postID}
+				privilegeLvl = {privilegeLvl}
+				refreshKeyReplies = {updateRepliesKey}
+				setRefreshKeyReplies = {updateReplies}/>
+			{userHandle.loading
+				? <Loading/>
+				: (userHandle.user &&
+					<InputReply updateReplies = {updateReplies}
+						postID = {postID}/>)
+			}
+		</WrapReplies>
 	)
 }
 
@@ -121,12 +97,12 @@ export default function PostPage({}) {
 			setLoading(false)
 		}
 		fetchPost()
-		console.log(postID)
+		// console.log(postID)
 	}, [refreshPostKey, postID])
 
 	if (loading) return <Loading/>
 	if (!post) return "No post"
-	console.log(post)
+	// console.log(post)
 	return (
 		<>
 			<Post key={post.id}

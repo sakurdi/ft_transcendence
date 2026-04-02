@@ -1,10 +1,10 @@
 import {useState, useEffect, useRef} from "react"
 
-import useNotif from "../components/Notif"
-import { apiGet } from "../Utils/api";
+import useNotif from "../../components/Notif"
+import { apiGet } from "../../Utils/api";
 
-import Loading from "../components/Loading"
-import Post from "./DisplayPost/Post";
+import Loading from "../../components/Loading"
+import Post from "./Post";
 
 function ButtonScrollTop({fetchTop, fetch0})
 {
@@ -20,7 +20,7 @@ function ButtonScrollTop({fetchTop, fetch0})
 	)
 }
 
-export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
+export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyReplies, setRefreshKeyReplies})
 {
 	const nReplyOnPage = 20
 	const nReplyOnScreen = nReplyOnPage * 2
@@ -42,7 +42,7 @@ export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKe
 	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
 
 	const fetchReplies = async (lowIndex) => {
-		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${lowIndex}&limit=${nReplyOnScreen}`)
+		const res = await apiGet(`/post/${postID}/newreplies?cursor=${lowIndex}&limit=${nReplyOnScreen}`)
 		if (res.ok) {
 			setLowIndex(lowIndex)
 			setReplies(res.json)
@@ -101,8 +101,8 @@ export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKe
 			setLoading(false)
 		}
 		fetchRepliesInt()
-	}, [refreshKeyThread])
-
+	}, [refreshKeyReplies])
+	console.log(replies)
 	return (
 		<div ref={refInfinitScrolling}
 				className="min-h-0 max-h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto">
@@ -112,13 +112,13 @@ export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKe
 					: <ButtonScrollTop fetchTop={fetchTop} fetch0={fetchIndex0}/>
 			)}
 			{replies
-				? replies.map((oneThread) =>
-					<Post key={oneThread.id}
-						post={oneThread}
+				? replies.map((oneReply) =>
+					<Post key={oneReply.id}
+						post={oneReply}
 						privilegeLvl={privilegeLvl}
-						update={setRefreshKeyThread}
+						update={setRefreshKeyReplies}
 					/>)
-				: <></>
+				: <>Noreplies</>
 			}
 			{(loadingBot && !loading)
 				? <Loading/>

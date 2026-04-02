@@ -139,7 +139,7 @@ func GetScrollRepliesHandler(c *config.Config) http.HandlerFunc {
 		if cursor, err = strconv.Atoi(r.URL.Query().Get("cursor")); err != nil || cursor < 0 {
 			cursor = 0
 		}
-		
+		fmt.
 		replies, err := store.GetScrollThreads(c.DB, r.Context(), parentID, limit, cursor)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Failed to fetch replies")
