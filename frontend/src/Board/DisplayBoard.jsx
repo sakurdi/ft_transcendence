@@ -4,7 +4,7 @@ import useAuth from "../User/AuthProvider";
 import DisplayThreads from "./DisplayThreads";
 import DisplayMods from "./DisplayMods";
 import getDateDifferenceISO from "../Utils/date";
-import InifitScroll from "./InfinitScroll"
+import InfinitScrollThreads from "./InfinitScrollThreads"
 
 import { apiGet } from "../Utils/api";
 
@@ -12,24 +12,6 @@ import TextEdit from "../components/TextEdit";
 import CreatePost from "./CreateThread";
 import Loading from "../components/Loading";
 import useNotif from "../components/Notif";
-
-// type Board struct {
-// 	ID          int       `json:"id"`
-// 	Name        string    `json:"name"`
-// 	Description string    `json:"description"`
-// 	OwnerID     int       `json:"owner_id"`
-// 	CreatedAt   time.Time `json:"created_at"`
-// }
-
-// const getStrTimeDate = (dateISO) => {
-// 	const dateAPI = new Date(dateISO);
-	
-// 	return getDateDifference(dateAPI)
-// 	const time = dateAPI.toLocaleTimeString("fr-FR")
-// 	const date = dateAPI.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric", year: "2-digit"})
-// 	// console.log(time," | ", date)
-// 	return (time + " " + date)
-// }
 
 function DisplayBoardDescription({board, privilegeLvl}) {
 	const [edit, setEdit] = useState(false)
@@ -171,7 +153,7 @@ export default function DisplayBoard() {
 		{/* <DisplayThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/> */}
-		<InifitScroll boardName = {boardName} privilegeLvl = {privilegeLvl}
+		<InfinitScrollThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
 		{userHandle.user &&

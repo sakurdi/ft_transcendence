@@ -8,6 +8,7 @@ import { apiPost } from "../Utils/api";
 
 import TextInput from  "../components/TextInput"
 import Button from "../components/Button"
+import Loading from "../components/Loading";
 
 // type BoardCreate struct {
 // 	Name        string `json:"name"`
@@ -44,6 +45,9 @@ export default function CreateBoard() {
 			navigate("/board/" + boardName);
 		}
 	}
+
+	if (userHandler.loading || !userHandler.user)
+		return <Loading/>
 
 	return (
 		<div>	

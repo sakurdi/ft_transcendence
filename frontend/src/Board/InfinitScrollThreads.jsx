@@ -1,4 +1,4 @@
-import {useState, useEffect, useLayoutEffect, useRef} from "react"
+import {useState, useEffect, useRef} from "react"
 
 import useNotif from "../components/Notif"
 import { apiGet } from "../Utils/api";
@@ -20,7 +20,7 @@ function ButtonScrollTop({fetchTop, reloadPost})
 	)
 }
 
-export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
+export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
 {
 	const nPostOnPage = 20
 	const nPostOnScreen = nPostOnPage * 2
@@ -46,10 +46,11 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 		if (res.ok) {
 			setLowIndex(lowIndex)
 			setPosts(res.json)
-			if (res.json.length === nPostOnScreen)
+			const nPostFetch = (res.json?.length ?? 0)
+			if (nPostFetch === nPostOnScreen)
 				reconnectObserver()
-			setHasMorePost(res.json.length === nPostOnScreen)
-			notifHandle.pushSuccess(`Fetched post ${lowIndex}-${lowIndex + res.json.length}`)
+			setHasMorePost(nPostFetch === nPostOnScreen)
+			notifHandle.pushSuccess(`Fetched ${nPostFetch} pos ${nPostFetch >= 2 ? `s from  ${lowIndex}-${lowIndex + nPostFetch}` : ''}`)
 		} else
 			notifHandle.pushError(res.message)
 	}
@@ -114,12 +115,14 @@ export default function InifitScroll({boardName, privilegeLvl, refreshKeyThread,
 					? <Loading/>
 					: <ButtonScrollTop fetchTop={fetchTop} reloadPost={fetchIndex0}/>
 			)}
-			{posts.map((oneThread) =>
+			{posts
+				? posts.map((oneThread) =>
 					<Post key={oneThread.id}
 						post={oneThread}
 						privilegeLvl={privilegeLvl}
 						update={setRefreshKeyThread}
 					/>)
+				: <></>
 			}
 			{(loadingBot && !loading)
 				? <Loading/>
