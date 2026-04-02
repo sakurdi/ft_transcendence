@@ -25,8 +25,8 @@ export default function TextEdit({ baseValue, onValueSave = (value)=>{} }) {
 				<textarea value={value} onChange={e => setValue(e.target.value)}/>
 				<br/>
 				<small>
-					<TextButton text="Save" onClick={(e) => {onValueSave({value}); setEdit(false)}}/>
-					<TextButton text="Discard" onClick={(e) => {setValue(baseValue); onValueSave({value}); setEdit(false)}}/>
+					<TextButton text="Save" onClick={(e) => {onValueSave(value); setEdit(false)}}/>
+					<TextButton text="Discard" onClick={(e) => {setValue(baseValue); onValueSave(value); setEdit(false)}}/>
 				</small>
 			</div>
 		)

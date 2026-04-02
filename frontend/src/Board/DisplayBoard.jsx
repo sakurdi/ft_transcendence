@@ -6,42 +6,37 @@ import DisplayMods from "./DisplayMods";
 import getDateDifferenceISO from "../Utils/date";
 import InfinitScrollThreads from "./InfinitScrollThreads"
 
-import { apiGet } from "../Utils/api";
+import { apiGet, apiPut } from "../Utils/api";
 
 import TextEdit from "../components/TextEdit";
 import CreatePost from "./CreateThread";
 import Loading from "../components/Loading";
 import useNotif from "../components/Notif";
 
-function DisplayBoardDescription({board, privilegeLvl}) {
-	const [edit, setEdit] = useState(false)
-	const [oldDescription, setOldDescription] = useState(board.description)
-	const [description, setDescription] = useState(board.description)
+// type BoardCreate struct {
+// 	Name        string `json:"name"`
+// 	Description string `json:"description"`
+// }
+
+function DisplayBoardDescription({description, privilegeLvl, saveEdit}) {
 	
 	if (!description || description.lenght == 0){
 		return (<></>)
 	}	else if (privilegeLvl != 3) {
 		return (<p>{description}</p>)
 	} else {
-		const saveEdit = () => {
-			// console.log(description)	// TODO
-			setEdit(false)
-		}
-		const discardEdit = () => {
-			setDescription(oldDescription)
-			saveEdit(description)
-			setEdit(false)
-		}
-		return (<TextEdit baseValue={description}/>)
+		return (<TextEdit baseValue={description} onValueSave={saveEdit}/>)
 	}
 }
 
-export function DisplayBoardHeader({board, privilegeLvl}) {
+export function DisplayBoardHeader({board, privilegeLvl, setRefreshKeyBoard}) {
 	const navigate = useNavigate()
+	const notifHandle = useNotif()
+
 	const baseOwnerName = "<undefined>"
 	const [ownerName, setOwnerName] = useState(baseOwnerName)
 
-	const DisplayBoardOwner = (ownerName, privilegeLvl) => {
+	const DisplayBoardOwner = (ownerName) => {
 		if (ownerName === baseOwnerName) return <a>{baseOwnerName}</a>
 		const url = `/user/${ownerName}`
 		return (
@@ -51,25 +46,36 @@ export function DisplayBoardHeader({board, privilegeLvl}) {
 
 	useEffect(() => {
 		const fetfchOwnerName = async () => {
-			// const response = await apiGet(`/api/board/${boardname}/ismod`);
-			// if (!response.ok)
-			// 	return
-			setOwnerName("Ca faut le faire") // TODO
+			setOwnerName("Ca faut le faire")
 		}
 		fetfchOwnerName()
 	}, [])
+
+	const saveEdit = async (newDescription) => {
+		const res = await apiPut(`board/${board.id}`, {
+			body: JSON.stringify({
+				'name': board.name,
+				'description': newDescription,
+			})
+		})
+		if (res.ok) {
+			notifHandle.pushSuccess("Board edited")
+			setRefreshKeyBoard()
+		} else
+			notifHandle.pushError(res.status)
+	}
 
 	return (
 		<section>
 			<header>
 				<h1>{board.name}</h1>
 				<div>
-					<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
+					<span>{DisplayBoardOwner(ownerName)}</span>
 					<time dateTime = {board.created_at}>
 						{getDateDifferenceISO(board.created_at)}
 					</time>
 				</div>
-				<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
+				<DisplayBoardDescription description={board.description} privilegeLvl={privilegeLvl} saveEdit={saveEdit}/>
 			</header>
 			{privilegeLvl >= 3 && <DisplayMods boardID={board.id}/>}
 		</section>
@@ -120,7 +126,7 @@ export default function DisplayBoard() {
 					if (user.id == nBoard.owner_id) {
 						setPrivilegeLvl(3)
 					} else {
-						const isMod = await checkIsMod(nBoard.name) 
+						const isMod = await checkIsMod(nBoard.name)
 						if (isMod) {
 							setPrivilegeLvl(2)
 						}
@@ -141,10 +147,8 @@ export default function DisplayBoard() {
 	}
 	return (
 	<>
-		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}/>
-		{/* <DisplayThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
-			refreshKeyThread={refreshKeyThread}
-			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/> */}
+		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}
+			setRefreshKeyBoard={() => setRefreshKeyBoard(refreshKeyBoard + 1)}/>
 		<InfinitScrollThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>

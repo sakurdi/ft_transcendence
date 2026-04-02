@@ -59,7 +59,6 @@ export default function Post({post, privilegeLvl, update, canClickLink = true})
 	}, [isEditing])
 
 	useEffect(() => {
-		console.log("Checking User")
 		if (userHandle.loading) return
 		if (userHandle.user) {
 			const userID = userHandle.user.id

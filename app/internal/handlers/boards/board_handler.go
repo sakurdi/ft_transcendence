@@ -364,7 +364,7 @@ func UpdateBoardHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		if err := store.UpdateBoard(c.DB, r.Context(), boardID, body); err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
 		utils.WriteNewResponse(w, true, "Board updated")
