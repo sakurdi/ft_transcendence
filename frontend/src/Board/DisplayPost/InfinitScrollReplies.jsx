@@ -114,12 +114,14 @@ export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyTh
 					? <Loading/>
 					: <ButtonScrollTop fetchTop={fetchTop} reloadPost={fetchIndex0}/>
 			)}
-			{posts.map((oneThread) =>
+			{replies ?
+				replies.map((oneThread) =>
 					<Post key={oneThread.id}
 						post={oneThread}
 						privilegeLvl={privilegeLvl}
 						update={setRefreshKeyThread}
 					/>)
+				: <></>
 			}
 			{(loadingBot && !loading)
 				? <Loading/>

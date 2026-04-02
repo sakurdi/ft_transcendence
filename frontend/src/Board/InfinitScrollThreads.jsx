@@ -109,7 +109,7 @@ export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKe
 
 	return (
 		<div ref={refInfinitScrolling}
-				className="h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto ">
+				className="min-h-0 max-h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto">
 			{lowIndex !== 0 && (
 				loadingTop
 					? <Loading/>
