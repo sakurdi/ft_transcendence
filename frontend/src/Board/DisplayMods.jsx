@@ -1,8 +1,6 @@
 import {useState, useEffect} from "react"
 import { apiGet, apiDelete, apiPost } from "../Utils/api"
 
-import Button from "../components/Button"
-import { TextAreaTitle } from "../components/TextArea"
 import useNotif from "../components/Notif"
 import getRandomPastel, { getRandomPastelString } from "../Utils/colors"
 import Tooltip from "../components/Tooltip"
@@ -17,6 +15,7 @@ export function DisplayOneMod({mod, refreshMods, boardID}) {
 	const colorBg = getRandomPastelString(mod.username)
 	
 	const onDeleteMod = async () => {
+		console.log(mod)
 		if (window.confirm(`Are you sure to demote ${mod.username}?`)) {
 			const res = await apiDelete(`/board/${boardID}/mod/${mod.username}`)
 			if (res.ok) {

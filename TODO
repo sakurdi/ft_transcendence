@@ -1,0 +1,8 @@
+Lorsque: r.Use(AppMiddleware.Auth(c)) r.Use(AppMiddleware.DjangoFreeman(c))
+	fail -> return le meme format que les autres (status message data)
+
+Ajouter un mod par userName 
+Supprimer un mod par username (Ou que /api/board/{BoardID}/members return {userId, userName, role})
+Endpoint pout modifer le password acceptant {oldPassword, newPassword} en body
+
+Avoir les reponses des posts

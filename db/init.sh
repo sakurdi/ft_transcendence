@@ -123,7 +123,6 @@ JOIN users u ON u.login = 'saal-kur'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
 
-
 INSERT INTO posts (board_id, author_id, title, content, created_at)
 SELECT
     b.id,
@@ -132,11 +131,24 @@ SELECT
     'Test content for thread #' || gs.n || ' - ' ||  NOW() - ((100 - gs.n) * interval '1 minute'),
     NOW() - ((100 - gs.n) * interval '1 minute')
 FROM boards b
-JOIN users u ON u.login = 'kevwang'
+JOIN users u ON u.login = 'gaeudes'
 JOIN generate_series(1, 100) AS gs(n) ON TRUE
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
 
+INSERT INTO posts (board_id, author_id, parent_id, content, created_at)
+SELECT
+    b.id,
+    u.id,
+	parent.id,
+    'Test response #' || gs.n || ' - ' ||  NOW() - ((100 - gs.n) * interval '1 minute'),
+    NOW() - ((100 - gs.n) * interval '1 minute')
+FROM boards b
+JOIN users u ON u.login = 'kevwang'
+JOIN generate_series(1, 100) AS gs(n) ON TRUE
+JOIN posts parent ON parent.title = 'League Thread #100'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
 
 INSERT INTO posts (board_id, author_id, content, parent_id)
 SELECT
