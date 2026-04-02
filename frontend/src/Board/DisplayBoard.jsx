@@ -43,7 +43,6 @@ export function DisplayBoardHeader({board, privilegeLvl}) {
 
 	const DisplayBoardOwner = (ownerName, privilegeLvl) => {
 		if (ownerName === baseOwnerName) return <a>{baseOwnerName}</a>
-		// console.log(privilegeLvl)
 		const url = `/user/${ownerName}`
 		return (
 			<a onClick={ () => navigate(url) }>{ownerName}</a>
@@ -102,46 +101,39 @@ export default function DisplayBoard() {
 		const checkIsMod = async (boardname) =>  {
 			try {
 				const response = await apiGet(`/board/${boardname}/ismod`);
-				// console.log(response)
 				if (!response.ok) {
 					throw (response.status)
 				}
 				return response.json.ismod;
 			} catch (error) {
-				// console.log(error)
 				return false;
 			}
 		}
 	
 		const fetchBoard = async (boardName) => {
-			try {
-				const response = await apiGet(`/board/${boardName}`,)
-				if (!response.ok) {
-					throw (response.status)
-				}
-				// console.log(response.json)
-				setBoard(response.json)
-				if (userHandle.user) {
+			const response = await apiGet(`/board/${boardName}`,)
+			if (response.ok) {
+				const nBoard = response.json 
+				const user = userHandle.user
+				if (user) {
 					setPrivilegeLvl(1)
-					const user = userHandle.user
-					if (user.id == response.json.owner_id) {
+					if (user.id == nBoard.owner_id) {
 						setPrivilegeLvl(3)
 					} else {
-						const isMod = await checkIsMod(response.json.name) 
+						const isMod = await checkIsMod(nBoard.name) 
 						if (isMod) {
 							setPrivilegeLvl(2)
 						}
 					}
-				}
-			} catch (error) {
-				// console.log(error)
-				notifHandle.pushError(error)
-			}
+				} else
+					setPrivilegeLvl(0)
+				setBoard(nBoard)
+			} else
+				notifHandle.pushError(response.status)
 		}
-
 		fetchBoard(boardName)
 		setLoading(false)
-	}, [refreshKeyBoard, userHandle.loading])
+	}, [refreshKeyBoard, userHandle.loading, userHandle.user])
 
 	if (loading) return <Loading/>
 	if (!board.id) {
