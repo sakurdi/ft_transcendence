@@ -244,6 +244,10 @@ func AddModHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
+		if _, err := store.GetBoardByID(c.DB, r.Context(), boardID); err != nil {
+			utils.WriteNewResponse(w, false, "Board not found")
+			return
+		}
 
 		username := chi.URLParam(r, "username")
 		userID, err := store.GetUserID(c.DB, r.Context(), username)
@@ -265,6 +269,10 @@ func RemoveModHandler(c *config.Config) http.HandlerFunc {
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
+			return
+		}
+		if _, err := store.GetBoardByID(c.DB, r.Context(), boardID); err != nil {
+			utils.WriteNewResponse(w, false, "Board not found")
 			return
 		}
 

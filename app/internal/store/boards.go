@@ -111,3 +111,12 @@ func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.
 	}
 	return members, rows.Err()
 }
+
+func GetBoardByID(db *pgxpool.Pool, ctx context.Context, boardID int) (models.Board, error) {
+	var b models.Board
+	err := db.QueryRow(ctx,
+		"SELECT id, name, description, owner_id, created_at FROM boards WHERE id=$1",
+		boardID,
+	).Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt)
+	return b, err
+}
