@@ -61,8 +61,8 @@ func routes(c *config.Config) http.Handler {
 			r.Use(AppMiddleware.RequireBoardAdmin(c))
 			r.Put("/board/{boardID}", boards.UpdateBoardHandler(c))
 			r.Delete("/board/{boardID}", boards.DeleteBoardHandler(c))
-			r.Post("/board/{boardID}/mod/{userID}", boards.AddModHandler(c))
-			r.Delete("/board/{boardID}/mod/{userID}", boards.RemoveModHandler(c))
+			r.Post("/board/{boardID}/mod/{username}", boards.AddModHandler(c))
+			r.Delete("/board/{boardID}/mod/{username}", boards.RemoveModHandler(c))
 		})
 
 		r.Group(func(r chi.Router) {

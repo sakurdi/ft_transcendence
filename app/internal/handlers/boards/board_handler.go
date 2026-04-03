@@ -2,7 +2,6 @@ package boards
 
 import (
 	"encoding/json"
-	"fmt"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/middleware"
 	"ft_transcendence/internal/models"
@@ -29,7 +28,7 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 		} else if !utils.IsLegalName(body.Name) {
 			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
 		}
-		
+
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Failed to create board")
@@ -239,55 +238,43 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 
 func AddModHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := middleware.GetUserID(c, r)
+
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
-		fmt.Printf("AddMod: UserId: %v BoardUd: %v\n", userID, boardID)
+
+		username := chi.URLParam(r, "username")
+		userID, err := store.GetUserID(c.DB, r.Context(), username)
 		if err != nil {
-			utils.WriteNewResponse(w, false, "Invalid user ID")
+			utils.WriteNewResponse(w, false, "User not found")
 			return
 		}
-
-		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
-		if err != nil || !isAdmin {
-			utils.WriteNewResponse(w, false, "Forbidden")
-			return
-		}
-
-		if err := store.AddModerator(c.DB, r.Context(), boardID, targetID); err != nil {
+		if err := store.AddModerator(c.DB, r.Context(), boardID, userID); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to add moderator")
 			return
 		}
 		utils.WriteNewResponse(w, true, "Moderator added")
-		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
 func RemoveModHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
-		if err != nil {
-			utils.WriteNewResponse(w, false, "Invalid user ID")
-			return
-		}
 
-		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
-		if err != nil || !isAdmin {
-			utils.WriteNewResponse(w, false, "Forbidden")
+		username := chi.URLParam(r, "username")
+		userID, err := store.GetUserID(c.DB, r.Context(), username)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "User not found")
 			return
 		}
-		if err := store.RemoveModerator(c.DB, r.Context(), boardID, targetID); err != nil {
+		if err := store.RemoveModerator(c.DB, r.Context(), boardID, userID); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to remove moderator")
 			return
 		}
