@@ -1,141 +1,110 @@
-import {useState, useEffect, useRef} from "react"
-
+import { useState, useEffect, useRef } from "react"
 import useNotif from "../components/Notif"
 import { apiGet } from "../Utils/api";
-
 import Loading from "../components/Loading"
 import Post from "./DisplayPost/Post";
 
-function ButtonScrollTop({fetchTop, reloadPost})
-{
-	return (
-		<div className="max-w-screen-xl w-full flex items-center gap-2 h-fit">
-			<button onClick = {fetchTop}>
-				Load previous
-			</button>
-			<button onClick = {reloadPost}>
-				Back to the top
-			</button>
-		</div>
-	)
-}
-
-export default function InfinitScrollThreads({boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread})
-{
-	const nPostOnPage = 20
-	const nPostOnScreen = nPostOnPage * 2
+export default function InfinitScrollThreads({ boardName, privilegeLvl, refreshKeyThread, setRefreshKeyThread }) {
+	const LIMIT = 10;
 	const notifHandle = useNotif()
-
-	const refInfinitScrolling = useRef(null)
-	const refSentinelBot = useRef(null)
-	const [connectObserver, setConnectObserver] = useState(0)
-	const reconnectObserver = () => setConnectObserver(connectObserver + 1)
-
-	const [lowIndex, setLowIndex] = useState(0)
-	const [hasMorePost, setHasMorePost] = useState(true)
-	const [posts, setPosts] = useState([])
 	
-	const [loading, setLoading] = useState(true)
-	const [loadingTop, setLoadingTop] = useState(false)
-	const [loadingBot, setLoadingBotState] = useState(false)
-	const loadingBotRef = useRef(false)
-	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
+	const [posts, setPosts] = useState([])
+	const [offset, setOffset] = useState(0)
+	const [hasMore, setHasMore] = useState(true)
+	const [loading, setLoading] = useState(false)
+	const [isInitialLoad, setIsInitialLoad] = useState(true)
 
-	const fetchPost = async (nLowIndex, refetch = false) => {
-		const res = await apiGet(`/board/${boardName}/newthreads?cursor=${nLowIndex}&limit=${nPostOnScreen}`)
+	const sentinelRef = useRef(null)
+
+	const fetchPosts = async (currentOffset, isRefresh = false) => {
+		if (loading) return;
+		
+		setLoading(true);
+		const res = await apiGet(`/board/${boardName}/threads?offset=${currentOffset}&limit=${LIMIT}`);
+		
 		if (res.ok) {
-			const oldNPost = (posts?.length ?? 0)
-			const postsFetch = res.json
-			const nPostsFetch = postsFetch?.length ?? 0
-
-			if (nPostsFetch < oldNPost) {
-				nLowIndex -= (oldNPost - nPostsFetch)
-				fetchPost(nLowIndex, true)
+			const newPosts = res.json || [];
+			if (isRefresh) {
+				setPosts(newPosts);
 			} else {
-				if (!refetch && nPostsFetch === nPostOnScreen)
-					reconnectObserver()
-				setLowIndex(nLowIndex)
-				setPosts(res.json)
-				setHasMorePost(nPostsFetch === nPostOnScreen)
-				notifHandle.pushSuccess(`Fetched ${nPostsFetch} pos ${nPostsFetch >= 2 ? `s from  ${nLowIndex}-${nLowIndex + nPostsFetch}` : ''}`)
+				setPosts(prev => [...prev, ...newPosts]);
 			}
-		} else
-			notifHandle.pushError(res.message)
-	}
-
-	const fetchIndex0 = async () => {
-		setLoading(true)
-		await fetchPost(0)
-		setLoading(false)
-	}
-
-	const fetchTop = async () => {
-		setLoadingTop(true)
-		const newLowIndex = (lowIndex >= nPostOnPage) ? (lowIndex - nPostOnPage) : 0
-		await fetchPost(newLowIndex)
-		setLoadingTop(false)
-	}
-
-	const fetchBot = async () => {
-		setLoadingBot(true)
-		const newLowIndex = lowIndex + nPostOnPage
-		await fetchPost(newLowIndex)
-		setLoadingBot(false)
-	}
-
-	useEffect(() => {
-		if (loading) return
-		const observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach( entry => {
-					if (!entry.isIntersecting) return
-					if (entry.target === refSentinelBot.current) {
-						if (!loadingBotRef.current)
-							fetchBot()
-					}
-				})
-		}, {root: refInfinitScrolling.current, rootMargin: '0px 0px 100px 0px'})
-		
-		if (refSentinelBot.current)
-			observer.observe(refSentinelBot.current)
-		
-		return () => observer.disconnect()
-	}, [connectObserver, loading])
-
-	useEffect(() => {
-		setLoading(true)
-		const fetchPosts = async () => {
-			await fetchPost(lowIndex)
-			setLoading(false)
+			setHasMore(newPosts.length === LIMIT);
+			setOffset(currentOffset + newPosts.length);
+		} else {
+			notifHandle.pushError(res.status || "Failed to load threads");
 		}
-		fetchPosts()
-	}, [refreshKeyThread])
+		
+		setLoading(false);
+		setIsInitialLoad(false);
+	};
 
-	// useEffect(() => {
-	// 	notifHandle.pushNotif(`LowIndex ${lowIndex}`)
-	// }, [lowIndex])
+	// Handle initial load and manual refreshes
+	useEffect(() => {
+		setPosts([]);
+		setOffset(0);
+		setHasMore(true);
+		setIsInitialLoad(true);
+		fetchPosts(0, true);
+	}, [boardName, refreshKeyThread]);
+
+	// Intersection Observer for Infinite Scroll
+	useEffect(() => {
+		if (loading || !hasMore || isInitialLoad) return;
+
+		const observer = new IntersectionObserver((entries) => {
+			if (entries[0].isIntersecting) {
+				fetchPosts(offset);
+			}
+		}, { threshold: 0.1 });
+
+		if (sentinelRef.current) {
+			observer.observe(sentinelRef.current);
+		}
+
+		return () => observer.disconnect();
+	}, [offset, hasMore, loading, isInitialLoad]);
+
+	if (isInitialLoad && loading) {
+		return <div className="py-12"><Loading /></div>;
+	}
 
 	return (
-		<div ref={refInfinitScrolling}
-				className="min-h-0 max-h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto">
-			{lowIndex !== 0 && (
-				loadingTop
-					? <Loading/>
-					: <ButtonScrollTop fetchTop={fetchTop} reloadPost={fetchIndex0}/>
+		<div className="space-y-6">
+			{posts.length > 0 ? (
+				<>
+					<div className="space-y-4">
+						{posts.map((post) => (
+							<Post 
+								key={post.id}
+								post={post}
+								privilegeLvl={privilegeLvl}
+								update={setRefreshKeyThread}
+							/>
+						))}
+					</div>
+					
+					{hasMore && (
+						<div ref={sentinelRef} className="py-8 flex justify-center">
+							<Loading />
+						</div>
+					)}
+					
+					{!hasMore && posts.length > 0 && (
+						<div className="py-12 text-center">
+							<p className="text-xs font-black text-surface-300 uppercase tracking-[0.2em]">
+								End of discussions
+							</p>
+						</div>
+					)}
+				</>
+			) : (
+				!loading && (
+					<div className="py-20 text-center bg-surface-50 rounded-[2.5rem] border border-dashed border-surface-200">
+						<p className="text-surface-400 italic">No threads found in this community.</p>
+					</div>
+				)
 			)}
-			{posts
-				? posts.map((oneThread) =>
-					<Post key={oneThread.id}
-						post={oneThread}
-						privilegeLvl={privilegeLvl}
-						update={setRefreshKeyThread}
-					/>)
-				: <></>
-			}
-			{(loadingBot && !loading)
-				? <Loading/>
-				: (hasMorePost && <div ref={refSentinelBot}></div>)
-			}
 		</div>
 	)
 }
