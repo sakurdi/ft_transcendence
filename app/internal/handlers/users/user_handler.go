@@ -229,3 +229,56 @@ func GetUserByIDHandler(c *config.Config) http.HandlerFunc {
 		}
 	}
 }
+
+func CreateAPIKeyHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		var body models.APIKeyCreate
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
+			utils.WriteNewResponse(w, false, "Invalid request")
+			return
+		}
+
+		prefix, fullKey, hash := auth.GenerateAPIKey()
+		id, err := store.CreateAPIKey(c.DB, r.Context(), userID, body.Name, prefix, hash)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Failed to create API key")
+			return
+		}
+
+		utils.WriteNewResponse(w, true, "API key created", models.APIKeyCreatedResponse{
+			ID:     id,
+			Name:   body.Name,
+			Prefix: prefix,
+			APIKey: fullKey,
+		})
+	}
+}
+
+func ListAPIKeysHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		keys, err := store.ListAPIKeys(c.DB, r.Context(), userID)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Failed to list API keys")
+			return
+		}
+		utils.WriteNewResponse(w, true, "Success", keys)
+	}
+}
+
+func RevokeAPIKeyHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		keyID, err := strconv.Atoi(chi.URLParam(r, "keyID"))
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Invalid key ID")
+			return
+		}
+		if err := store.RevokeAPIKey(c.DB, r.Context(), userID, keyID); err != nil {
+			utils.WriteNewResponse(w, false, "Failed to revoke API key")
+			return
+		}
+		utils.WriteNewResponse(w, true, "API key revoked")
+	}
+}
