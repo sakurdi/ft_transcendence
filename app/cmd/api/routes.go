@@ -4,6 +4,7 @@ package main
 import (
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/handlers/boards"
+	"ft_transcendence/internal/handlers/publicapi"
 	"ft_transcendence/internal/handlers/users"
 	wshandler "ft_transcendence/internal/handlers/websocket"
 	AppMiddleware "ft_transcendence/internal/middleware"
@@ -19,6 +20,20 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
+
+	mux.Route("/api/public/v1", func(r chi.Router) {
+		r.Use(AppMiddleware.APIKeyAuth(c))
+		r.Use(AppMiddleware.RateLimit)
+
+		r.Get("/boards", publicapi.ListBoardsHandler(c))
+		r.Get("/boards/{boardName}", publicapi.GetBoardHandler(c))
+		r.Get("/boards/{boardName}/threads", publicapi.GetThreadsHandler(c))
+		r.Get("/threads/{postID}/replies", publicapi.GetRepliesHandler(c))
+
+		r.Post("/boards/{boardID}/posts", publicapi.CreatePostHandler(c))
+		r.Put("/posts/{postID}", publicapi.UpdatePostHandler(c))
+		r.Delete("/posts/{postID}", publicapi.DeletePostHandler(c))
+	})
 
 	mux.Post("/login", users.LoginHandler(c))
 	mux.Post("/register", users.RegisterHandler(c))
@@ -52,6 +67,10 @@ func routes(c *config.Config) http.Handler {
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
 		r.Put("/user/{username}", users.UpdateUserHandler(c))
+
+		r.Get("/user/api-keys", users.ListAPIKeysHandler(c))
+		r.Post("/user/api-keys", users.CreateAPIKeyHandler(c))
+		r.Delete("/user/api-keys/{keyID}", users.RevokeAPIKeyHandler(c))
 
 		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
 
