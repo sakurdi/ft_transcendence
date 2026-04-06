@@ -46,6 +46,6 @@ func WritePublicResponse(w http.ResponseWriter, status int, success bool, messag
 
 func IsLegalName(s string) bool {
 
-	res := regexp.MustCompile(`^[a-zA-Z0-9+_@".<>()[]{}-]+$`)
+	res := regexp.MustCompile(`^[a-zA-Z0-9+_@".<>()\[\]{}-]+$`)
 	return res.MatchString(s)
 }
