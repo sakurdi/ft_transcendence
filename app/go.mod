@@ -6,9 +6,10 @@ require (
 	github.com/alexedwards/scs/pgxstore v0.0.0-20251002162104-209de6e426de
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/go-chi/chi/v5 v5.2.5
+	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.8.0
 	golang.org/x/crypto v0.47.0
-	github.com/gorilla/websocket v1.5.3
+	golang.org/x/time v0.5.0
 )
 
 require (
@@ -17,5 +18,4 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
 )
