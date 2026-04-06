@@ -8,6 +8,7 @@ import (
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
 	"ft_transcendence/internal/utils"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -77,6 +78,7 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 		}
 		if !utils.IsLegalName(userInfo.Login) {
 			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
+			return
 		}
 		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to create user")
@@ -242,6 +244,7 @@ func CreateAPIKeyHandler(c *config.Config) http.HandlerFunc {
 		prefix, fullKey, hash := auth.GenerateAPIKey()
 		id, err := store.CreateAPIKey(c.DB, r.Context(), userID, body.Name, prefix, hash)
 		if err != nil {
+			log.Printf("CreateAPIKey error: %v", err)
 			utils.WriteNewResponse(w, false, "Failed to create API key")
 			return
 		}

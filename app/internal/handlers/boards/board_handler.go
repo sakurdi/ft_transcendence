@@ -27,6 +27,7 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 			return
 		} else if !utils.IsLegalName(body.Name) {
 			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
+			return
 		}
 
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
