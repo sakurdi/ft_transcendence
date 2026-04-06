@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	PrefixLength = 8
+	PrefixLength = 4
 	SecretLength = 32
 )
 
