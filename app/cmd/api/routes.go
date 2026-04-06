@@ -21,7 +21,7 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
 
-	mux.Route("/api/public/v1", func(r chi.Router) {
+	mux.Route("/public/v1", func(r chi.Router) {
 		r.Use(AppMiddleware.APIKeyAuth(c))
 		r.Use(AppMiddleware.RateLimit)
 
