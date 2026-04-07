@@ -1,139 +1,103 @@
-import {useState, useEffect, useRef} from "react"
-
+import { useState, useEffect, useRef } from "react"
 import useNotif from "../../components/Notif"
 import { apiGet } from "../../Utils/api";
-
 import Loading from "../../components/Loading"
 import Post from "./Post";
 
-function ButtonScrollTop({fetchTop, fetch0})
-{
-	return (
-		<div className="max-w-screen-xl w-full flex items-center gap-2 h-fit">
-			<button onClick = {fetchTop}>
-				Load previous
-			</button>
-			<button onClick = {fetch0}>
-				Back to the top
-			</button>
-		</div>
-	)
-}
-
-export default function InfinitScrollReplies({postID, privilegeLvl, refreshKeyReplies, setRefreshKeyReplies})
-{
-	const nReplyOnPage = 20
-	const nReplyOnScreen = nReplyOnPage * 2
+export default function InfinitScrollReplies({ postID, privilegeLvl, refreshKeyReplies, setRefreshKeyReplies }) {
+	const LIMIT = 10;
 	const notifHandle = useNotif()
-
-	const refInfinitScrolling = useRef(null)
-	const refSentinelBot = useRef(null)
-	const [connectObserver, setConnectObserver] = useState(0)
-	const reconnectObserver = () => setConnectObserver(connectObserver + 1)
-
-	const [lowIndex, setLowIndex] = useState(0)
-	const [hasMoreReplies, setHasMoreReplies] = useState(true)
-	const [replies, setReplies] = useState([])
 	
-	const [loading, setLoading] = useState(true)
-	const [loadingTop, setLoadingTop] = useState(false)
-	const [loadingBot, setLoadingBotState] = useState(false)
-	const loadingBotRef = useRef(false)
-	const setLoadingBot = (val)=> {loadingBotRef.current = val; setLoadingBotState(val)}
+	const [replies, setReplies] = useState([])
+	const [offset, setOffset] = useState(0)
+	const [hasMore, setHasMore] = useState(true)
+	const [loading, setLoading] = useState(false)
+	const [isInitialLoad, setIsInitialLoad] = useState(true)
 
-	const fetchReplies = async (nLowIndex, refetch = false) => {
-		const res = await apiGet(`/post/${postID}/newreplies?cursor=${nLowIndex}&limit=${nReplyOnScreen}`)
+	const sentinelRef = useRef(null)
+
+	const fetchReplies = async (currentOffset, isRefresh = false) => {
+		if (loading) return;
+		
+		setLoading(true);
+		const res = await apiGet(`/post/${postID}/replies?offset=${currentOffset}&limit=${LIMIT}`);
+		
 		if (res.ok) {
-			const oldNReplies = replies?.length ?? 0
-			const repliesFetch = res.json
-			const nRepliesFetch = repliesFetch?.length ?? 0
-
-			if (nRepliesFetch < oldNReplies) {
-				// console.log(`Had ${oldNReplies} at ${lowIndex}, have ${nRepliesFetch} at ${nLowIndex}, trying at ${nLowIndex - (oldNReplies - nRepliesFetch)}`)
-				nLowIndex -= (oldNReplies - nRepliesFetch)
-				fetchReplies(nLowIndex, true)
+			const newReplies = res.json || [];
+			if (isRefresh) {
+				setReplies(newReplies);
 			} else {
-				if (!refetch && nRepliesFetch === nReplyOnScreen) {
-					reconnectObserver()
-				}
-				setLowIndex(nLowIndex)
-				setReplies(repliesFetch)
-				setHasMoreReplies(nRepliesFetch === nReplyOnScreen)
-				notifHandle.pushSuccess(`Fetched ${nRepliesFetch} pos ${nRepliesFetch >= 2 ? `s from  ${nLowIndex}-${nLowIndex + nRepliesFetch}` : ''}`)
+				setReplies(prev => [...prev, ...newReplies]);
 			}
-		} else
-			notifHandle.pushError(res.message)
-	}
-
-	const fetchIndex0 = async () => {
-		setLoading(true)
-		await fetchReplies(0)
-		setLoading(false)
-	}
-
-	const fetchTop = async () => {
-		setLoadingTop(true)
-		const newLowIndex = (lowIndex >= nReplyOnPage) ? (lowIndex - nReplyOnPage) : 0
-		await fetchReplies(newLowIndex)
-		setLoadingTop(false)
-	}
-
-	const fetchBot = async () => {
-		setLoadingBot(true)
-		const newLowIndex = lowIndex + nReplyOnPage
-		await fetchReplies(newLowIndex)
-		setLoadingBot(false)
-	}
-
-	useEffect(() => {
-		if (loading) return
-		const observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach( entry => {
-					if (!entry.isIntersecting) return
-					if (entry.target === refSentinelBot.current) {
-						if (!loadingBotRef.current)
-							fetchBot()
-					}
-				})
-		}, {root: refInfinitScrolling.current, rootMargin: '0px 0px 100px 0px'})
-		
-		if (refSentinelBot.current)
-			observer.observe(refSentinelBot.current)
-		
-		return () => observer.disconnect()
-	}, [connectObserver, loading])
-
-	useEffect(() => {
-		setLoading(true)
-		const fetchRepliesInt = async () => {
-			await fetchReplies(lowIndex)
-			setLoading(false)
+			setHasMore(newReplies.length === LIMIT);
+			setOffset(currentOffset + newReplies.length);
+		} else {
+			notifHandle.pushError(res.status || "Failed to load replies");
 		}
-		fetchRepliesInt()
-	}, [refreshKeyReplies])
-	// console.log(replies)
+		
+		setLoading(false);
+		setIsInitialLoad(false);
+	};
+
+	// Handle initial load and manual refreshes
+	useEffect(() => {
+		setReplies([]);
+		setOffset(0);
+		setHasMore(true);
+		setIsInitialLoad(true);
+		fetchReplies(0, true);
+	}, [postID, refreshKeyReplies]);
+
+	// Intersection Observer for Infinite Scroll
+	useEffect(() => {
+		if (loading || !hasMore || isInitialLoad) return;
+
+		const observer = new IntersectionObserver((entries) => {
+			if (entries[0].isIntersecting) {
+				fetchReplies(offset);
+			}
+		}, { threshold: 0.1 });
+
+		if (sentinelRef.current) {
+			observer.observe(sentinelRef.current);
+		}
+
+		return () => observer.disconnect();
+	}, [offset, hasMore, loading, isInitialLoad]);
+
+	if (isInitialLoad && loading) {
+		return <div className="py-8"><Loading /></div>;
+	}
+
 	return (
-		<div ref={refInfinitScrolling}
-				className="min-h-0 max-h-screen overflow-y-auto overflow-x-hidden w-[90%] mx-auto">
-			{lowIndex !== 0 && (
-				loadingTop
-					? <Loading/>
-					: <ButtonScrollTop fetchTop={fetchTop} fetch0={fetchIndex0}/>
+		<div className="space-y-2">
+			{replies.length > 0 ? (
+				<>
+					<div className="divide-y divide-surface-50">
+						{replies.map((reply) => (
+							<Post 
+								key={reply.id}
+								post={reply}
+								privilegeLvl={privilegeLvl}
+								update={setRefreshKeyReplies}
+								isReply={true}
+							/>
+						))}
+					</div>
+					
+					{hasMore && (
+						<div ref={sentinelRef} className="py-8 flex justify-center">
+							<Loading />
+						</div>
+					)}
+				</>
+			) : (
+				!loading && (
+					<div className="py-12 text-center bg-surface-50 rounded-2xl border border-dashed border-surface-200">
+						<p className="text-sm text-surface-400 italic font-medium">No one has started the discussion yet.</p>
+					</div>
+				)
 			)}
-			{replies
-				? replies.map((oneReply) =>
-					<Post key={oneReply.id}
-						post={oneReply}
-						privilegeLvl={privilegeLvl}
-						update={setRefreshKeyReplies}
-					/>)
-				: <>Noreplies</>
-			}
-			{(loadingBot && !loading)
-				? <Loading/>
-				: (hasMoreReplies && <div ref={refSentinelBot}></div>)
-			}
 		</div>
 	)
 }
