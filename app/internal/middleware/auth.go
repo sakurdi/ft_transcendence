@@ -36,7 +36,10 @@ func RequireBoardMod(c *config.Config) func(http.Handler) http.Handler {
 				http.Error(w, "Invalid board ID", http.StatusBadRequest)
 				return
 			}
-
+			role, err := store.GetUserRole(c.DB, r.Context(), userID)
+			if err == nil && role == "superadmin" {
+				next.ServeHTTP(w, r)
+			}
 			isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isMod {
 				http.Error(w, "Forbidden", http.StatusForbidden)
@@ -56,6 +59,10 @@ func RequireBoardAdmin(c *config.Config) func(http.Handler) http.Handler {
 			if err != nil {
 				http.Error(w, "Invalid board ID", http.StatusBadRequest)
 				return
+			}
+			role, err := store.GetUserRole(c.DB, r.Context(), userID)
+			if err == nil && role == "superadmin" {
+				next.ServeHTTP(w, r)
 			}
 			isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isAdmin {

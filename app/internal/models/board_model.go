@@ -13,6 +13,7 @@ type Board struct {
 type Post struct {
 	ID        int       `json:"id"`
 	BoardID   int       `json:"board_id"`
+	BoardName string    `json:"board_name"`
 	AuthorID  *int      `json:"author_id"`
 	Username  string    `json:"username"`
 	Title     *string   `json:"title"`
@@ -33,10 +34,12 @@ type PostCreate struct {
 }
 
 type BoardRole struct {
+	ID	     int	`json:id`
 	Username string `json:"username"`
 	Role     string `json:"role"`
 }
 
 type PostEdit struct {
-	Content string `json:"content"`
+	Content string  `json:"content"`
+	Title   *string `json:"title"`
 }

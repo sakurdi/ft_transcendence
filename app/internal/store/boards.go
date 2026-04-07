@@ -77,7 +77,7 @@ func DeleteBoard(db *pgxpool.Pool, ctx context.Context, boardID int) error {
 
 func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.BoardRole, error) {
 	rows, err := db.Query(ctx, `
-		SELECT u.login,
+		SELECT u.id, u.login,
 			CASE
 				WHEN b.owner_id = u.id THEN 'admin'
 				ELSE 'moderator'
@@ -88,7 +88,7 @@ func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.
 
 		UNION
 
-		SELECT u.login, 'moderator' as role
+		SELECT u.id, u.login, 'moderator' as role
 		FROM board_moderators bm
 		JOIN users u ON u.id = bm.user_id
 		WHERE bm.board_id = $1
@@ -104,10 +104,37 @@ func GetBoardTeam(db *pgxpool.Pool, ctx context.Context, boardID int) ([]models.
 	members := []models.BoardRole{}
 	for rows.Next() {
 		var m models.BoardRole
-		if err := rows.Scan(&m.Username, &m.Role); err != nil {
+		if err := rows.Scan(&m.ID, &m.Username, &m.Role); err != nil {
 			return nil, err
 		}
 		members = append(members, m)
 	}
 	return members, rows.Err()
+}
+
+func GetBoardByID(db *pgxpool.Pool, ctx context.Context, boardID int) (models.Board, error) {
+	var b models.Board
+	err := db.QueryRow(ctx,
+		"SELECT id, name, description, owner_id, created_at FROM boards WHERE id=$1",
+		boardID,
+	).Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt)
+	return b, err
+}
+
+func ListBoards(db *pgxpool.Pool, ctx context.Context) ([]models.Board, error) {
+	rows, err := db.Query(ctx, "SELECT id, name, description, owner_id, created_at FROM boards ORDER BY name ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var boards []models.Board
+	for rows.Next() {
+		var b models.Board
+		if err := rows.Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt); err != nil {
+			return nil, err
+		}
+		boards = append(boards, b)
+	}
+	return boards, rows.Err()
 }

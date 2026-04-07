@@ -8,6 +8,7 @@ import (
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
 	"ft_transcendence/internal/utils"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -75,7 +76,10 @@ func RegisterHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Email or user already exists")
 			return
 		}
-
+		if !utils.IsLegalName(userInfo.Login) {
+			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
+			return
+		}
 		if err := store.RegisterUser(c.DB, r.Context(), userInfo); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to create user")
 			return
@@ -175,16 +179,16 @@ func ListUsersHandler(c *config.Config) http.HandlerFunc {
 
 func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessionUserID := middleware.GetUserID(c, r)
+		//sessionUserID := middleware.GetUserID(c, r)
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid user ID")
 			return
 		}
-		if sessionUserID != targetUserID {
-			utils.WriteNewResponse(w, false, "Forbiden")
-			return
-		}
+		// if sessionUserID != targetUserID {
+		// 	utils.WriteNewResponse(w, false, "Forbidden")
+		// 	return
+		// }
 		if err := store.DeleteUser(c.DB, r.Context(), targetUserID); err != nil {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
@@ -225,5 +229,59 @@ func GetUserByIDHandler(c *config.Config) http.HandlerFunc {
 		} else {
 			utils.WriteNewResponse(w, true, "User found", user)
 		}
+	}
+}
+
+func CreateAPIKeyHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		var body models.APIKeyCreate
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
+			utils.WriteNewResponse(w, false, "Invalid request")
+			return
+		}
+
+		prefix, fullKey, hash := auth.GenerateAPIKey()
+		id, err := store.CreateAPIKey(c.DB, r.Context(), userID, body.Name, prefix, hash)
+		if err != nil {
+			log.Printf("CreateAPIKey error: %v", err)
+			utils.WriteNewResponse(w, false, "Failed to create API key")
+			return
+		}
+
+		utils.WriteNewResponse(w, true, "API key created", models.APIKeyCreatedResponse{
+			ID:     id,
+			Name:   body.Name,
+			Prefix: prefix,
+			APIKey: fullKey,
+		})
+	}
+}
+
+func ListAPIKeysHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		keys, err := store.ListAPIKeys(c.DB, r.Context(), userID)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Failed to list API keys")
+			return
+		}
+		utils.WriteNewResponse(w, true, "Success", keys)
+	}
+}
+
+func RevokeAPIKeyHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.GetUserID(c, r)
+		keyID, err := strconv.Atoi(chi.URLParam(r, "keyID"))
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Invalid key ID")
+			return
+		}
+		if err := store.RevokeAPIKey(c.DB, r.Context(), userID, keyID); err != nil {
+			utils.WriteNewResponse(w, false, "Failed to revoke API key")
+			return
+		}
+		utils.WriteNewResponse(w, true, "API key revoked")
 	}
 }

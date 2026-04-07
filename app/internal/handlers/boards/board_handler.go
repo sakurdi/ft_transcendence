@@ -2,7 +2,6 @@ package boards
 
 import (
 	"encoding/json"
-	"fmt"
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/middleware"
 	"ft_transcendence/internal/models"
@@ -26,7 +25,10 @@ func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 		} else if body.Name == "" {
 			utils.WriteNewResponse(w, false, "Board name cannot be empty")
 			return
-		} // else if () Check for [A-Za-z0-9_]{1,}
+		} else if !utils.IsLegalName(body.Name) {
+			utils.WriteNewResponse(w, false, "Only [a-zA-Z0-9+_@\".<>()[]{}-] characters are allowed")
+			return
+		}
 
 		id, err := store.CreateBoard(c.DB, r.Context(), body, userID)
 		if err != nil {
@@ -294,55 +296,51 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 
 func AddModHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := middleware.GetUserID(c, r)
+
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
-		fmt.Printf("AddMod: UserId: %v BoardUd: %v\n", userID, boardID)
+		if _, err := store.GetBoardByID(c.DB, r.Context(), boardID); err != nil {
+			utils.WriteNewResponse(w, false, "Board not found")
+			return
+		}
+
+		username := chi.URLParam(r, "username")
+		userID, err := store.GetUserID(c.DB, r.Context(), username)
 		if err != nil {
-			utils.WriteNewResponse(w, false, "Invalid user ID")
+			utils.WriteNewResponse(w, false, "User not found")
 			return
 		}
-
-		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
-		if err != nil || !isAdmin {
-			utils.WriteNewResponse(w, false, "Forbiden")
-			return
-		}
-
-		if err := store.AddModerator(c.DB, r.Context(), boardID, targetID); err != nil {
+		if err := store.AddModerator(c.DB, r.Context(), boardID, userID); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to add moderator")
 			return
 		}
 		utils.WriteNewResponse(w, true, "Moderator added")
-		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
 func RemoveModHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		userID := middleware.GetUserID(c, r)
 		boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-		targetID, err := strconv.Atoi(chi.URLParam(r, "userID"))
-		if err != nil {
-			utils.WriteNewResponse(w, false, "Invalid user ID")
+		if _, err := store.GetBoardByID(c.DB, r.Context(), boardID); err != nil {
+			utils.WriteNewResponse(w, false, "Board not found")
 			return
 		}
 
-		isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
-		if err != nil || !isAdmin {
-			utils.WriteNewResponse(w, false, "Forbidden")
+		username := chi.URLParam(r, "username")
+		userID, err := store.GetUserID(c.DB, r.Context(), username)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "User not found")
 			return
 		}
-		if err := store.RemoveModerator(c.DB, r.Context(), boardID, targetID); err != nil {
+		if err := store.RemoveModerator(c.DB, r.Context(), boardID, userID); err != nil {
 			utils.WriteNewResponse(w, false, "Failed to remove moderator")
 			return
 		}
@@ -427,7 +425,7 @@ func EditPostHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid request")
 			return
 		}
-		if err := store.UpdatePost(c.DB, r.Context(), postID, body.Content); err != nil {
+		if err := store.UpdatePost(c.DB, r.Context(), postID, body); err != nil {
 			utils.WriteNewResponse(w, false, "Internal server error")
 			return
 		}

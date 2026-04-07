@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 	"ft_transcendence/internal/models"
-	"fmt"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	// "log"
@@ -105,17 +105,18 @@ func scanPosts(rows pgx.Rows) ([]models.Post, error) {
 func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, error) {
 	var p models.Post
 	err := db.QueryRow(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at
-		FROM posts p LEFT JOIN users u ON p.author_id = u.id
+		SELECT p.id, p.board_id, b.name, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at
+		FROM posts p 
+		LEFT JOIN users u ON p.author_id = u.id
+		LEFT JOIN boards b ON p.board_id = b.id
 		WHERE p.id=$1`,
 		postID,
-	).Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt)
-	fmt.Printf("Salut %v\n", p)
+	).Scan(&p.ID, &p.BoardID, &p.BoardName, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt)
 	return p, err
 }
 
-func UpdatePost(db *pgxpool.Pool, ctx context.Context, postID int, content string) error {
-	_, err := db.Exec(ctx, "UPDATE posts SET content=$1 WHERE id=$2", content, postID)
+func UpdatePost(db *pgxpool.Pool, ctx context.Context, postID int, body models.PostEdit) error {
+	_, err := db.Exec(ctx, "UPDATE posts SET content = $1, title = COALESCE($2, title) WHERE id = $3", body.Content, body.Title, postID)
 	return err
 }
 
