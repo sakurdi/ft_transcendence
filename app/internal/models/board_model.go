@@ -10,6 +10,11 @@ type Board struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type BoardData struct {
+	BoardList   []Board `json:"board_list"`
+	TotalResult int     `json:"total_result"`
+}
+
 type Post struct {
 	ID        int       `json:"id"`
 	BoardID   int       `json:"board_id"`
