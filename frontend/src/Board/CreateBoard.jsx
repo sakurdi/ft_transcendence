@@ -18,16 +18,16 @@ import Loading from "../components/Loading";
 
 export default function CreateBoard() {
 	const navigate = useNavigate()
-	const userHandler = useAuth()
+	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
 	useEffect(() => {
-		if (userHandler.loading) return
-		if (!userHandler.user) {
+		if (userHandle.loading) return
+		if (!userHandle.user) {
 			notifHandle.pushError("You need to be logged in to create a board")
 			navigate('/');
 		}
-	}, [userHandler.loading])
+	}, [userHandle.loading])
 
 	const [boardName, setBoardName] = useState("")
 	const [boardDescription, setBoardDescription] = useState("")
@@ -46,7 +46,7 @@ export default function CreateBoard() {
 		}
 	}
 
-	if (userHandler.loading || !userHandler.user)
+	if (userHandle.loading || !userHandle.user)
 		return <Loading/>
 
 	return (

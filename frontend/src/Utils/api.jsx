@@ -1,8 +1,8 @@
-const BASE = '/api'
+const BASE = '/api/'
 
 export default async function api(path, options = {}) {
 	try {
-		const route = path.startsWith(BASE) ? path : `${BASE}/${path}`
+		const route = path.startsWith(BASE) ? path : `${BASE}${path}`
 		const res = await fetch(route, {
 			credentials: "include",
 			headers: { "Content-Type": "application/json" },

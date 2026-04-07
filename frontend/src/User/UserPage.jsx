@@ -6,6 +6,7 @@ import { apiDelete, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, { ButtonLink } from "../components/Button"
 import TextButton from "../components/TextButton"
+import ApiTokenPage from "./Api/ApiKeyPage";
 
 const getStrTimeDate = (dateISO) => {
 	const dateAPI = new Date(dateISO);
@@ -61,7 +62,6 @@ export default function UserPage() {
 	const { username } = useParams()
 	const [refreshKey, setRefreshKey] = useState(0)
 	const [loading, setLoading] = useState(true)
-	const [edit, setEdit] = useState(false)
 	const [userinfo, setUserinfo] = useState(null)
 
 	const refreshPage = () => setRefreshKey(refreshKey + 1)
@@ -91,9 +91,12 @@ export default function UserPage() {
 				{getStrTimeDate(userinfo.member_since)}
 			</time>
 			{canEdit &&
-				<UserSettings username = {username}
+				<>
+					<UserSettings username = {username}
 					updateUser = {userHandle.update}
 					userID = {userHandle.user.id}/>
+					<ApiTokenPage/>
+				</>
 			}
 		</div>
 	)
