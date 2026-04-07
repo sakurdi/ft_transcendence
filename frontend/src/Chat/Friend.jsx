@@ -275,7 +275,7 @@ function ProfilShowcase() {
 
 // ── Avatar Upload ───────────────────────────────────────────────────────────────
 
-function ProfileAvatar() {
+export function ProfileAvatar({ onUploaded }) {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState();
 
@@ -298,6 +298,8 @@ function ProfileAvatar() {
 
         if (res.ok) {
 			setPreviewUrl(null);
+			setFile(null);
+			onUploaded?.();
         }
 		else {
 			console.error("Failed to upload avatar");
