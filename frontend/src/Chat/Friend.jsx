@@ -3,21 +3,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { createContext, useContext } from "react"
 import useAuth from "../User/AuthProvider";
 import "./Friend.css"
+import { apiDelete, apiGet, apiPost, apiPostFormData } from "../Utils/api";
 
-const BASE = "https://localhost:1043/api"
-const WS   = "wss://localhost:1043"
+const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
+const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
 
 // ── api ───────────────────────────────────────────────────────────────────────
-
-async function api(path, options = {}) {
-    const res = await fetch(`${BASE}${path}`, {
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        ...options,
-    })
-    const text = await res.text()
-    return { ok: res.ok, status: res.status, body: text }
-}
 
 function timestamp() {
     return new Date().toLocaleTimeString()
@@ -32,29 +23,6 @@ function useLog() {
     }
     return { entries, push }
 }
-
-// ── useAuth ───────────────────────────────────────────────────────────────────
-
-// function useAuth() {
-//     const [user, setUser] = useState(null)
-
-//     async function login(username, password) {
-//         const { ok, body } = await api("/login", {
-//             method: "POST",
-//             body: JSON.stringify({ username, password }),
-//         })
-//         if (ok) setUser({ username })
-//         return { ok, body }
-//     }
-
-//     async function logout() {
-//         const res = await api("/logout", { method: "POST" })
-//         if (res.ok) setUser(null)
-//         return res
-//     }
-
-//     return { user, login, logout }
-// }
 
 // ── useSocket ─────────────────────────────────────────────────────────────────
 
@@ -171,43 +139,6 @@ function Btn({ onClick, children, variant = "default", className = "" }) {
     )
 }
 
-// ── Auth section ──────────────────────────────────────────────────────────────
-
-function AuthSection({ auth, onLogin }) {
-    const { entries, push } = useLog()
-    const [username, setUsername] = useState("kevwang")
-    const [password, setPassword] = useState("1234")
-
-    async function handleLogin() {
-        const { ok, body } = await auth.login(username, password)
-        push(ok ? `logged in as ${username}` : `error: ${body}`, ok ? "recv" : "err")
-        if (ok && onLogin) onLogin()
-    }
-
-    async function handleLogout() {
-        const { ok, body } = await auth.logout()
-        push(ok ? "logged out" : `error: ${body}`, ok ? "info" : "err")
-    }
-
-    return (
-        <Section title="Auth">
-            <Row>
-                <span className="text-xs font-mono text-stone-400">
-                    {auth.user ? `signed in as ${auth.user.username}` : "not signed in"}
-                </span>
-            </Row>
-            <Row>
-                <Input placeholder="username" value={username} onChange={setUsername} />
-                <Input placeholder="password" type="password" value={password} onChange={setPassword} />
-                <Btn onClick={handleLogin}>Login</Btn>
-                <Btn onClick={handleLogout} variant="ghost">Logout</Btn>
-            </Row>
-            <Log entries={entries} />
-        </Section>
-    )
-}
-
-
 // ── Friend Provider ───────────────────────────────────────────────────────────────
 
 const FriendContext = createContext();
@@ -290,38 +221,34 @@ export function ProfileAvatar({ onUploaded }) {
 
         const formData = new FormData();
         formData.append("avatar", file);
-        const res = await fetch(`/api/uploads/avatar/${file.name}`, {
-            method: "POST",
-            body: formData,
-            credentials: "include" 
-        });
-
+		const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });
         if (res.ok) {
 			setPreviewUrl(null);
 			setFile(null);
 			onUploaded?.();
         }
 		else {
-			console.error("Failed to upload avatar");
+			console.log("Failed to upload avatar");
 		}
     };
-		return (
-			<div className="flex flex-col items-center border rounded bg-white w-64">
-				<img src={previewUrl} 
-					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
-				<input type="file" 
-					accept="image/png, image/jpeg, image/jpg" 
-					onChange={handleFileChange} 
-					className="text-xs"/>
+	return (
+		<div className="flex flex-col items-center border rounded bg-white w-64">
+			<img src={previewUrl} 
+				className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
-				<button onClick={uploadAvatar}
-					className="bg-sky-600 text-white rounded">
-					Upload
-				</button>
-			</div>
-		);
-	}
+			<input type="file" 
+				accept="image/png, image/jpeg, image/jpg" 
+				onChange={handleFileChange} 
+				className="text-xs"/>
+
+			<button onClick={uploadAvatar}
+				className="bg-sky-600 text-white rounded">
+				Upload
+			</button>
+		</div>
+	);
+}
 
 // ── Chat Window ───────────────────────────────────────────────────────────────
 
@@ -390,10 +317,10 @@ function GetFriend() {
 	const user = useContext(FriendContext);
 
 	const GetFriendFromDb = async () => { 
-		const res = await api("/friends");
+		const res = await apiGet("/friends");
 
 		if (res.ok) {
-			const friends = JSON.parse(res.body);
+			const friends = res.json;
 			user.setFriends(Array.isArray(friends) ? friends : []);
 		}
 	}
@@ -407,9 +334,9 @@ function ShowProfil(props) {
 	const user = useContext(FriendContext);
 
 	const checkProfil = async (username) => {
-		const res = await api(`/users/${username}`);
+		const res = await apiGet(`/users/${username}`);
 		if (res.ok) {
-			const userData = JSON.parse(res.body);
+			const userData = res.json;
 			user.setProfilUser(userData);
 		}
 	};
@@ -423,16 +350,16 @@ function DeleteFriend(props) {
 	const user = useContext(FriendContext);
 
 	const GetFriendFromDb = async () => { 
-		const res = await api("/friends");
+		const res = await apiGet("/friends");
 
 		if (res.ok) {
-			const friends = JSON.parse(res.body);
+			const friends = res.json;
 			user.setFriends(Array.isArray(friends) ? friends : []);
 		}
 	}
 
 	const removeFriend = async (username) => {
-        const res = await api(`/friends/${username}`, { method: "DELETE" });
+        const res = await apiDelete(`/friends/${username}`);
         if (res.ok) {
             user.setNewFriendId("");
 			GetFriendFromDb();
@@ -446,8 +373,7 @@ function DeleteFriend(props) {
 
 function ConnectionLight(props) {
 	const user = useContext(FriendContext);
-	console.log("userConnected", user.userConnected);
-	console.log("props.username", props.username);
+
 	if (user.userConnected[props.username] !== undefined) {
 		return <div className="online-indicator"> pipi
 			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
@@ -463,12 +389,7 @@ function ConnectionLight(props) {
 function FriendList(props) {
 	const user = useContext(FriendContext);
 
-	console.log("friends", user.friends);
 	return <>
-		{/* <Row>
-			<Btn onClick={props.getFriends}>Refresh Friends</Btn>
-		</Row> */}
-
 		<GetFriend />
 
 		<div>
@@ -502,14 +423,15 @@ function SendRequest(props) {
 	const user = useContext(FriendContext);
 	
 	const sendRequest = async () => {
-		const res = await api(`/friends/request/${user.newFriendId}`, { method: "POST" });
+		if (!user.newFriendId)
+			return;
+		const res = await apiPost(`/friends/request/${user.newFriendId}`);
 		if (res.ok) {
-			// props.onChange("");
 			user.setNewFriendId("")
 		}
 		else {
 			// handle error
-			console.error("Failed to send friend request ", user.newFriendId);
+			console.log("Failed to send friend request ", user.newFriendId);
 		}
 	};
 		
@@ -523,10 +445,9 @@ function GetFriendRequests() {
 	const user = useContext(FriendContext);
 
 	const getFriendRequests = async () => {
-		const res = await api("/friends/requests");
+		const res = await apiGet("/friends/requests");
 		if (res.ok) {
-			const requests = JSON.parse(res.body);
-			console.log("resquest", requests);
+			const requests = res.json;
 			user.setFriendRequests(Array.isArray(requests) ? requests : []);
 		}
 	}
@@ -542,7 +463,7 @@ function FriendListRequest(props) {
 	const acceptRequest = async (requestID) => {
 		if (!requestID)
 			return;
-		const res = await api(`/friends/request/${requestID}/accept`, { method: "POST" });
+		const res = await apiPost(`/friends/request/${requestID}/accept`);
 		if (res.ok) {
 			props.getFriends();
 			getFriendRequests();
@@ -552,17 +473,16 @@ function FriendListRequest(props) {
 	const declineRequest = async (requestID) => {
 		if (!requestID)
 			return;
-		const res = await api(`/friends/request/${requestID}/decline`, { method: "POST" });
+		const res = await apiPost(`/friends/request/${requestID}/decline`);
 		if (res.ok) {
 			getFriendRequests();
 		}
 	};
 
 	const getFriendRequests = async () => {
-		const res = await api("/friends/requests");
+		const res = await apiGet("/friends/requests");
 		if (res.ok) {
-			const requests = JSON.parse(res.body);
-			console.log("requete test", requests);
+			const requests = res.json;
 			user.setFriendRequests(Array.isArray(requests) ? requests : []);
 		}
 	}
@@ -673,7 +593,7 @@ function DMSection({ auth }) {
 
     const connectDM = async (username) => {
         userCon.setMessages([])
-        socket.connect(`${WS}/ws/dm/${username}`, (event) => handlerRef.current(event))
+		socket.connect(wsUrl(`/ws/dm/${username}`), (event) => handlerRef.current(event))
     }
 
 	function isTyping(e) {
@@ -687,7 +607,7 @@ function DMSection({ auth }) {
     }
 
 	const isConnected = async () => {
-		presenceScoket.connect(`${WS}/ws/presence`, (event) => handlerRef.current(event))
+		presenceScoket.connect(wsUrl("/ws/presence"), (event) => handlerRef.current(event))
 	}
 
     function handleKey(e) {
@@ -696,9 +616,9 @@ function DMSection({ auth }) {
     }
 
 	const getFriends = async () => {
-		const res = await api("/friends");
+		const res = await apiGet("/friends");
 		if (res.ok) {
-			const friends = JSON.parse(res.body);
+			const friends = res.json;
 			userCon.setFriends(Array.isArray(friends) ? friends : []);
 		}
 	}
@@ -708,7 +628,7 @@ function DMSection({ auth }) {
 
 		<ProfilShowcase />
 
-		<ProfileAvatar />
+		{/* <ProfileAvatar /> */}
 
         <Section title="DM Socket">
 
@@ -732,6 +652,9 @@ function DMSection({ auth }) {
 export function FriendChat() {
     const auth = useAuth()
 	const [isMinimized, setIsMinimized] = useState(false);
+
+	if (auth.loading || !auth.user)
+		return ;
 
     return (
         <div className="chat">
