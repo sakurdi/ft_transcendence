@@ -71,9 +71,9 @@ func routes(c *config.Config) http.Handler {
 
 		r.Put("/user/{username}", users.UpdateUserHandler(c))
 
-		r.Get("/user/api-keys", users.ListAPIKeysHandler(c))
-		r.Post("/user/api-keys", users.CreateAPIKeyHandler(c))
-		r.Delete("/user/api-keys/{keyID}", users.RevokeAPIKeyHandler(c))
+		r.Get("/api-keys", users.ListAPIKeysHandler(c))
+		r.Post("/api-keys", users.CreateAPIKeyHandler(c))
+		r.Delete("/api-keys/{keyID}", users.RevokeAPIKeyHandler(c))
 
 		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
 
