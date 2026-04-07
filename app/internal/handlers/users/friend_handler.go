@@ -24,18 +24,18 @@ func FriendHandler(c *config.Config) http.HandlerFunc {
 		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
 
 		if err != nil {
-			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid friendUsername")
 			return
 		}
 		if userID == friendID {
-			http.Error(w, "Cannot add yourself as a friend", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Cannot add yourself as a friend")
 			return
 		}
 		if err := store.AddFriend(c.DB, r.Context(), userID, friendID); err != nil {
-			http.Error(w, "Failed to add friend", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to add friend")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "friend added"})
+		utils.WriteNewResponse(w, true, "Friend added", map[string]string{"status": "friend added"})
 	}
 }
 
@@ -45,18 +45,18 @@ func UnfriendHandler(c *config.Config) http.HandlerFunc {
 		friendUsername := chi.URLParam(r, "friendUsername")
 		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
 		if err != nil {
-			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid friendUsername")
 			return
 		}
 		if userID == friendID {
-			http.Error(w, "Cannot remove yourself as a friend", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Cannot remove yourself as a friend")
 			return
 		}
 		if err := store.DeleteFriend(c.DB, r.Context(), userID, friendID); err != nil {
-			http.Error(w, "Failed to remove friend", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to remove friend")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "friend removed"})
+		utils.WriteNewResponse(w, true, "Friend removed", map[string]string{"status": "friend removed"})
 	}
 }
 
@@ -65,10 +65,10 @@ func GetFriendsHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		friends, err := store.GetFriends(c.DB, r.Context(), userID)
 		if err != nil {
-			http.Error(w, "Failed to get friends", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to get friends")
 			return
 		}
-		utils.JSON(w, http.StatusOK, friends)
+		utils.WriteNewResponse(w, true, "Success", friends)
 	}
 }
 
@@ -78,18 +78,18 @@ func SendFriendRequestHandler(c *config.Config) http.HandlerFunc {
 		friendUsername := chi.URLParam(r, "friendUsername")
 		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
 		if err != nil {
-			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid friendUsername")
 			return
 		}
 		if userID == friendID {
-			http.Error(w, "Cannot add yourself as a friend", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Cannot add yourself as a friend")
 			return
 		}
 		if err := store.SendFriendRequest(c.DB, r.Context(), userID, friendID); err != nil {
-			http.Error(w, "Failed to send request", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to send request")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "Request sent"})
+		utils.WriteNewResponse(w, true, "Request sent", map[string]string{"status": "Request sent"})
 	}
 }
 
@@ -99,19 +99,19 @@ func AcceptFriendRequestHandler(c *config.Config) http.HandlerFunc {
 		friendUsername := chi.URLParam(r, "friendUsername")
 		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
 		if err != nil {
-			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid friendUsername")
 			return
 		}
 		if userID == friendID {
-			http.Error(w, "Cannot accept your own friend request", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Cannot accept your own friend request")
 			return
 		}
 
 		if err := store.AcceptFriendRequest(c.DB, r.Context(), userID, friendID); err != nil {
-			http.Error(w, "Failed to accept request", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to accept request")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "Friend added"})
+		utils.WriteNewResponse(w, true, "Friend request accepted", map[string]string{"status": "Friend request accepted"})
 	}
 }
 
@@ -121,19 +121,19 @@ func DeclineFriendRequestHandler(c *config.Config) http.HandlerFunc {
 		friendUsername := chi.URLParam(r, "friendUsername")
 		friendID, err := store.GetUserID(c.DB, r.Context(), friendUsername)
 		if err != nil {
-			http.Error(w, "Invalid friendUsername", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid friendUsername")
 			return
 		}
 		if userID == friendID {
-			http.Error(w, "Cannot decline your own friend request", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Cannot decline your own friend request")
 			return
 		}
 
 		if err := store.DeclineFriendRequest(c.DB, r.Context(), userID, friendID); err != nil {
-			http.Error(w, "Failed to decline request", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to decline request")
 			return
 		}
-		utils.JSON(w, http.StatusOK, map[string]string{"status": "Friend request declined"})
+		utils.WriteNewResponse(w, true, "Friend request declined", map[string]string{"status": "Friend request declined"})
 	}
 }
 
@@ -142,10 +142,10 @@ func GetFriendRequestHandler(c *config.Config) http.HandlerFunc {
 		userID := middleware.GetUserID(c, r)
 		requests, err := store.GetPendingFriendRequests(c.DB, r.Context(), userID)
 		if err != nil {
-			http.Error(w, "Failed to get requests", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to get requests")
 			return
 		}
-		utils.JSON(w, http.StatusOK, requests)
+		utils.WriteNewResponse(w, true, "Success", requests)
 	}
 }
 
@@ -154,14 +154,14 @@ func GetUserProfileHandler(c *config.Config) http.HandlerFunc {
 		username := chi.URLParam(r, "username")
 		_, err := store.GetUserID(c.DB, r.Context(), username)
 		if err != nil {
-			http.Error(w, "Failed to get user profile", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Invalid username")
 			return
 		}
 		if _, err := store.GetUserProfile(c.DB, r.Context(), username); err != nil {
-			http.Error(w, "Failed to get user profile", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Failed to get user profile")
 			return
 		}
-		utils.JSON(w, http.StatusOK, models.UserProfile{
+		utils.WriteNewResponse(w, true, "Success", models.UserProfile{
 			Login: username,
 			Avatar: store.GetAvatarURL(c.DB, r.Context(), username),
 		})
@@ -173,7 +173,7 @@ func ServeAvatar(c *config.Config) http.HandlerFunc {
 		fileName := chi.URLParam(r, "fileName")
 		filePath := filepath.Join("/app/uploads/avatars", fileName)
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			http.Error(w, "File not found", http.StatusNotFound)
+			utils.WriteNewResponse(w, false, "File not found")
 			return
 		}
 		http.ServeFile(w, r, filePath)
@@ -188,14 +188,14 @@ func UploadAvatarHandler(c *config.Config) http.HandlerFunc {
 
 		file, handler, err := r.FormFile("avatar")
 		if err != nil {
-			http.Error(w, "Error retrieving file", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Error retrieving file")
 			return
 		}
 		defer file.Close()
 
 		ext := filepath.Ext(handler.Filename)
 		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-			http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
+			utils.WriteNewResponse(w, false, "Format not authorized")
 			return
 		}
 
@@ -206,7 +206,7 @@ func UploadAvatarHandler(c *config.Config) http.HandlerFunc {
 		
 		dst, err := os.Create(savePath)
 		if err != nil {
-			http.Error(w, "Error saving file", http.StatusInternalServerError)
+			utils.WriteNewResponse(w, false, "Error saving file")
 			return
 		}
 		defer dst.Close()
@@ -215,6 +215,6 @@ func UploadAvatarHandler(c *config.Config) http.HandlerFunc {
 		avatarURL := "/api/uploads/avatars/" + fileName
 		store.UpdateAvatar(c.DB, r.Context(), userID, avatarURL)
 
-		utils.JSON(w, http.StatusOK, map[string]string{"avatar_url": avatarURL})
+		utils.WriteNewResponse(w, true, "Avatar uploaded", map[string]string{"avatar_url": avatarURL})
 	}
 }
