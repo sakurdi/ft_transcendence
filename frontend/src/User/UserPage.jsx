@@ -82,7 +82,7 @@ export default function UserPage() {
 	if (loading || userHandle.loading) return <Loading/>
 	if (!userinfo) return "User does not exist"
 	const canEdit = (userHandle.user?.username == userinfo.username) 
-	console.log(userHandle.user)
+	// console.log(userHandle.user)
 	return (
 		<div>
 			<img src={userinfo.avatar_url}/>
