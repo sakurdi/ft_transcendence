@@ -534,24 +534,6 @@ function DMSection({ auth }) {
 
 	const userCon = useContext(FriendContext);
 
-    useEffect(() => {
-        console.log(userConnected)
-    }, [userConnected])
-
-
-    // auto-connect when user logs in
-    useEffect(() => {
-        if (auth.user) {
-			connectDM()
-			isConnected()
-			console.log("connectDM")
-		}
-        else {
-            socket.disconnect()
-			presenceScoket.disconnect()
-            userCon.setMessages([])
-        }
-    }, [auth.user])
 
 	const userWentOffline = (userToRemove) => {
 		console.log("userToRemove", userToRemove);
@@ -592,6 +574,8 @@ function DMSection({ auth }) {
     }
 
     const connectDM = async (username) => {
+		if (!username)
+			return
         userCon.setMessages([])
 		socket.connect(wsUrl(`/ws/dm/${username}`), (event) => handlerRef.current(event))
     }
@@ -602,6 +586,8 @@ function DMSection({ auth }) {
 	}
 
     function sendMessage() {
+		if (message.trim() === "")
+			return;
         if (socket.send({ content: message }))
 			setMessage("")
     }
@@ -622,6 +608,23 @@ function DMSection({ auth }) {
 			userCon.setFriends(Array.isArray(friends) ? friends : []);
 		}
 	}
+
+	useEffect(() => {
+		console.log(userConnected)
+	}, [userConnected])
+
+
+	// auto-connect when user logs in
+	useEffect(() => {
+		if (auth.user) {
+			isConnected()
+		}
+		else {
+			socket.disconnect()
+			presenceScoket.disconnect()
+			userCon.setMessages([])
+		}
+	}, [auth.user])
 
     return (
 		<>

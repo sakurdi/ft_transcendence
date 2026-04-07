@@ -90,7 +90,7 @@ export default function UserPage() {
 					alt="avatar123"
 					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
-			<ProfileAvatar onUploaded={fetchUserinfo}/>
+			{canEdit && <ProfileAvatar onUploaded={fetchUserinfo}/>}
 
 			{userinfo.username}
 			<time dateTime = {userinfo.member_since}>
