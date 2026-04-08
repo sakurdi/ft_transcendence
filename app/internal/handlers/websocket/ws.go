@@ -34,15 +34,18 @@ func CheckPresence(c *config.Config) http.HandlerFunc {
 
 		senderID := middleware.GetUserID(c, r)
 		senderUsername, _ := store.GetUserLogin(c.DB, r.Context(), senderID)
-
-		friendList, err := store.GetFriendsID(c.DB, r.Context(), senderID)
-		if err != nil {
-			http.Error(w, "Failed to get friends", http.StatusInternalServerError)
-			return
-		}
 		room := ws.FriendRoom(senderID, nil)
 
+		getFriendList := func() []int {
+			friendList, err := store.GetFriendsID(c.DB, r.Context(), senderID)
+			if err != nil {
+				return nil
+			}
+			return friendList
+		}
+
 		onConnect := func(conn *ws.Conn) {
+			friendList := getFriendList()
 			for _, friendID := range friendList {
 				friendRoom := ws.FriendRoom(friendID, nil)
 				if !c.Hub.HasSubscribers(friendRoom) {
@@ -68,6 +71,7 @@ func CheckPresence(c *config.Config) http.HandlerFunc {
 		}
 
 		onDisconnect := func(conn *ws.Conn) {
+			friendList := getFriendList()
 			for _, friendID := range friendList {
 				friendRoom := ws.FriendRoom(friendID, nil)
 				c.Hub.Broadcast(friendRoom, ws.Event{Type: "connection", Data: "isoffline", User: senderUsername})

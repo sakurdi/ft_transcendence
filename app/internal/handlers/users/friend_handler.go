@@ -5,6 +5,7 @@ import (
 	"ft_transcendence/internal/models"
 	"ft_transcendence/internal/store"
 	"ft_transcendence/internal/utils"
+	"ft_transcendence/internal/ws"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -114,6 +115,20 @@ func AcceptFriendRequestHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Failed to accept request")
 			return
 		}
+
+		userUsername, err := store.GetUserLogin(c.DB, r.Context(), userID)
+		if err == nil {
+			friendRoom := ws.FriendRoom(friendID, nil)
+			if c.Hub.HasSubscribers(ws.FriendRoom(userID, nil)) {
+				c.Hub.Broadcast(friendRoom, ws.Event{Type: "connection", Data: "isonline", User: userUsername})
+			}
+		}
+
+		if c.Hub.HasSubscribers(ws.FriendRoom(friendID, nil)) {
+			selfRoom := ws.FriendRoom(userID, nil)
+			c.Hub.Broadcast(selfRoom, ws.Event{Type: "connection", Data: "isonline", User: friendUsername})
+		}
+
 		utils.WriteNewResponse(w, true, "Friend request accepted", map[string]string{"status": "Friend request accepted"})
 	}
 }
