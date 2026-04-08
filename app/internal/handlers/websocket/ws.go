@@ -45,6 +45,24 @@ func CheckPresence(c *config.Config) http.HandlerFunc {
 		onConnect := func(conn *ws.Conn) {
 			for _, friendID := range friendList {
 				friendRoom := ws.FriendRoom(friendID, nil)
+				if !c.Hub.HasSubscribers(friendRoom) {
+					continue
+				}
+
+				friendUsername, err := store.GetUserLogin(c.DB, r.Context(), friendID)
+				if err != nil {
+					continue
+				}
+
+				data, err := json.Marshal(ws.Event{Type: "connection", Data: "isonline", User: friendUsername})
+				if err != nil {
+					continue
+				}
+				conn.Write(data)
+			}
+
+			for _, friendID := range friendList {
+				friendRoom := ws.FriendRoom(friendID, nil)
 				c.Hub.Broadcast(friendRoom, ws.Event{Type: "connection", Data: "isonline", User: senderUsername})
 			}
 		}

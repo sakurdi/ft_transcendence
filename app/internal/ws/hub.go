@@ -70,6 +70,12 @@ func (h *Hub) Broadcast(room string, event Event) {
 	}
 }
 
+func (h *Hub) HasSubscribers(room string) bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return len(h.rooms[room]) > 0
+}
+
 func (h *Hub) Serve(
 	w http.ResponseWriter,
 	r *http.Request,
