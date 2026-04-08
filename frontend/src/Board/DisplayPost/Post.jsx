@@ -1,11 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
-// import useAuth from "../User/AuthProvider";
-// import { apiDelete, apiGet } from "../Utils/api";
-// import TextButton, { TextLink } from "../components/TextButton";
-// import getRandomPastel from "../Utils/colors";
-// import TextArea, { TextAreaTitle } from "../components/TextArea";
-// import Tooltip from "../components/Tooltip";
+
 import getFileFormat from "../../Utils/Data";
 import { BASE } from "../../Utils/api.jsx";
 
@@ -85,7 +80,7 @@ function DisplayFile({post}) {
 	</div>
 }
 
-export default function DisplayPost({post, privilegeLvl, refreshKey})
+export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
 {
 	const navigate = useNavigate()
 	const userHandle = useAuth()

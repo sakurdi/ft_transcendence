@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
-import { apiPost } from "../Utils/api"
+import { apiPostFormData } from "../Utils/api"
 import TextInput from "../components/TextInput"
 import useNotif from "../components/Notif"
 import getFileFormat from "../Utils/Data"
@@ -120,18 +120,8 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	async function onSubmit() {	
 		console.log(`Title: ${title}  | "${content}"`)
 
-		const res = await fetch(`/api/board/${board.id}/post`, {
-					method: 'POST',
-					body: buildFormData()
-				})
+		const res = await apiPostFormData(`/board/${board.id}/post`, { body: buildFormData() });
 
-		// const res = await apiPost(`/board/${board.id}/post`,
-		// 		{body: JSON.stringify({
-		// 			'title': title,
-		// 			'content': content,
-		// 			'parent_id': null
-		// 		})
-		// 	})
 		if (!res.ok) {
 			notifHandle.pushError(res.status)
 		} else {
