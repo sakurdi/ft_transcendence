@@ -5,6 +5,7 @@ import useAuth from "../User/AuthProvider";
 import "./Friend.css"
 import { apiDelete, apiGet, apiPost, apiPostFormData } from "../Utils/api";
 import { buildAcceptedAvatarFormat } from "../Utils/Data";
+import Input from "../components/TextInput";
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -110,19 +111,6 @@ function Section({ title, children }) {
 
 function Row({ children }) {
     return <div className="flex flex-wrap items-center gap-2">{children}</div>
-}
-
-function Input({ placeholder, value, onChange, onKeyDown, type = "text", className = "" }) {
-    return (
-        <input
-            type={type}
-            placeholder={placeholder}
-            value={value}
-            onChange={e => {onChange(e.target.value)}}
-            onKeyDown={(e) => {onKeyDown?.(e)}}
-            className={`border border-stone-200 rounded px-3 py-1.5 text-sm bg-stone-50 outline-none focus:border-stone-400 font-mono w-40 ${className}`}
-        />
-    )
 }
 
 function Btn({ onClick, children, variant = "default", className = "" }) {
