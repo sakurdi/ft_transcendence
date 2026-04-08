@@ -606,7 +606,13 @@ function DMSection({ auth }) {
 	// auto-connect when user logs in
 	useEffect(() => {
 		if (auth.user) {
-			isConnected()
+			const timer = setTimeout(() => {
+				isConnected()
+			}, 50)
+
+			return () => {
+				clearTimeout(timer)
+			}
 		}
 		else {
 			socket.disconnect()
