@@ -83,54 +83,59 @@ export default function BoardList() {
 
 	return (
 		<>
-		<label>
-			SELECT PAGE:
-			<select name="page"
+		<div>
+			<label htmlFor="id-page" className="form-label">Select a page:</label>
+			<select id="id-page"
+					name="page"
 					value={page}
-					onChange={e => setPage(Number(e.target.value))}>
+					onChange={e => setPage(Number(e.target.value))}
+					className="form-select">
 				{pages.map((pageNumber) => (
 					<option key={pageNumber} value={pageNumber}>
 						page {pageNumber}
 					</option>
 				))}
 			</select>
-		</label>
-<br/>
-		<label>
-			Select number of board shown:
-			<select name="limit"
-					defaultValue="10"
+		</div>
+
+		<div>
+			<label htmlFor="id-limit" className="form-label">Select number of board shown:</label>
+			<select id="id-limit"
+					name="limit"
 					value={limit}
-					onChange={e => setLimit(Number(e.target.value))}>
+					onChange={e => setLimit(Number(e.target.value))}
+					className="form-select">
 				<option value="10">10</option>
 				<option value="25">25</option>
 				<option value="50">50</option>
 			</select>
-		</label>
-<br/>
-		<label>
-			Select how to sort:
-			<select name="sort"
-					defaultValue="created_at"
+		</div>
+
+		<div>
+			<label htmlFor="id-sort" className="form-label">Select how to sort:</label>
+			<select id="id-sort"
+					name="sort"
 					value={sort}
-					onChange={e => setSort(e.target.value)}>
+					onChange={e => setSort(e.target.value)}
+					className="form-select">
 				<option value="created_at">created_at</option>
 				<option value="id">id</option>
 				<option value="name">name</option>
 			</select>
-		</label>
-<br/>
-		<label>
-			Select how to order:
-			<select name="order"
-					defaultValue="asc"
+		</div>
+
+		<div>
+			<label htmlFor="id-order" className="form-label">Select how to order:</label>
+			<select id="id-order"
+					name="order"
 					value={order}
-					onChange={e => setOrder(e.target.value)}>
+					onChange={e => setOrder(e.target.value)}
+					className="form-select">
 				<option value="asc">ascendant</option>
-				<option value="desc">descenat</option>
+				<option value="desc">descendant</option>
 			</select>
-		</label>
-<br/>
+		</div>
+
 		<TextInput value={filter}
 				onChange={(filter) => setFilter(filter)}
 				placeholder = ""
