@@ -22,6 +22,7 @@ type Post struct {
 	Username  string    `json:"username"`
 	Title     *string   `json:"title"`
 	Content   string    `json:"content"`
+	UploadPath string   `json:"upload_path"`
 	ParentID  *int      `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -32,9 +33,10 @@ type BoardCreate struct {
 }
 
 type PostCreate struct {
-	Title    *string `json:"title"`
-	Content  string  `json:"content"`
-	ParentID *int    `json:"parent_id"`
+	Title    *string   `json:"title"`
+	Content  string    `json:"content"`
+	UploadPath string  `json:"upload_path"`
+	ParentID *int      `json:"parent_id"`
 }
 
 type BoardRole struct {

@@ -28,6 +28,8 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/post/{postID}", boards.GetPostHandler(c))
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
+	mux.Get("/app/uploads/database/{fileName}", boards.ServeUpload(c))
+	// mux.Put(/api)
 
 	mux.Get("/uploads/avatars/{fileName}", users.ServeAvatar(c))
 
@@ -49,7 +51,7 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/logout", users.LogoutHandler(c))
 		r.Post("/board/new", boards.CreateBoardHandler(c))
 
-		r.Post("/board/{boardID}/post", boards.PostHandler(c))
+		r.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
 		r.Post("/post/{postID}/reply", boards.ReplyHandler(c))
 		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
