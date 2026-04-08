@@ -7,6 +7,7 @@ import useNotif from "../components/Notif";
 import TextInput from "../components/TextInput"
 import {ButtonLink} from "../components/Button";
 
+import './DisplayBoardSearch.css'
 
 export default function BoardList() {
 	const userHandle = useAuth()
@@ -62,6 +63,14 @@ export default function BoardList() {
 		console.log("response", response)
 	}
 
+	const clearFilter = () => {
+		setPage(1);
+		setLimit(10);
+		setSort("name");
+		setOrder("asc");
+		setFilter("");
+	}
+
 	useEffect(() => {
 		if (userHandle.loading) {
 			return
@@ -83,7 +92,7 @@ export default function BoardList() {
 
 	return (
 		<>
-		<div>
+		<div className="form-div">
 			<label htmlFor="id-page" className="form-label">Select a page:</label>
 			<select id="id-page"
 					name="page"
@@ -98,7 +107,7 @@ export default function BoardList() {
 			</select>
 		</div>
 
-		<div>
+		<div className="form-div">
 			<label htmlFor="id-limit" className="form-label">Select number of board shown:</label>
 			<select id="id-limit"
 					name="limit"
@@ -111,7 +120,7 @@ export default function BoardList() {
 			</select>
 		</div>
 
-		<div>
+		<div className="form-div">
 			<label htmlFor="id-sort" className="form-label">Select how to sort:</label>
 			<select id="id-sort"
 					name="sort"
@@ -124,7 +133,7 @@ export default function BoardList() {
 			</select>
 		</div>
 
-		<div>
+		<div className="form-div">
 			<label htmlFor="id-order" className="form-label">Select how to order:</label>
 			<select id="id-order"
 					name="order"
@@ -136,19 +145,31 @@ export default function BoardList() {
 			</select>
 		</div>
 
-		<TextInput value={filter}
+		<TextInput className="form-search"
+				value={filter}
 				onChange={(filter) => setFilter(filter)}
 				placeholder = ""
 				onEnter = {fetchBoards}
 		/>
 
-		<button type="button" onClick={fetchBoards}>
+		<div>
+			<button type="button"
+				onClick={fetchBoards}
+				className="form-bnt">
 			SEARCH
-		 </button>
-
+			</button>
+		</div>
+		
+		<div>
+			<button type="button"
+					onClick={clearFilter}
+					className="form-btn">
+				Clear filter
+			</button>
+		</div>
 
 		<section >
-			<h1>Boards</h1>
+			<h1 className="head-board">Boards</h1>
 			<p>{totalResult} result found</p>
 			{boards.length === 0 ? (
 				<p>no board found</p>
