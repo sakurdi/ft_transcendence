@@ -92,81 +92,93 @@ export default function BoardList() {
 
 	return (
 		<>
-		<div className="form-div">
-			<label htmlFor="id-page" className="form-label">Select a page:</label>
-			<select id="id-page"
-					name="page"
-					value={page}
-					onChange={e => setPage(Number(e.target.value))}
-					className="form-select">
-				{pages.map((pageNumber) => (
-					<option key={pageNumber} value={pageNumber}>
-						page {pageNumber}
-					</option>
-				))}
-			</select>
-		</div>
+		<section className="filter-section">
 
-		<div className="form-div">
-			<label htmlFor="id-limit" className="form-label">Select number of board shown:</label>
-			<select id="id-limit"
-					name="limit"
-					value={limit}
-					onChange={e => setLimit(Number(e.target.value))}
-					className="form-select">
-				<option value="10">10</option>
-				<option value="25">25</option>
-				<option value="50">50</option>
-			</select>
-		</div>
+			<div className="form-div">
+				<label htmlFor="id-page" className="form-label">Select a page:</label>
+				<select id="id-page"
+						name="page"
+						value={page}
+						onChange={e => setPage(Number(e.target.value))}
+						className="form-select">
+					{pages.map((pageNumber) => (
+						<option key={pageNumber} value={pageNumber}>
+							page {pageNumber}
+						</option>
+					))}
+				</select>
+			</div>
 
-		<div className="form-div">
-			<label htmlFor="id-sort" className="form-label">Select how to sort:</label>
-			<select id="id-sort"
-					name="sort"
-					value={sort}
-					onChange={e => setSort(e.target.value)}
-					className="form-select">
-				<option value="created_at">created_at</option>
-				<option value="id">id</option>
-				<option value="name">name</option>
-			</select>
-		</div>
 
-		<div className="form-div">
-			<label htmlFor="id-order" className="form-label">Select how to order:</label>
-			<select id="id-order"
-					name="order"
-					value={order}
-					onChange={e => setOrder(e.target.value)}
-					className="form-select">
-				<option value="asc">ascendant</option>
-				<option value="desc">descendant</option>
-			</select>
-		</div>
+			<div className="form-div">
+				<label htmlFor="id-limit" className="form-label">Select number of board shown:</label>
+				<select id="id-limit"
+						name="limit"
+						value={limit}
+						onChange={e => setLimit(Number(e.target.value))}
+						className="form-select">
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+				</select>
+			</div>
 
-		<TextInput className="form-search"
-				value={filter}
-				onChange={(filter) => setFilter(filter)}
-				placeholder = ""
-				onEnter = {fetchBoards}
-		/>
 
-		<div>
-			<button type="button"
-				onClick={fetchBoards}
-				className="form-bnt">
-			SEARCH
-			</button>
-		</div>
-		
-		<div>
-			<button type="button"
-					onClick={clearFilter}
-					className="form-btn">
-				Clear filter
-			</button>
-		</div>
+			<div className="form-div">
+				<label htmlFor="id-sort" className="form-label">Select how to sort:</label>
+				<select id="id-sort"
+						name="sort"
+						value={sort}
+						onChange={e => setSort(e.target.value)}
+						className="form-select">
+					<option value="created_at">created_at</option>
+					<option value="id">id</option>
+					<option value="name">name</option>
+				</select>
+			</div>
+
+
+			<div className="form-div">
+				<label htmlFor="id-order" className="form-label">Select how to order:</label>
+				<select id="id-order"
+						name="order"
+						value={order}
+						onChange={e => setOrder(e.target.value)}
+						className="form-select">
+					<option value="asc">ascendant</option>
+					<option value="desc">descendant</option>
+				</select>
+			</div>
+			
+
+			<TextInput value={filter}
+					onChange={(filter) => setFilter(filter)}
+					placeholder = ""
+					onEnter = {fetchBoards}
+			/>
+
+
+			<div className="btn-actions">
+				<div>
+					<button type="button"
+						onClick={fetchBoards}
+						className="form-btn-search">
+					SEARCH
+					</button>
+				</div>
+				
+
+				<div>
+					<button type="button"
+							onClick={clearFilter}
+							className="form-btn-clear">
+						Clear filter
+					</button>
+				</div>
+			</div>
+
+
+		</section>
 
 		<section >
 			<h1 className="head-board">Boards</h1>
