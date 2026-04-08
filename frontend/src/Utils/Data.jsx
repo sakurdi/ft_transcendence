@@ -30,6 +30,12 @@ const mime = {
 	"txt": "text/plain"
 }
 
+const mimeAvatar = {
+	"jpg": "image/jpg",
+	"jpeg": "image/jpeg",
+	"png": "image/png"
+}
+
 const contentTypeData = {
 	"image/jpeg": "image",
 	"image/jpg": "image",
@@ -61,6 +67,12 @@ export function getFileFormatWithURL(fileURL) {
 
 export function buildAcceptedFormat() {
 	var accepted = Object.entries(mime).map(([ext, type]) => `${type}`).join(", ");
+	console.log("accepetd", accepted)
+	return accepted;
+}
+
+export function buildAcceptedAvatarFormat() {
+	var accepted = Object.entries(mimeAvatar).map(([ext, type]) => `${type}`).join(", ");
 	console.log("accepetd", accepted)
 	return accepted;
 }

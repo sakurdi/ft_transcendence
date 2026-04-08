@@ -4,6 +4,7 @@ import { createContext, useContext } from "react"
 import useAuth from "../User/AuthProvider";
 import "./Friend.css"
 import { apiDelete, apiGet, apiPost, apiPostFormData } from "../Utils/api";
+import { buildAcceptedAvatarFormat } from "../Utils/Data";
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -238,7 +239,7 @@ export function ProfileAvatar({ onUploaded }) {
 				className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
 			<input type="file" 
-				accept="image/png, image/jpeg, image/jpg" 
+				accept={buildAcceptedAvatarFormat()} 
 				onChange={handleFileChange} 
 				className="text-xs"/>
 

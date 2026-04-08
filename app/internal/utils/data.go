@@ -38,6 +38,12 @@ var contentTypeData = map[string]string {
 	"text/plain": ".txt",
 }
 
+var avatarContentTypeData = map[string]string {
+	"image/jpg": ".jpg",
+	"image/jpeg": ".jpeg",
+	"image/png": ".png",
+}
+
 func GetExtension(ext string) (string, error) {
 	ext = strings.ToLower(ext)
 
@@ -61,4 +67,13 @@ func GetContentType(contentType string) (string, error) {
 	}
 
 	return mediaType, nil
+}
+
+func GetAvatarContentType(contentType string) (string, error) {
+	avatarExt, exist := avatarContentTypeData[contentType]
+	if (!exist) {
+		return "", errors.New("Content Type not supported for avatar")
+	}
+
+	return avatarExt, nil
 }

@@ -17,6 +17,9 @@ import (
     "path/filepath"
     "fmt"
 )
+
+const MaxAvatarSize = 1 << 20 // 1 MB
+
 func FriendHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
@@ -184,18 +187,32 @@ func UploadAvatarHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
 
-		r.ParseMultipartForm(1 << 20) 
+		err := r.ParseMultipartForm(MaxAvatarSize)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Error parsing form data")
+			return
+		}
 
-		file, handler, err := r.FormFile("avatar")
+		file, _, err := r.FormFile("avatar")
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Error retrieving file")
 			return
 		}
 		defer file.Close()
 
-		ext := filepath.Ext(handler.Filename)
-		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-			utils.WriteNewResponse(w, false, "Format not authorized")
+		buffer := make([]byte, 512)
+		_, err = file.Read(buffer)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Error reading file")
+			return
+		}
+		file.Seek(0, 0)
+
+		contentType := http.DetectContentType(buffer)
+		
+		ext, err := utils.GetAvatarContentType(contentType)
+		if (err != nil) {
+			utils.WriteNewResponse(w, false, "File type not allowed")
 			return
 		}
 

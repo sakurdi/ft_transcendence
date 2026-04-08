@@ -16,12 +16,12 @@ import (
 
 	"io"
 	"os"
-	// "fmt"
 	"path/filepath"
-	// base64 "encoding/base64"
 )
 
 const upload_database_path string = "/app/uploads/database"
+
+const maxUploadSize = 5 << 20 // 5 MB
 
 func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +122,7 @@ func ServeUpload(c *config.Config) http.HandlerFunc {
 		filePath := filepath.Join("/app/uploads/database", fileName)
 
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			http.Error(w, "File not found", http.StatusNotFound)
+			utils.WriteNewResponse(w, false, "File not found")
 			return
 		}
 		http.ServeFile(w, r, filePath)
@@ -139,9 +139,9 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		err2 := r.ParseMultipartForm(5 << 20)
+		err2 := r.ParseMultipartForm(maxUploadSize)
 		if (err2 != nil) {
-			http.Error(w, "Error multipart form", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Error parsing form data")
 			return
 		}
 
@@ -150,7 +150,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 		parent_id := r.FormValue("parent_id")
 		parent_id_int, err := strconv.Atoi(parent_id)
 		if (err != nil) {
-			http.Error(w, "Error parent_id_int when strconv", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Invalid parent ID")
 			return
 		}
 		var parentIDptr *int
@@ -165,7 +165,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 		}
 
 		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
-			http.Error(w, "Threads need a title", http.StatusBadRequest)
+			utils.WriteNewResponse(w, false, "Threads need a title")
 			return
 		}
 
@@ -184,7 +184,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 
 			ext, err := utils.GetContentType(contentType)
 			if (err != nil) {
-				http.Error(w, "Format not authorized", http.StatusUnsupportedMediaType)
+				utils.WriteNewResponse(w, false, "File type not allowed")
 				return
 			}
 
@@ -195,7 +195,7 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 
 			dst, err := os.Create((savePath))
 			if err != nil {
-				http.Error(w, "Error saving file", http.StatusInternalServerError)
+				utils.WriteNewResponse(w, false, "Error saving file")
 				return
 			}
 			defer dst.Close()
