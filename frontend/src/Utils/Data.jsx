@@ -8,10 +8,7 @@ const extension = {
 	"mpeg": "audio",
 
 	"mp4": "video",
-	"webm": "video",
-
-	"pdf": "application",
-	"txt": "text"
+	"webm": "video"
 }
 
 const mime = {
@@ -24,10 +21,7 @@ const mime = {
 	"mpeg": "audio/mpeg",
 
 	"mp4": "video/mp4",
-	"webm": "video/webm",
-
-	"pdf": "application/pdf",
-	"txt": "text/plain"
+	"webm": "video/webm"
 }
 
 const mimeAvatar = {
@@ -46,10 +40,7 @@ const contentTypeData = {
 	"audio/mp4": "audio",
 
 	"video/mp4": "video",
-	"video/webm": "video",
-
-	"application/pdf": "application",
-	"text/plain": "text"
+	"video/webm": "video"
 }
 
 export default function getFileFormat(fileExtension) {
