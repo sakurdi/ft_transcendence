@@ -5,13 +5,9 @@ import { apiPostFormData } from "../Utils/api"
 import TextInput from "../components/TextInput"
 import useNotif from "../components/Notif"
 import getFileFormat from "../Utils/Data"
-import { buildAcceptedFormat, getFileFormatWithURL, getContentTypeData } from "../Utils/Data"
+import { buildAcceptedFormat, getFileFormatWithURL, getContentTypeData, getMagicNumber } from "../Utils/Data"
 import { maxFileSize } from "../Utils/Data"
-// type PostCreate struct {
-// 	Title    *string `json:"title"`
-// 	Content  string  `json:"content"`
-// 	ParentID *int    `json:"parent_id"`
-// }
+
 function MediaPreview({file, previewUrl}) {
 	if (!file)
 		return
@@ -54,21 +50,32 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	const infoElementError = document.getElementById("input-error");
 	const infoElement = document.getElementById("input-preview");
 
-	const handleFileError = (selectedFile) => {
+	const handleFileError = async (selectedFile) => {
 		if (selectedFile.size > maxFileSize) {
 			infoElementError.textContent = "File is too big";
 			infoElementError.style.color = "red";
 			throw new Error("File is too big");
 		}
-		else if (getContentTypeData(selectedFile.type) == "unknown") {
+
+		const declaredType = getContentTypeData(selectedFile.type);
+		if (declaredType == "unknown") {
 			infoElementError.textContent = "Wrong file type";
 			infoElementError.style.color = "red";
 			throw new Error("Wrong file type");
 		}
-		else if (getFileFormatWithURL(selectedFile.name) == "unknown") {
+
+		if (getFileFormatWithURL(selectedFile.name) == "unknown") {
 			infoElementError.textContent = "Wrong file extension";
 			infoElementError.style.color = "red";
 			throw new Error("Wrong file extension");
+		}
+
+		const magicType = await getMagicNumber(selectedFile);
+		console.log("magictype:", magicType)
+		if (magicType == "unknown" || magicType !== declaredType) {
+			infoElementError.textContent = "Wrong file type magic number";
+			infoElementError.style.color = "red";
+			throw new Error("Wrong file type magic number");
 		}
 		else {
 			infoElementError.textContent = "";
@@ -76,12 +83,12 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		}
 	}
 
-	const handleFileChange = (e) => {
+	const handleFileChange = async (e) => {
 		const selectedFile = e.target.files[0];
 
 		if (selectedFile) {
 			try {
-				handleFileError(selectedFile)
+				await handleFileError(selectedFile)
 			}
 			catch (err) {
 				setFile("")

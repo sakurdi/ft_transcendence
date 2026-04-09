@@ -8,7 +8,7 @@ import { buildAcceptedAvatarFormat } from "../Utils/Data";
 import Input from "../components/TextInput";
 import { maxAvatarSize } from "../Utils/Data";
 import { getFileFormatWithURL, getContentTypeData } from "../Utils/Data";
-import { getAvatarContentTypeData, getFileFormatAvatar } from "../Utils/Data";
+import { getAvatarContentTypeData, getFileFormatAvatar, getMagicNumberAvatar } from "../Utils/Data";
 
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
@@ -209,7 +209,7 @@ export function ProfileAvatar({ onUploaded }) {
         setPreviewUrl(URL.createObjectURL(selectedFile)); 
     };
 
-	const handleFileError = (selectedFile) => {
+	const handleFileError = async (selectedFile) => {
 		if (selectedFile.size > maxAvatarSize) {
 			console.log("File is too large");
 			throw new Error("File is too large");
@@ -222,6 +222,11 @@ export function ProfileAvatar({ onUploaded }) {
 			console.log("Wrong file type");
 			throw new Error("Wrong file type");
 		}
+		const magicType = await getMagicNumberAvatar(selectedFile);
+		if (magicType == "unknown") {
+			console.log("File content does not match its type");
+			throw new Error("File content does not match its type");
+		}
 		console.log("File is valid");
 	}
 
@@ -230,7 +235,7 @@ export function ProfileAvatar({ onUploaded }) {
 			return;
 
 		try {
-			handleFileError(file)
+			await handleFileError(file)
 			setFile(null);
 			setPreviewUrl(null);
 		}
@@ -239,7 +244,7 @@ export function ProfileAvatar({ onUploaded }) {
 			setPreviewUrl(null);
 			return;
 		}
-		
+
         const formData = new FormData();
         formData.append("avatar", file);
 		const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });
