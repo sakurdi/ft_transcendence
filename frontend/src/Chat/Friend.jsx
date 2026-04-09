@@ -9,7 +9,7 @@ import Input from "../components/TextInput";
 import { maxAvatarSize } from "../Utils/Data";
 import { getFileFormatWithURL, getContentTypeData } from "../Utils/Data";
 import { getAvatarContentTypeData, getFileFormatAvatar, getMagicNumberAvatar } from "../Utils/Data";
-
+import uploadFile from "../Utils/Upload";
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -247,7 +247,8 @@ export function ProfileAvatar({ onUploaded }) {
 
         const formData = new FormData();
         formData.append("avatar", file);
-		const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });
+		// const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });
+		const res = await uploadFile(`/uploads/avatar/${file.name}`, formData);
         if (res.ok) {
 			setPreviewUrl(null);
 			setFile(null);

@@ -7,6 +7,7 @@ import useNotif from "../components/Notif"
 import getFileFormat from "../Utils/Data"
 import { buildAcceptedFormat, getFileFormatWithURL, getContentTypeData, getMagicNumber } from "../Utils/Data"
 import { maxFileSize } from "../Utils/Data"
+import uploadFile from "../Utils/Upload"
 
 function MediaPreview({file, previewUrl}) {
 	if (!file)
@@ -129,8 +130,9 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	async function onSubmit() {	
 		console.log(`Title: ${title}  | "${content}"`)
 
-		const res = await apiPostFormData(`/board/${board.id}/post`, { body: buildFormData() });
-
+		// const res = await apiPostFormData(`/board/${board.id}/post`, { body: buildFormData() });
+		const res = await uploadFile(`/board/${board.id}/post`, buildFormData());
+		
 		if (!res.ok) {
 			notifHandle.pushError(res.status)
 		} else {
