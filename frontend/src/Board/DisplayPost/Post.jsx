@@ -58,16 +58,6 @@ function MediaRenderer({path}) {
 			return <p>
 					<video controls src={path}/>
 			</p>
-		
-		case 'application':
-			return <p>
-					<embed src={path} width="600px" height="300px"/>
-			</p>
-
-		case 'text':
-			return <p>
-					<a href src={path} download="file">Download</a> <a/>
-			</p>
 			
 		default:
 			<></>

@@ -46,6 +46,12 @@ const contentTypeData = {
 	"video/webm": "video"
 }
 
+const avatarContentTypeData = {
+	"image/jpeg": "image",
+	"image/jpg": "image",
+	"image/png": "image",
+}
+
 export default function getFileFormat(fileExtension) {
 	if (extension[fileExtension])
 		return extension[fileExtension]
@@ -56,6 +62,13 @@ export function getFileFormatWithURL(fileURL) {
 	const ext = fileURL.split('.').pop().toLowerCase()
 	if (extension[ext])
 		return extension[ext]
+	return "unknown"
+}
+
+export function getFileFormatAvatar(fileURL) {
+	const ext = fileURL.split('.').pop().toLowerCase()
+	if (mimeAvatar[ext])
+		return mimeAvatar[ext]
 	return "unknown"
 }
 
@@ -74,5 +87,11 @@ export function buildAcceptedAvatarFormat() {
 export function getContentTypeData(type) {
 	if (contentTypeData[type])
 		return contentTypeData[type]
+	return "unknown"
+}
+
+export function getAvatarContentTypeData(type) {
+	if (avatarContentTypeData[type])
+		return avatarContentTypeData[type]
 	return "unknown"
 }

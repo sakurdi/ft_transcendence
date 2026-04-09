@@ -7,6 +7,9 @@ import { apiDelete, apiGet, apiPost, apiPostFormData } from "../Utils/api";
 import { buildAcceptedAvatarFormat } from "../Utils/Data";
 import Input from "../components/TextInput";
 import { maxAvatarSize } from "../Utils/Data";
+import { getFileFormatWithURL, getContentTypeData } from "../Utils/Data";
+import { getAvatarContentTypeData, getFileFormatAvatar } from "../Utils/Data";
+
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -206,12 +209,34 @@ export function ProfileAvatar({ onUploaded }) {
         setPreviewUrl(URL.createObjectURL(selectedFile)); 
     };
 
-    const uploadAvatar = async () => {
+	const handleFileError = (selectedFile) => {
+		if (selectedFile.size > maxAvatarSize) {
+			console.log("File is too large");
+			throw new Error("File is too large");
+		}
+		else if (getFileFormatAvatar(selectedFile.name) == "unknown") {
+			console.log("Wrong file extension");
+			throw new Error("Wrong file extension");
+		}
+		else if (getAvatarContentTypeData(selectedFile.type) == "unknown") {
+			console.log("Wrong file type");
+			throw new Error("Wrong file type");
+		}
+		console.log("File is valid");
+	}
+
+    const uploadAvatar = async (e) => {
         if (!file)
 			return;
 
-		if (file.size > maxAvatarSize) {
-			console.log("File is too large");
+		try {
+			handleFileError(file)
+			setFile(null);
+			setPreviewUrl(null);
+		}
+		catch (err) {
+			setFile(null);
+			setPreviewUrl(null);
 			return;
 		}
 		
@@ -233,10 +258,11 @@ export function ProfileAvatar({ onUploaded }) {
 			<img src={previewUrl} 
 				className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
 
-			<input type="file" 
-				accept={buildAcceptedAvatarFormat()} 
+			<input id="avatar-upload"
+				type="file" 
+				// accept={buildAcceptedAvatarFormat()} 
 				onChange={handleFileChange} 
-				className="text-xs"/>
+				className="input-avatar"/>
 
 			<button onClick={uploadAvatar}
 				className="bg-sky-600 text-white rounded">

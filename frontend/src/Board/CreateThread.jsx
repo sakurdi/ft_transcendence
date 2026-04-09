@@ -35,16 +35,6 @@ function MediaPreview({file, previewUrl}) {
 			return <p>
 					<video controls src={previewUrl}/>
 			</p>
-		
-		case 'application':
-			return <p>
-					<embed src={previewUrl} width="600px" height="300px"/>
-			</p>
-
-		case 'text':
-			return <p>
-					<a href src={previewUrl} download="file">Download</a> <a/>
-			</p>
 			
 		default:
 			<></>
@@ -68,15 +58,16 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		if (selectedFile.size > maxFileSize) {
 			infoElementError.textContent = "File is too big";
 			infoElementError.style.color = "red";
-			setFile("")
-			setPreviewUrl("")
 			throw new Error("File is too big");
+		}
+		else if (getContentTypeData(selectedFile.type) == "unknown") {
+			infoElementError.textContent = "Wrong file type";
+			infoElementError.style.color = "red";
+			throw new Error("Wrong file type");
 		}
 		else if (getFileFormatWithURL(selectedFile.name) == "unknown") {
 			infoElementError.textContent = "Wrong file extension";
 			infoElementError.style.color = "red";
-			setFile("")
-			setPreviewUrl("")
 			throw new Error("Wrong file extension");
 		}
 		else {
@@ -89,11 +80,13 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		const selectedFile = e.target.files[0];
 
 		if (selectedFile) {
-
+			console.log("Selected file:", selectedFile.name, "Size:", selectedFile.size, "Type:", selectedFile.type);
 			try {
 				handleFileError(selectedFile)
 			}
 			catch (err) {
+				setFile("")
+				setPreviewUrl("")
 				console.log(err.message);
 				return;
 			}
@@ -165,7 +158,7 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 			<p id="input-error"></p>
 			<input type="file"
 				onChange={handleFileChange}
-				accept={buildAcceptedFormat()}
+				// accept={buildAcceptedFormat()}
 				id="input-file"
 				/>
 
