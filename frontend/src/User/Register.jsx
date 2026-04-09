@@ -32,7 +32,7 @@ function checkUsername(username, pushError) {
 		pushError("Username needs to be a least 3 characters")
 		return false
 	}
-	if (username.length <= 2) {
+	if (!username.match(regexUsername)) {
 		pushError("Username must only contain letters, numbers and '_'")
 		return false
 	}

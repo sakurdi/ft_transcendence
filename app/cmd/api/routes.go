@@ -69,8 +69,8 @@ func routes(c *config.Config) http.Handler {
 
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
-		r.Put("/user/{username}", users.UpdateUserHandler(c))
-		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
+		r.Put("/user/id/{userID}", users.UpdateUserHandler(c))
+		r.Delete("/user/id/{userID}", users.DeleteUserHandler(c))
 
 		r.Get("/api-keys", users.ListAPIKeysHandler(c))
 		r.Post("/api-keys", users.CreateAPIKeyHandler(c))

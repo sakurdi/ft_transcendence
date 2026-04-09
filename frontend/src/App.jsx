@@ -47,7 +47,7 @@ export default function App() {
 
 					<Route path='/createBoard' element={<CreateBoard/>} />
 					<Route path="/user/:username" element={<UserPage />} />
-					<Route path="/user/:username/edit" element={<UserPageEdit />} />
+					<Route path="/user/:usernameParam/edit" element={<UserPageEdit />} />
 					<Route path='/board/:boardName' element={<DisplayBoard/>} />
 					<Route path='/post/:postID' element={<PostPage/>} />
 				</Routes>

@@ -148,7 +148,6 @@ export default function DisplayBoard() {
 				} else
 					setPrivilegeLvl(0)
 				setBoard(nBoard)
-				await fetchBoardOwner(nBoard.owner_id)
 			} else
 				notifHandle.pushError(response.status)
 		}
