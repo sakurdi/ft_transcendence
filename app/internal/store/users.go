@@ -115,3 +115,8 @@ func SetUserRole(db *pgxpool.Pool, ctx context.Context, userID int, role string)
 	_, err := db.Exec(ctx, "UPDATE users SET role=$1 WHERE id=$2", role, userID)
 	return err
 }
+
+func UpdatePassword(db *pgxpool.Pool, ctx context.Context, userID int, new string) error {
+	_, err := db.Exec(ctx, "UPDATE users SET password=$1 WHERE id=$2", new, userID)
+	return err
+}

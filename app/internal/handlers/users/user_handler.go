@@ -159,6 +159,9 @@ func UpdateUserHandler(c *config.Config) http.HandlerFunc {
 		if err := store.EditUserInfo(c.DB, r.Context(), targetUserID, input); err != nil {
 			utils.WriteNewResponse(w, false, "Could'nt update user")
 		} else {
+			if sessionUserID == targetUserID && input.Login != "" {
+				c.Session.Put(r.Context(), "username", input.Login)
+			}
 			utils.WriteNewResponse(w, true, "Successfully updated user profile")
 		}
 	}
@@ -227,5 +230,62 @@ func GetUserByIDHandler(c *config.Config) http.HandlerFunc {
 		} else {
 			utils.WriteNewResponse(w, true, "User found", user)
 		}
+	}
+}
+
+func ChangePasswordHandler(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		sessionUserID := middleware.GetUserID(c, r)
+
+		targetLogin := chi.URLParam(r, "username")
+		targetID, err := store.GetUserID(c.DB, r.Context(), targetLogin)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "User not found")
+			return
+		}
+		role, _ := store.GetUserRole(c.DB, r.Context(), sessionUserID)
+		if sessionUserID != targetID && role != "superadmin" {
+			utils.WriteNewResponse(w, false, "Forbidden")
+			return
+		}
+
+		var body models.UserPassword
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			utils.WriteNewResponse(w, false, "Invalid request")
+			return
+		}
+		if body.OldPassword == "" || body.NewPassword == "" {
+			utils.WriteNewResponse(w, false, "Both old and new passwords are required")
+			return
+		}
+		if body.OldPassword == body.NewPassword {
+			utils.WriteNewResponse(w, false, "New pass must be different from the previous one")
+			return
+		}
+		if len(body.NewPassword) < 2 {
+			utils.WriteNewResponse(w, false, "New password too short (min 3 characters)")
+			return
+		}
+
+		currentHash, err := store.GetUserPassword(c.DB, r.Context(), targetLogin)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "User not found")
+			return
+		}
+		if !auth.CheckPasswordHash(body.OldPassword, currentHash) {
+			utils.WriteNewResponse(w, false, "Old password is incorrect")
+			return
+		}
+		hashed, err := auth.HashPassword(body.NewPassword)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal Server Error")
+			return
+		}
+		if err := store.UpdatePassword(c.DB, r.Context(), targetID, hashed); err != nil {
+			utils.WriteNewResponse(w, false, "Failed to update password")
+			return
+		}
+		utils.WriteNewResponse(w, true, "Password successfuly changed")
 	}
 }

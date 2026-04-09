@@ -35,3 +35,8 @@ type UserEdit struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type UserPassword struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
