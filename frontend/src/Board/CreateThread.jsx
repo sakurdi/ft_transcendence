@@ -80,14 +80,12 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		const selectedFile = e.target.files[0];
 
 		if (selectedFile) {
-			console.log("Selected file:", selectedFile.name, "Size:", selectedFile.size, "Type:", selectedFile.type);
 			try {
 				handleFileError(selectedFile)
 			}
 			catch (err) {
 				setFile("")
 				setPreviewUrl("")
-				console.log(err.message);
 				return;
 			}
 
