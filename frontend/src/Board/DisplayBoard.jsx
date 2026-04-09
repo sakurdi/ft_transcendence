@@ -159,7 +159,7 @@ export default function DisplayBoard() {
 	if (!board.id) {
 		return ("Pas de board")
 	}
-	console.log(board)
+	// console.log(board)
 	return (
 	<>
 		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}
