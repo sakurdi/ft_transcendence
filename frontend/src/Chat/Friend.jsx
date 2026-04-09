@@ -6,6 +6,7 @@ import "./Friend.css"
 import { apiDelete, apiGet, apiPost, apiPostFormData } from "../Utils/api";
 import { buildAcceptedAvatarFormat } from "../Utils/Data";
 import Input from "../components/TextInput";
+import { maxAvatarSize } from "../Utils/Data";
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -206,8 +207,14 @@ export function ProfileAvatar({ onUploaded }) {
     };
 
     const uploadAvatar = async () => {
-        if (!file) return;
+        if (!file)
+			return;
 
+		if (file.size > maxAvatarSize) {
+			console.log("File is too large");
+			return;
+		}
+		
         const formData = new FormData();
         formData.append("avatar", file);
 		const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });

@@ -1,3 +1,6 @@
+export const maxAvatarSize = 1 << 20; // 1MB
+export const maxFileSize = 1 << 20; // 1MB
+
 const extension = {
 	"jpg": "image",
 	"jpeg": "image",

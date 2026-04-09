@@ -6,7 +6,7 @@ import TextInput from "../components/TextInput"
 import useNotif from "../components/Notif"
 import getFileFormat from "../Utils/Data"
 import { buildAcceptedFormat, getFileFormatWithURL, getContentTypeData } from "../Utils/Data"
-
+import { maxFileSize } from "../Utils/Data"
 // type PostCreate struct {
 // 	Title    *string `json:"title"`
 // 	Content  string  `json:"content"`
@@ -65,15 +65,19 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 	const infoElement = document.getElementById("input-preview");
 
 	const handleFileError = (selectedFile) => {
-		if (selectedFile.size > (1 << 20)){
+		if (selectedFile.size > maxFileSize) {
 			infoElementError.textContent = "File is too big";
 			infoElementError.style.color = "red";
 			setFile("")
 			setPreviewUrl("")
+			throw new Error("File is too big");
 		}
 		else if (getFileFormatWithURL(selectedFile.name) == "unknown") {
 			infoElementError.textContent = "Wrong file extension";
 			infoElementError.style.color = "red";
+			setFile("")
+			setPreviewUrl("")
+			throw new Error("Wrong file extension");
 		}
 		else {
 			infoElementError.textContent = "";
@@ -85,7 +89,14 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		const selectedFile = e.target.files[0];
 
 		if (selectedFile) {
-			handleFileError(selectedFile)
+
+			try {
+				handleFileError(selectedFile)
+			}
+			catch (err) {
+				console.log(err.message);
+				return;
+			}
 
 			infoElement.textContent = `Selected file: ${selectedFile.name}
 									(${(selectedFile.size /1024).toFixed(2)})KB)`;
