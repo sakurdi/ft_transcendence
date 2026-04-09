@@ -131,7 +131,6 @@ export function ViewApiTokens({}) {
 		const fetchTokens = async () => {
 			const res = await apiGet("/api-keys")
 			if (res.ok) {
-				console.log(res.json)
 				setTokens(res.json)
 			} else {
 				notifHandle.pushError(res.status)
@@ -141,20 +140,20 @@ export function ViewApiTokens({}) {
 		setLoading(false)
 	}, [userHandle.loading, loading])
 
-	if (userHandle.loading || !userHandle.user)
+	if (userHandle.loading || !userHandle.user || loading)
 		return <Loading/>
 	return (
-		<>
-		{(!tokens || tokens.lenght == 0)
-			? "No tokens"
-			:  tokens.map((oneToken) => 
-				<DisplayOneApiKey key={oneToken.id}
-					oneToken = {oneToken}
-					setLoadingTrue = {() => setLoading(true)}/>)
-		}
-		<NewApiKey
-			setLoadingTrue = {() => {setLoading(true)}}/>
-		</>
+		<div>
+			{(!tokens || tokens.lenght == 0)
+				? "No tokens"
+				:  tokens.map((oneToken) => 
+					<DisplayOneApiKey key={oneToken.id}
+						oneToken = {oneToken}
+						setLoadingTrue = {() => setLoading(true)}/>)
+			}
+			<NewApiKey
+				setLoadingTrue = {() => {setLoading(true)}}/>
+		</div>
 	)
 }
 

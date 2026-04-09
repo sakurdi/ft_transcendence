@@ -5,7 +5,6 @@ import useNotif	from "../components/Notif"
 import { apiDelete, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, { ButtonLink } from "../components/Button"
-import TextButton from "../components/TextButton"
 import ApiTokenPage from "./Api/ApiKeyPage";
 
 const getStrTimeDate = (dateISO) => {
@@ -44,14 +43,17 @@ export function UserSettings({username, userID, updateUser}) {
 	}
 
 	return (
-	<>
+	<div>
+		<ButtonLink link = {`/user/${username}/edit`}>
+			Edit User
+		</ButtonLink>
 		<Button onClick = {deleteUser}>
 			Delete User
 		</Button>
 		<ButtonLink link = "/changepassword">
 			Change password
 		</ButtonLink>
-	</>
+	</div>
 	)
 }
 
@@ -82,11 +84,13 @@ export default function UserPage() {
 	if (loading || userHandle.loading) return <Loading/>
 	if (!userinfo) return "User does not exist"
 	const canEdit = (userHandle.user?.username == userinfo.username) 
-	// console.log(userHandle.user)
+	console.log(userinfo)
 	return (
 		<div>
 			<img src={userinfo.avatar_url}/>
-			{userinfo.username}
+			<p>
+				{userinfo.username}
+			</p>
 			<time dateTime = {userinfo.member_since}>
 				{getStrTimeDate(userinfo.member_since)}
 			</time>

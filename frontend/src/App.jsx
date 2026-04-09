@@ -6,6 +6,7 @@ import Register from "./User/Register";
 import Login from "./User/Login";
 import Logout from "./User/Logout";
 import UserPage from "./User/UserPage";
+import UserPageEdit from "./User/UserPageEdit";
 import PostPage from "./Board/DisplayPost/PostPage";
 
 import {ButtonLink} from "./components/Button";
@@ -46,6 +47,7 @@ export default function App() {
 
 					<Route path='/createBoard' element={<CreateBoard/>} />
 					<Route path="/user/:username" element={<UserPage />} />
+					<Route path="/user/:username/edit" element={<UserPageEdit />} />
 					<Route path='/board/:boardName' element={<DisplayBoard/>} />
 					<Route path='/post/:postID' element={<PostPage/>} />
 				</Routes>

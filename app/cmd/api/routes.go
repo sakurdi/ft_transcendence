@@ -52,7 +52,7 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/user/me", users.MeHandler((c)))
 	mux.Get("/user/{username}", users.GetUserInfoHandler((c)))
-	mux.Get("/users/id/{userID}", users.GetUserByIDHandler(c))
+	mux.Get("/user/id/{userID}", users.GetUserByIDHandler(c))
 
 	mux.Get("/board/{boardID}/members", boards.GetBoardModTeamHandler(c))
 
@@ -70,12 +70,11 @@ func routes(c *config.Config) http.Handler {
 		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
 
 		r.Put("/user/{username}", users.UpdateUserHandler(c))
+		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
 
 		r.Get("/api-keys", users.ListAPIKeysHandler(c))
 		r.Post("/api-keys", users.CreateAPIKeyHandler(c))
 		r.Delete("/api-keys/{keyID}", users.RevokeAPIKeyHandler(c))
-
-		r.Delete("/users/{userID}", users.DeleteUserHandler(c))
 
 		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
 

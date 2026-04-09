@@ -33,22 +33,36 @@ export function DisplayBoardHeader({board, privilegeLvl, setRefreshKeyBoard}) {
 	const navigate = useNavigate()
 	const notifHandle = useNotif()
 
-	const baseOwnerName = "<undefined>"
-	const [ownerName, setOwnerName] = useState(baseOwnerName)
+	const undefinedOwnerName = "<undefined>"
+	const [ownerName, setOwnerName] = useState(undefined)
 
 	const DisplayBoardOwner = (ownerName) => {
-		if (ownerName === baseOwnerName) return <a>{baseOwnerName}</a>
-		const url = `/user/${ownerName}`
+		if (ownerName == undefined) {
+			return (
+				<p>
+					{undefinedOwnerName}
+				</p>
+			)
+		}
 		return (
-			<a onClick={ () => navigate(url) }>{ownerName}</a>
+			<p onClick={() => navigate(`/user/${ownerName}`)}>
+				{ownerName}
+			</p>
 		)
 	}
 
 	useEffect(() => {
-		const fetfchOwnerName = async () => {
-			setOwnerName("Ca faut le faire")
+		const fetchOwnerName = async (ownerId) => {
+			const response = await apiGet(`/user/id/${ownerId}`)
+			if (response.ok) {
+				const owner = response.json 
+				setOwnerName(owner.username)
+			} else {
+				setOwnerName(undefined)
+				notifHandle.pushError(response.status)
+			}
 		}
-		fetfchOwnerName()
+		fetchOwnerName(board.owner_id)
 	}, [])
 
 	const saveEdit = async (newDescription) => {
@@ -134,6 +148,7 @@ export default function DisplayBoard() {
 				} else
 					setPrivilegeLvl(0)
 				setBoard(nBoard)
+				await fetchBoardOwner(nBoard.owner_id)
 			} else
 				notifHandle.pushError(response.status)
 		}
@@ -145,6 +160,7 @@ export default function DisplayBoard() {
 	if (!board.id) {
 		return ("Pas de board")
 	}
+	console.log(board)
 	return (
 	<>
 		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}
