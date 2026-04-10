@@ -95,9 +95,9 @@ export default function NavBar() {
 					<span className="w-7 h-7 rounded-lg bg-g_seagreen/20 border border-g_seagreen/35
 						flex items-center justify-center text-g_seagreen text-sm font-black
 						shadow-md shadow-g_seagreen/20">
-						F
+						ft_
 					</span>
-					ft_transcendence
+					transcendence
 				</button>
 
 				<NavLink link="/board">Boards</NavLink>
