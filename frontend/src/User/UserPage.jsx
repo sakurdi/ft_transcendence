@@ -5,7 +5,8 @@ import useNotif	from "../components/Notif"
 import { apiDelete, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, { ButtonLink } from "../components/Button"
-import TextButton from "../components/TextButton"
+import ApiTokenPage from "./Api/ApiKeyPage";
+import { ProfileAvatar } from "../Chat/Friend";
 
 const getStrTimeDate = (dateISO) => {
 	const dateAPI = new Date(dateISO);
@@ -15,22 +16,13 @@ const getStrTimeDate = (dateISO) => {
 	return (time + " " + date)
 }
 
-
-// r.Put("/user/{username}", users.UpdateUserHandler(c))
-// r.Delete("/users/{userID}", users.DeleteUserHandler(c))
-// type UserEdit struct {
-// 	Login    string `json:"username"`
-// 	Email    string `json:"email"`
-// 	Password string `json:"password"`
-// }
-
 export function UserSettings({username, userID, updateUser}) {
 	const notifHandler = useNotif()
 	const navigate = useNavigate();
 
 	const deleteUser = async () => {
 		if (window.confirm(`Are you sure you want to delete ${username}`)) {
-			const res = await apiDelete(`/users/${userID}`);
+			const res = await apiDelete(`/user/id/${userID}`);
 			// console.log(res)
 			if (!res.ok) {
 				notifHandler.pushError(res.status)
@@ -43,14 +35,17 @@ export function UserSettings({username, userID, updateUser}) {
 	}
 
 	return (
-	<>
+	<div>
+		<ButtonLink link = {`/user/${username}/edit`}>
+			Edit User
+		</ButtonLink>
 		<Button onClick = {deleteUser}>
 			Delete User
 		</Button>
 		<ButtonLink link = "/changepassword">
 			Change password
 		</ButtonLink>
-	</>
+	</div>
 	)
 }
 
@@ -61,39 +56,46 @@ export default function UserPage() {
 	const { username } = useParams()
 	const [refreshKey, setRefreshKey] = useState(0)
 	const [loading, setLoading] = useState(true)
-	const [edit, setEdit] = useState(false)
 	const [userinfo, setUserinfo] = useState(null)
 
 	const refreshPage = () => setRefreshKey(refreshKey + 1)
+	const fetchUserinfo = async () => {
+		const res = await apiGet(`/user/${username}`)
+		if (res.ok) {
+			setUserinfo(res.json)
+		} else {
+			notifHandle.pushError(res.status)
+		}
+		setLoading(false)
+	}
 
 	useEffect(() => {
-		const fetchUserinfo = async (username) => {
-			const res = await apiGet(`/user/${username}`)
-			if (res.ok) {
-				setUserinfo(res.json)
-			} else {
-				notifHandle.pushError(res.status)
-			}
-			setLoading(false)
-		}
-		fetchUserinfo(username)
-	}, [refreshKey])
+		fetchUserinfo()
+	}, [refreshKey, username])
 
 	if (loading || userHandle.loading) return <Loading/>
 	if (!userinfo) return "User does not exist"
 	const canEdit = (userHandle.user?.username == userinfo.username) 
-	console.log(userHandle.user)
+	console.log(userinfo)
 	return (
 		<div>
-			<img src={userinfo.avatar_url}/>
+			<img src={userinfo.avatar_url}
+					alt="avatar123"
+					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+
+			{canEdit && <ProfileAvatar onUploaded={fetchUserinfo}/>}
+
 			{userinfo.username}
 			<time dateTime = {userinfo.member_since}>
 				{getStrTimeDate(userinfo.member_since)}
 			</time>
 			{canEdit &&
-				<UserSettings username = {username}
+				<>
+					<UserSettings username = {username}
 					updateUser = {userHandle.update}
 					userID = {userHandle.user.id}/>
+					<ApiTokenPage/>
+				</>
 			}
 		</div>
 	)

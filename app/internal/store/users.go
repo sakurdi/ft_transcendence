@@ -52,9 +52,9 @@ func RegisterUser(db *pgxpool.Pool, ctx context.Context, user models.UserRegistr
 func GetUserInfo(db *pgxpool.Pool, ctx context.Context, login string) (models.UserInfo, error) {
 	var userInfo models.UserInfo
 	err := db.QueryRow(ctx,
-		"SELECT id, login, email, role, created_at FROM users WHERE login=$1",
+		"SELECT id, login, email, role, created_at, avatar_url FROM users WHERE login=$1",
 		login,
-	).Scan(&userInfo.ID, &userInfo.Login, &userInfo.Email, &userInfo.Role, &userInfo.Creation_date)
+	).Scan(&userInfo.ID, &userInfo.Login, &userInfo.Email, &userInfo.Role, &userInfo.Creation_date, &userInfo.Avatar)
 	return userInfo, err
 }
 

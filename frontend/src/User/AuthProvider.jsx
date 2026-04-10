@@ -38,8 +38,8 @@ export function AuthProvider( { children } ) {
 		const response = await apiPost('/register', {
 			body: JSON.stringify({
 				'username': username,
-				'Email': email,
-				'Password': password,
+				'email': email,
+				'password': password,
 			})
 		})
 		if (!response.ok) {

@@ -32,7 +32,7 @@ function checkUsername(username, pushError) {
 		pushError("Username needs to be a least 3 characters")
 		return false
 	}
-	if (username.length <= 2) {
+	if (!username.match(regexUsername)) {
 		pushError("Username must only contain letters, numbers and '_'")
 		return false
 	}
@@ -97,6 +97,8 @@ export default function Register() {
 		const validEmail = checkEmail(values.email, notifHandle.pushError)
 
 		if (!validEmail || !validUsername || !validPassword) {
+			setValue("password1", "")
+			setValue("password2", "")
 			return
 		}
 		try {
@@ -106,6 +108,8 @@ export default function Register() {
 			navigate('/')
 		} catch (error) {
 			notifHandle.pushError(error)
+			setValue("password1", "")
+			setValue("password2", "")
 		}
 	}
 

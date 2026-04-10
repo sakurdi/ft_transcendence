@@ -4,90 +4,92 @@ import useAuth from "../User/AuthProvider";
 import DisplayThreads from "./DisplayThreads";
 import DisplayMods from "./DisplayMods";
 import getDateDifferenceISO from "../Utils/date";
+import InfinitScrollThreads from "./InfinitScrollThreads"
 
-import { apiGet } from "../Utils/api";
+import { apiGet, apiPut } from "../Utils/api";
 
 import TextEdit from "../components/TextEdit";
 import CreatePost from "./CreateThread";
 import Loading from "../components/Loading";
 import useNotif from "../components/Notif";
 
-// type Board struct {
-// 	ID          int       `json:"id"`
-// 	Name        string    `json:"name"`
-// 	Description string    `json:"description"`
-// 	OwnerID     int       `json:"owner_id"`
-// 	CreatedAt   time.Time `json:"created_at"`
+// type BoardCreate struct {
+// 	Name        string `json:"name"`
+// 	Description string `json:"description"`
 // }
 
-// const getStrTimeDate = (dateISO) => {
-// 	const dateAPI = new Date(dateISO);
-	
-// 	return getDateDifference(dateAPI)
-// 	const time = dateAPI.toLocaleTimeString("fr-FR")
-// 	const date = dateAPI.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric", year: "2-digit"})
-// 	// console.log(time," | ", date)
-// 	return (time + " " + date)
-// }
-
-function DisplayBoardDescription({board, privilegeLvl}) {
-	const [edit, setEdit] = useState(false)
-	const [oldDescription, setOldDescription] = useState(board.description)
-	const [description, setDescription] = useState(board.description)
+function DisplayBoardDescription({description, privilegeLvl, saveEdit}) {
 	
 	if (!description || description.lenght == 0){
 		return (<></>)
 	}	else if (privilegeLvl != 3) {
 		return (<p>{description}</p>)
 	} else {
-		const saveEdit = () => {
-			// console.log(description)	// TODO
-			setEdit(false)
-		}
-		const discardEdit = () => {
-			setDescription(oldDescription)
-			saveEdit(description)
-			setEdit(false)
-		}
-		return (<TextEdit baseValue={description}/>)
+		return (<TextEdit baseValue={description} onValueSave={saveEdit}/>)
 	}
 }
 
-export function DisplayBoardHeader({board, privilegeLvl}) {
+export function DisplayBoardHeader({board, privilegeLvl, setRefreshKeyBoard}) {
 	const navigate = useNavigate()
-	const baseOwnerName = "<undefined>"
-	const [ownerName, setOwnerName] = useState(baseOwnerName)
+	const notifHandle = useNotif()
 
-	const DisplayBoardOwner = (ownerName, privilegeLvl) => {
-		if (ownerName === baseOwnerName) return <a>{baseOwnerName}</a>
-		// console.log(privilegeLvl)
-		const url = `/user/${ownerName}`
+	const undefinedOwnerName = "<undefined>"
+	const [ownerName, setOwnerName] = useState(undefined)
+
+	const DisplayBoardOwner = (ownerName) => {
+		if (ownerName == undefined) {
+			return (
+				<p>
+					{undefinedOwnerName}
+				</p>
+			)
+		}
 		return (
-			<a onClick={ () => navigate(url) }>{ownerName}</a>
+			<p onClick={() => navigate(`/user/${ownerName}`)}>
+				{ownerName}
+			</p>
 		)
 	}
 
 	useEffect(() => {
-		const fetfchOwnerName = async () => {
-			// const response = await apiGet(`/api/board/${boardname}/ismod`);
-			// if (!response.ok)
-			// 	return
-			setOwnerName("Ca faut le faire") // TODO
+		const fetchOwnerName = async (ownerId) => {
+			const response = await apiGet(`/user/id/${ownerId}`)
+			if (response.ok) {
+				const owner = response.json 
+				setOwnerName(owner.username)
+			} else {
+				setOwnerName(undefined)
+				notifHandle.pushError(response.status)
+			}
 		}
-		fetfchOwnerName()
+		fetchOwnerName(board.owner_id)
 	}, [])
+
+	const saveEdit = async (newDescription) => {
+		const res = await apiPut(`board/${board.id}`, {
+			body: JSON.stringify({
+				'name': board.name,
+				'description': newDescription,
+			})
+		})
+		if (res.ok) {
+			notifHandle.pushSuccess("Board edited")
+			setRefreshKeyBoard()
+		} else
+			notifHandle.pushError(res.status)
+	}
 
 	return (
 		<section>
 			<header>
 				<h1>{board.name}</h1>
 				<div>
-					<span>{DisplayBoardOwner(ownerName, privilegeLvl)}</span>
+					<span>{DisplayBoardOwner(ownerName)}</span>
 					<time dateTime = {board.created_at}>
 						{getDateDifferenceISO(board.created_at)}
 					</time>
 				</div>
-				<DisplayBoardDescription board={board} privilegeLvl={privilegeLvl}/>
+				<DisplayBoardDescription description={board.description} privilegeLvl={privilegeLvl} saveEdit={saveEdit}/>
 			</header>
 			{privilegeLvl >= 3 && <DisplayMods boardID={board.id}/>}
 		</section>
@@ -119,55 +121,50 @@ export default function DisplayBoard() {
 		const checkIsMod = async (boardname) =>  {
 			try {
 				const response = await apiGet(`/board/${boardname}/ismod`);
-				// console.log(response)
 				if (!response.ok) {
 					throw (response.status)
 				}
 				return response.json.ismod;
 			} catch (error) {
-				// console.log(error)
 				return false;
 			}
 		}
 	
 		const fetchBoard = async (boardName) => {
-			try {
-				const response = await apiGet(`/board/${boardName}`,)
-				if (!response.ok) {
-					throw (response.status)
-				}
-				// console.log(response.json)
-				setBoard(response.json)
-				if (userHandle.user) {
+			const response = await apiGet(`/board/${boardName}`,)
+			if (response.ok) {
+				const nBoard = response.json 
+				const user = userHandle.user
+				if (user) {
 					setPrivilegeLvl(1)
-					const user = userHandle.user
-					if (user.id == response.json.owner_id) {
+					if (user.id == nBoard.owner_id) {
 						setPrivilegeLvl(3)
 					} else {
-						const isMod = await checkIsMod(response.json.name) 
+						const isMod = await checkIsMod(nBoard.name)
 						if (isMod) {
 							setPrivilegeLvl(2)
 						}
 					}
-				}
-			} catch (error) {
-				// console.log(error)
-				notifHandle.pushError(error)
-			}
+				} else
+					setPrivilegeLvl(0)
+				setBoard(nBoard)
+			} else
+				notifHandle.pushError(response.status)
 		}
-
 		fetchBoard(boardName)
 		setLoading(false)
-	}, [refreshKeyBoard, userHandle.loading])
+	}, [refreshKeyBoard, userHandle.loading, userHandle.user])
 
 	if (loading) return <Loading/>
 	if (!board.id) {
 		return ("Pas de board")
 	}
+	// console.log(board)
 	return (
 	<>
-		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}/>
-		<DisplayThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
+		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}
+			setRefreshKeyBoard={() => setRefreshKeyBoard(refreshKeyBoard + 1)}/>
+		<InfinitScrollThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
 			refreshKeyThread={refreshKeyThread}
 			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
 		{userHandle.user &&

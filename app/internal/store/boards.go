@@ -3,8 +3,11 @@ package store
 import (
 	"context"
 	"ft_transcendence/internal/models"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"net/url"
 )
 
 func CreateBoard(db *pgxpool.Pool, ctx context.Context, board models.BoardCreate, ownerID int) (int, error) {
@@ -119,4 +122,100 @@ func GetBoardByID(db *pgxpool.Pool, ctx context.Context, boardID int) (models.Bo
 		boardID,
 	).Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt)
 	return b, err
+}
+
+func ListBoards(db *pgxpool.Pool, ctx context.Context) ([]models.Board, error) {
+	rows, err := db.Query(ctx, "SELECT id, name, description, owner_id, created_at FROM boards ORDER BY name ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var boards []models.Board
+	for rows.Next() {
+		var b models.Board
+		if err := rows.Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt); err != nil {
+			return nil, err
+		}
+		boards = append(boards, b)
+	}
+	return boards, rows.Err()
+}
+
+func GetBoardList(db *pgxpool.Pool, ctx context.Context, query url.Values) (models.BoardData, error) {
+	page := 1
+	if p := query.Get("page"); p != "" {
+		parsedPage, err := strconv.Atoi(p)
+		if err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+
+	limit := 10
+	if l := query.Get("limit"); l != "" {
+		parsedLimit, err := strconv.Atoi(l)
+		if err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	sortField := "created_at"
+	sort := query.Get("sort")
+	if sort == "name" || sort == "id" || sort == "created_at" {
+		sortField = sort
+	}
+
+	order := "asc"
+	if query.Get("order") == "desc" {
+		order = "desc"
+	}
+
+	name := query.Get("name")
+	offset := (page - 1) * limit
+
+	totalResult := 0
+	err := db.QueryRow(ctx,
+		"SELECT COUNT(*) FROM boards WHERE name ILIKE '%' || $1 || '%'",
+		name,
+	).Scan(&totalResult)
+	if err != nil {
+		return models.BoardData{}, err
+	}
+
+	sql := `SELECT id, name, description, owner_id, created_at
+		FROM boards
+		WHERE name ILIKE '%' || $1 || '%'
+		ORDER BY
+			CASE WHEN $4 = 'id' AND $5 = 'asc' THEN id END ASC,
+			CASE WHEN $4 = 'id' AND $5 = 'desc' THEN id END DESC,
+			CASE WHEN $4 = 'name' AND $5 = 'asc' THEN name END ASC,
+			CASE WHEN $4 = 'name' AND $5 = 'desc' THEN name END DESC,
+			CASE WHEN $4 = 'created_at' AND $5 = 'asc' THEN created_at END ASC,
+			CASE WHEN $4 = 'created_at' AND $5 = 'desc' THEN created_at END DESC
+		LIMIT $2 OFFSET $3`
+	rows, err := db.Query(ctx, sql, name, limit, offset, sortField, order)
+	if err != nil {
+		return models.BoardData{}, err
+	}
+	defer rows.Close()
+
+	boardsList := []models.Board{}
+	for rows.Next() {
+		var board models.Board
+		if err := rows.Scan(&board.ID, &board.Name, &board.Description, &board.OwnerID, &board.CreatedAt); err != nil {
+			return models.BoardData{}, err
+		}
+		boardsList = append(boardsList, board)
+	}
+
+	boardData := models.BoardData{
+		BoardList:   boardsList,
+		TotalResult: totalResult,
+	}
+
+	// return boardsList, rows.Err()
+	return boardData, rows.Err()
 }

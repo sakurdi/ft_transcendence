@@ -42,14 +42,13 @@ export default function NavBar() {
 	}, [userHandle.loading])
 	
 	const NavBarHandle = (user) => {
+		if (userHandle.loading)	return <Loading/>
 		if (user) {
 			return <NavBarUser username = {user.username}/>;
 		} else {
 			return <NavBarLogin/>;
 		}
 	}
-
-	if (userHandle.loading)	return <Loading/>
 
 	const classNav = "flex items-center h-fit\
 		bg-gradient-to-t from-g_seagreen to-g_seagreen-300"

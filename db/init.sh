@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('superadmin', 'user', 'banned')),
+	avatar_url VARCHAR(255) DEFAULT '/api/uploads/avatars/default.jpg',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -44,6 +45,20 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expiry);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
+
+CREATE TABLE IF NOT EXISTS api_keys (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    key_prefix VARCHAR(10) NOT NULL,
+    key_hash VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    last_used_at TIMESTAMP,
+    revoked_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash);
 
 CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
@@ -67,14 +82,29 @@ CREATE INDEX IF NOT EXISTS idx_board_moderators_user ON board_moderators(user_id
 INSERT INTO boards (name, description, owner_id) VALUES
     ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
     ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saal-kur'))
+
 ON CONFLICT (name) DO NOTHING;
 
+INSERT INTO boards (name, description, owner_id)
+SELECT
+    format('BOARD_TEST_%s', i),
+    format('Board_testing_%s', i),
+    u.id
+FROM generate_series(1, 100) AS i
+JOIN users u ON u.login = 'kevwang'
+ON CONFLICT (name) DO NOTHING;
+
+
+-- =========================
+-- POSTS
+-- =========================
 CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     title VARCHAR(255),
     content TEXT NOT NULL,
+	upload_path VARCHAR(255),
     parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -96,6 +126,27 @@ CREATE INDEX IF NOT EXISTS idx_dm_conversation ON dm_messages (
     created_at DESC
 );
 
+CREATE TABLE IF NOT EXISTS friend_list (
+	user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	friend_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	PRIMARY KEY(user_id, friend_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_friend_list ON friend_list(user_id);
+
+INSERT INTO friend_list (user_id, friend_id) VALUES
+	(1, 2)
+ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS friend_requests (
+	id SERIAL PRIMARY KEY,
+	from_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	to_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+	status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
+	created_at TIMESTAMP DEFAULT NOW(),
+	UNIQUE(from_user_id, to_user_id)
+);
+
 INSERT INTO posts (board_id, author_id, title, content)
 SELECT b.id, u.id, 'nouveau cursus?', 'daube'
 FROM boards b JOIN users u ON u.login = 'saal-kur'
@@ -107,6 +158,93 @@ SELECT b.id, u.id, 'poppy', 'poppy'
 FROM boards b JOIN users u ON u.login = 'saal-kur'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, title, content, created_at)
+SELECT
+    b.id,
+    u.id,
+    'League Thread #' || LPAD(gs.n::text, 3, '0'),
+    'Test content for thread #' || gs.n || ' - ' ||  NOW() - ((100 - gs.n) * interval '1 minute'),
+    NOW() - ((100 - gs.n) * interval '1 minute')
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN generate_series(1, 100) AS gs(n) ON TRUE
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, parent_id, content, created_at)
+SELECT
+    b.id,
+    u.id,
+	parent.id,
+    'Test response #' || gs.n || ' - ' ||  NOW() - ((100 - gs.n) * interval '1 minute'),
+    NOW() - ((100 - gs.n) * interval '1 minute')
+FROM boards b
+JOIN users u ON u.login = 'kevwang'
+JOIN generate_series(1, 100) AS gs(n) ON TRUE
+JOIN posts parent ON parent.title = 'League Thread #100'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+    b.id,
+    u.id,
+    'Je suis d''accord, c''est dur',
+    p.id
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN posts p ON p.title = 'ecole de merde'
+WHERE b.name = '42'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+    b.id,
+    u.id,
+    'Poppy',
+    p.id
+FROM boards b
+JOIN users u ON u.login = 'gaeudes'
+JOIN posts p ON p.title = 'poppy'
+WHERE b.name = 'League'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (board_id, author_id, title, content)
+SELECT
+        b.id,
+        u.id,
+        'POST_TEMP_TEST',
+        format('Temp post test for %s', b.name)
+FROM boards b
+JOIN users u ON u.login = 'kevwang'
+WHERE b.name LIKE 'BOARD_TEST_%'
+    AND NOT EXISTS (
+            SELECT 1
+            FROM posts p
+            WHERE p.board_id = b.id
+                AND p.title = 'POST_TEMP_TEST'
+    );
+
+INSERT INTO posts (board_id, author_id, content, parent_id)
+SELECT
+        b.id,
+        r.id,
+        format('Temp rep test for %s', b.name),
+        p.id
+FROM boards b
+JOIN users r ON r.login = 'gaeudes'
+JOIN posts p ON p.board_id = b.id
+WHERE b.name LIKE 'BOARD_TEST_%'
+    AND p.title = 'POST_TEMP_TEST'
+    AND NOT EXISTS (
+            SELECT 1
+            FROM posts rp
+            WHERE rp.parent_id = p.id
+    );
+
+
+
 
 EOSQL
 

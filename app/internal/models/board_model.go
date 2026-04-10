@@ -10,6 +10,11 @@ type Board struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type BoardData struct {
+	BoardList   []Board `json:"board_list"`
+	TotalResult int     `json:"total_result"`
+}
+
 type Post struct {
 	ID        int       `json:"id"`
 	BoardID   int       `json:"board_id"`
@@ -18,6 +23,7 @@ type Post struct {
 	Username  string    `json:"username"`
 	Title     *string   `json:"title"`
 	Content   string    `json:"content"`
+	UploadPath string   `json:"upload_path"`
 	ParentID  *int      `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -28,9 +34,10 @@ type BoardCreate struct {
 }
 
 type PostCreate struct {
-	Title    *string `json:"title"`
-	Content  string  `json:"content"`
-	ParentID *int    `json:"parent_id"`
+	Title    *string   `json:"title"`
+	Content  string    `json:"content"`
+	UploadPath string  `json:"upload_path"`
+	ParentID *int      `json:"parent_id"`
 }
 
 type BoardRole struct {

@@ -1,8 +1,8 @@
-const BASE = '/api'
+export const BASE = '/api'
 
 export default async function api(path, options = {}) {
 	try {
-		const route = path.startsWith(BASE) ? path : `${BASE}/${path}`
+		const route = path.startsWith(BASE) ? path : `${BASE}${path}`
 		const res = await fetch(route, {
 			credentials: "include",
 			headers: { "Content-Type": "application/json" },
@@ -38,4 +38,30 @@ export async function apiPut(path, options = {}) {
 
 export async function apiDelete(path, options = {}) {
 	return api(path, { ...options, method: 'DELETE' })
+}
+
+export async function apiFormData(path, options = {}) {
+	try {
+		const route = path.startsWith(BASE) ? path : `${BASE}/${path}`
+		const res = await fetch(route, {
+			credentials: "include",
+			...options,
+		})
+		if (!res.ok)
+			throw (res.status)
+		try {
+			const json = await res.json()
+			// if (json?.success === false)
+			// 	return { ok: false, status: "json.success == false", json: undefined }
+			return { ok: json.success == true, status: json.message, json: json.data }
+		} catch(err) {
+			return { ok: true, status: "Success", json: undefined }
+		}
+	} catch (errorStatus) {
+		return { ok: false, status: errorStatus, json: undefined }
+	}
+}
+
+export async function apiPostFormData(path, options = {}) {
+	return apiFormData(path, { ...options, method: 'POST' })
 }

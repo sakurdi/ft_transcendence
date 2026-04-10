@@ -6,6 +6,9 @@ export default function TextInput ({
 	onChange,
 	placeholder = "",
 	type = "text",
+	id,
+	name,
+	autoComplete = "off",
 	className,
 	onEnter = undefined,
 	onKeypress = undefined,
@@ -17,6 +20,9 @@ export default function TextInput ({
 	return (
 		<div className={styles.TextInput_Div}>
 			<input className={className}
+				id={id}
+				name={name}
+				autoComplete={autoComplete}
 				onKeyDown={(e) => {onKeypress?.(e); e.key == "Enter" && onEnter?.()}}
 				type={type}
 				placeholder={placeholder}
@@ -32,6 +38,9 @@ export function EMailInputVerify({
 	value,
 	oldOnChange,
 	placeholder = "Email",
+	id,
+	name,
+	autoComplete = "email",
 	onEnter = undefined,
 	onKeypress = undefined,
 }) {
@@ -70,6 +79,9 @@ export function EMailInputVerify({
 				onChange={onChange}
 				placeholder={placeholder}
 				type="email"
+				id={id}
+				name={name}
+				autoComplete={autoComplete}
 				onEnter={onEnter}
 				onKeypress={onKeypress}>
 			<div className={styleValidEMail}>{charValidEMail}</div>
@@ -82,6 +94,9 @@ export function EMailInput({
 	onChange,
 	placeholder = "Email",
 	verifyEmail = true,
+	id,
+	name,
+	autoComplete = "email",
 	onEnter = undefined,
 	onKeypress = undefined,
 }) {
@@ -90,6 +105,9 @@ export function EMailInput({
 					value={value}
 					onChange={onChange}
 					placeholder={placeholder}
+					id={id}
+					name={name}
+					autoComplete={autoComplete}
 					onEnter={onEnter}
 					onKeypress={onKeypress}/>
 			)
@@ -101,6 +119,9 @@ export function EMailInput({
 				onChange={onChange}
 				type="email"
 				placeholder={placeholder}
+				id={id}
+				name={name}
+				autoComplete={autoComplete}
 				onEnter={onEnter}
 				onKeypress={onKeypress}
 			/>
@@ -112,6 +133,9 @@ export function PasswordInput({
 	value,
 	onChange,
 	placeholder = "Password",
+	id,
+	name,
+	autoComplete = "current-password",
 	onEnter = undefined,
 	onKeypress = undefined
 }) {
@@ -120,6 +144,9 @@ export function PasswordInput({
 			value={value}
 			onChange={onChange}
 			placeholder={placeholder}
+			id={id}
+			name={name}
+			autoComplete={autoComplete}
 			onEnter={onEnter}
 			onKeypress={onKeypress}
 			type="password"

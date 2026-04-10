@@ -44,6 +44,7 @@ export default function Login() {
 			notifHandle.pushSuccess(`Logged in as ${values.username}`)
 			navigate('/')
 		} catch (error) {
+			setValue("password", "")
 			notifHandle.pushError(error)
 		}
 	}

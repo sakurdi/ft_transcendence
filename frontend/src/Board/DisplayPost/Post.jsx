@@ -1,21 +1,22 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
-import useAuth from "../User/AuthProvider";
-import { apiDelete, apiGet } from "../Utils/api";
-import TextButton, { TextLink } from "../components/TextButton";
-import getRandomPastel from "../Utils/colors";
-import TextArea, { TextAreaTitle } from "../components/TextArea";
-import Tooltip from "../components/Tooltip";
-import useNotif from "../components/Notif";
-import getDateDifferenceISO from "../Utils/date";
-import Loading from "../components/Loading";
 
-function getSeedpostColor(post) {
-	const date = new Date(post.created_at)
-	return date.getMilliseconds() + (date.getSeconds() + date.getMinutes() * 60) * 1000 
-}
+import getFileFormat from "../../Utils/Data";
+import { BASE } from "../../Utils/api.jsx";
 
-function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
+import useAuth from "../../User/AuthProvider";
+import useNotif from "../../components/Notif";
+
+import { apiDelete, apiPut } from "../../Utils/api";
+import { getRandomPastelDate } from "../../Utils/colors";
+import getDateDifferenceISO from "../../Utils/date";
+
+import TextButton, { TextLink } from "../../components/TextButton";
+import TextArea, { TextAreaTitle } from "../../components/TextArea";
+import Tooltip from "../../components/Tooltip";
+import Loading from "../../components/Loading";
+
+export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	return (
 		<div>
 		{ isEditing ?
@@ -33,7 +34,43 @@ function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
 	)
 }
 
-export default function DisplayPost({post, privilegeLvl, refreshKey})
+function MediaRenderer({path}) {
+	if (!path)
+		return
+
+	var ext = path.substr(path.lastIndexOf('.') + 1);
+	var format = getFileFormat(ext);
+	
+	switch (format) {
+		case 'image':
+			return <p>
+				<img src={path}
+							alt="upload123"
+							className="w-24 h-24 object-cover border-2 border-stone-200"/>
+			</p>
+
+		case 'audio':
+			return <p>
+				<audio controls src={path}/>
+			</p>
+
+		case 'video':
+			return <p>
+					<video controls src={path}/>
+			</p>
+			
+		default:
+			<></>
+	}
+}
+
+function DisplayFile({post}) {
+	return <div>
+		<MediaRenderer path={`${BASE}`+post.upload_path} />
+	</div>
+}
+
+export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
 {
 	const navigate = useNavigate()
 	const userHandle = useAuth()
@@ -49,9 +86,10 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	const titleRef = useRef(null)
 	const contentRef = useRef(null)
 
-	const postColor = getRandomPastel(getSeedpostColor(post)) 
+	const postColor = getRandomPastelDate(post.created_at) 
 	
 	useEffect(() => {
+		// if (postInfo.title === null) return
 		if (isEditing == true && titleRef.current) {
 			const refArea = titleRef.current
 			refArea.focus()
@@ -66,9 +104,12 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 			setCanEdit(userID === post.author_id)
 			if (!canDelete)
 				setCanDelete(userID === post.author_id)
+		} else {
+			setCanEdit(false)
+			setCanDelete(false)
 		}
 		setLoading(false)
-	}, [userHandle.loading])
+	}, [userHandle.loading, userHandle.user])
 
 	if (loading) return <Loading/>
 
@@ -77,28 +118,35 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 			const refArea = contentRef.current
 			refArea.focus()
 			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
-
 		}
 	}
 
 	async function deletePost(e) {
-		// console.log(post)
 		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
 				notifHandle.pushSuccess("Post deleted")
-				refreshKey()
+				if (update)
+					update()
+				else
+					navigate(`/board/${post.board_id}`) //need to get boardName
 			} else
 				notifHandle.pushError(res.status)
 		}
 	}
 	
 	async function saveEdit() {
-		setIsEditing(false)
-		// console.log(postInfo.content)
-		if (false) {
-			//api TODO
-			refreshKey()
+		const res = await apiPut(`/post/${post.id}`, {
+			body: JSON.stringify({
+				'content': postInfo.content
+			})
+		})
+		if (res.ok) {
+			notifHandle.pushSuccess("Post edited")
+			setIsEditing(false)
+			update()
+		} else {
+			notifHandle.pushError(res.message)
 		}
 	}
 
@@ -108,23 +156,25 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 	}
 
 	return (
-	<article onClick={() => (!isEditing && navigate(`/post/${post.id}`))}
+	<article onClick={() => ((canClickLink && !isEditing) && navigate(`/post/${post.id}`))}
 			className="bg-zinc-700 rounded-xl p-2 cursor-pointer hover:bg-zinc-700 transition"
 			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: postColor }}>
 		<header className="mb-2">
-			{isEditing ?
-				<TextAreaTitle
-					value = {postInfo.title}
-					setValue = {(value) => {setPostInfo(prev => ({...prev, "title": value}))}}
-					onEscape = {discardEdit}
-					bgColor = {postColor}
-					onEnter = {() => onEnterTitle()}
-					ref = {titleRef}
-				/>
-			:
-				<h6 className="text-white font-bold text-base">
-					{postInfo.title}
-				</h6>
+			{	postInfo.title != null &&
+				(isEditing ?
+					<TextAreaTitle
+						value = {postInfo.title}
+						setValue = {(value) => {setPostInfo(prev => ({...prev, "title": value}))}}
+						onEscape = {discardEdit}
+						bgColor = {postColor}
+						onEnter = {() => onEnterTitle()}
+						ref = {titleRef}
+					/>
+				:
+					<h6 className="text-white font-bold text-base">
+						{postInfo.title}
+					</h6>
+				)
 			}
 			<div className="flex items-center gap-3">
 				<time dateTime={post.created_at}
@@ -156,6 +206,9 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 					{postInfo.content}
 				</p>
 			}
+				<DisplayFile post={post}/>
+		</section>
+		<footer>
 			{canEdit &&
 				<EditComponentButtons isEditing = {isEditing}
 					saveEdit = {() => {saveEdit()}}
@@ -163,7 +216,8 @@ export default function DisplayPost({post, privilegeLvl, refreshKey})
 					setEditing = {() => {setIsEditing(true)}}
 				/>
 			}
-		</section>
+		</footer>
+
 	</article>
 	)
 }

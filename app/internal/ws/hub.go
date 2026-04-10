@@ -13,6 +13,7 @@ import (
 type Event struct {
 	Type string `json:"type"`
 	Data any    `json:"data"`
+	User string `json:"user"`
 }
 
 type Conn struct {
@@ -69,12 +70,19 @@ func (h *Hub) Broadcast(room string, event Event) {
 	}
 }
 
+func (h *Hub) HasSubscribers(room string) bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return len(h.rooms[room]) > 0
+}
+
 func (h *Hub) Serve(
 	w http.ResponseWriter,
 	r *http.Request,
 	room string,
 	onConnect func(c *Conn),
 	onMessage func(c *Conn, data []byte),
+	onDisconnect func(c *Conn),
 ) {
 	raw, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -85,6 +93,9 @@ func (h *Hub) Serve(
 	h.subscribe(room, c)
 	defer func() {
 		h.unsubscribe(room, c)
+		if onDisconnect != nil {
+			onDisconnect(c)
+		}
 		raw.Close()
 	}()
 

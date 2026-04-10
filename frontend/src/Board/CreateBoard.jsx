@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/Button"
-import TextInput from  "../components/TextInput"
+
 import useAuth from "../User/AuthProvider";
 import useNotif from "../components/Notif";
 
 import { apiPost } from "../Utils/api";
+
+import TextInput from  "../components/TextInput"
+import Button from "../components/Button"
+import Loading from "../components/Loading";
 
 // type BoardCreate struct {
 // 	Name        string `json:"name"`
@@ -15,39 +18,36 @@ import { apiPost } from "../Utils/api";
 
 export default function CreateBoard() {
 	const navigate = useNavigate()
-	const userHandler = useAuth()
+	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
 	useEffect(() => {
-		if (userHandler.loading) return
-		if (!userHandler.user) {
+		if (userHandle.loading) return
+		if (!userHandle.user) {
 			notifHandle.pushError("You need to be logged in to create a board")
 			navigate('/');
 		}
-	}, [userHandler.loading])
+	}, [userHandle.loading])
 
 	const [boardName, setBoardName] = useState("")
 	const [boardDescription, setBoardDescription] = useState("")
 	
 	const _CreateBoard = async () => {
-		try {
-			// console.log(boardName, boardDescription)
-			const response = await apiPost("//board/new",
-				{body: JSON.stringify({
-					'name': boardName,
-					'description': boardDescription}
-			)} )
-			if (!response.ok) {
-				throw (await response.status)
-			}
-			// console.log(response.json)
+		const response = await apiPost("//board/new",
+			{body: JSON.stringify({
+				'name': boardName,
+				'description': boardDescription}
+		)} )
+		if (!response.ok) {
+			notifHandle.pushError(response.status)
+		} else {
 			notifHandle.pushSuccess(`Board "${boardName}" succesfully created`)
 			navigate("/board/" + boardName);
-		} catch (error) {
-			// console.log(error)
-			notifHandle.pushError(error)
 		}
 	}
+
+	if (userHandle.loading || !userHandle.user)
+		return <Loading/>
 
 	return (
 		<div>	

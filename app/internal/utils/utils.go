@@ -31,8 +31,21 @@ func WriteNewResponse(w http.ResponseWriter, success bool, message string, data_
 	json.NewEncoder(w).Encode(resp)
 }
 
+func WritePublicResponse(w http.ResponseWriter, status int, success bool, message string, data_optional ...interface{}) {
+	resp := ApiResponse{
+		Success: success,
+		Message: message,
+	}
+	if (len(data_optional) > 0) {
+		resp.Data = data_optional[0]
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(resp)
+}
+
 func IsLegalName(s string) bool {
 
-	res := regexp.MustCompile(`^[a-zA-Z0-9+_@".<>()[]{}-]+$`)
+	res := regexp.MustCompile(`^[a-zA-Z0-9+_@".<>()\[\]{}-]+$`)
 	return res.MatchString(s)
 }
