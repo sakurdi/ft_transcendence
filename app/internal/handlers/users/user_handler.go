@@ -142,12 +142,29 @@ func UpdateUserHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		if sessionUserID != targetUserID {
-			utils.WriteNewResponse(w, false, "Forbiden")
+			utils.WriteNewResponse(w, false, "Forbdiden")
 			return
 		}
+	
 		var input models.UserEdit
 		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 			utils.WriteNewResponse(w, false, "Invalid request")
+			return
+		}
+		if len(input.Login) == 0 || len(input.Email) == 0 {
+			utils.WriteNewResponse(w, false, "Empty login and/or email field")
+			return
+		}
+		if !utils.IsLegalName(input.Login) {
+			utils.WriteNewResponse(w, false, "Illegal characters in login field")
+			return
+		}
+		if !auth.IsValidMail(input.Email) {
+			utils.WriteNewResponse(w, false, "Invalid email format")
+			return
+		}
+		if len(input.Login) <= 2 {
+			utils.WriteNewResponse(w, false, "Login needs to be 3 characters minimum")
 			return
 		}
 		if input.Password != "" {
