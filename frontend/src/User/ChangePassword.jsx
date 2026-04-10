@@ -1,33 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
-import useNotif	from "../components/Notif"
+import useNotif from "../components/Notif"
 import { apiPut } from "../Utils/api";
 
 import Loading from "../components/Loading";
 import { PasswordInput } from "../components/TextInput";
 import Button from "../components/Button";
-
-// r.Put("/user/{username}", users.UpdateUserHandler(c))
-// type UserEdit struct {
-// 	Login    string `json:"username"`
-// 	Email    string `json:"email"`
-// 	Password string `json:"password"`
-// }
+import Card from "../components/Card";
 
 function checkPassword(password, password2, pushError) {
-	if (password === "") {
-		pushError("Password cannot be empty")
-		return false
-	}
-	if (password.length <= 3) {
-		pushError("Password needs to be a least 4 characters")
-		return false
-	}
-	if (password !== password2) {
-		pushError("Passwords don't match")
-		return false
-	}
+	if (password === "") { pushError("Password cannot be empty"); return false }
+	if (password.length <= 3) { pushError("Password must be at least 4 characters"); return false }
+	if (password !== password2) { pushError("Passwords don't match"); return false }
 	return true
 }
 
@@ -36,7 +21,7 @@ export default function ChangePassword() {
 	const notifHandle = useNotif()
 	const navigate = useNavigate()
 
-	const [pwInfo, setPwInfo] = useState( {old: "", p1: "", p2: ""} )
+	const [pwInfo, setPwInfo] = useState({ old: "", p1: "", p2: "" })
 
 	useEffect(() => {
 		if (userHandle.loading) return
@@ -47,53 +32,56 @@ export default function ChangePassword() {
 	}, [userHandle.loading])
 
 	function handleEnter(event) {
-		if (event.key == "Enter") {
+		if (event.key === "Enter") {
 			event.preventDefault()
-			const form = event.target.form;
-			const index = [...form].indexOf(event.target);
-			form[index + 1].focus();
+			const form = event.target.form
+			const index = [...form].indexOf(event.target)
+			form[index + 1]?.focus()
 		}
 	}
 
 	const onSubmit = async () => {
 		if (checkPassword(pwInfo.p1, pwInfo.p2, notifHandle.pushError)) {
-			res = await apiPut("TODO") // TODO
+			const res = await apiPut("TODO") // TODO: wire up endpoint
 			if (!res.ok) {
 				notifHandle.pushError(res.status)
-				setPwInfo({old: "", p1: "", p2: ""})
+				setPwInfo({ old: "", p1: "", p2: "" })
 			} else {
 				notifHandle.pushSuccess("Password changed")
 				navigate('/')
 			}
 		} else {
-			setPwInfo({old: "", p1: "", p2: ""})
+			setPwInfo({ old: "", p1: "", p2: "" })
 		}
 	}
 
-	if (userHandle.loading)	return <Loading/>
+	if (userHandle.loading) return <Loading />
+
 	return (
-		<form  onSubmit= {(e) => {e.preventDefault(); onSubmit()}}>
-			<PasswordInput
-				value={pwInfo.old}
-				onChange={(old) => setPwInfo(prev => ({...prev, "old": old}))}
-				placeholder="Old password"
-				onKeypress={handleEnter}
+		<Card title="Change Password" description="Enter your current password and choose a new one.">
+			<form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); onSubmit() }}>
+				<PasswordInput
+					value={pwInfo.old}
+					onChange={(old) => setPwInfo(prev => ({ ...prev, old }))}
+					placeholder="Current password"
+					onKeypress={handleEnter}
 				/>
-			<PasswordInput
-				value={pwInfo.p1}
-				onChange={(p1) => setPwInfo(prev => ({...prev, "p1": p1}))}
-				placeholder="New password"
-				onKeypress={handleEnter}
-			/>
-			<PasswordInput
-				value={pwInfo.p2}
-				onChange={(p2) => setPwInfo(prev => ({...prev, "p2": p2}))}
-				placeholder="Confirm new password"
-				onEnter={onSubmit}
-			/>
-			<Button type="submit">
-				Change Password
-			</Button>
-		</form>
+				<PasswordInput
+					value={pwInfo.p1}
+					onChange={(p1) => setPwInfo(prev => ({ ...prev, p1 }))}
+					placeholder="New password"
+					onKeypress={handleEnter}
+				/>
+				<PasswordInput
+					value={pwInfo.p2}
+					onChange={(p2) => setPwInfo(prev => ({ ...prev, p2 }))}
+					placeholder="Confirm new password"
+					onEnter={onSubmit}
+				/>
+				<Button type="submit" className="w-full justify-center py-2.5 mt-1">
+					Update Password
+				</Button>
+			</form>
+		</Card>
 	)
 }

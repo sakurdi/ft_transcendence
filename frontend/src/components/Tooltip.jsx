@@ -1,19 +1,23 @@
 import { useState } from "react"
 
-export default function Tooltip({content = "Default Tooltip", children})
-{
-	const [mouseHover, setMouseHover] = useState(false)
+export default function Tooltip({ content = "Tooltip", children }) {
+	const [visible, setVisible] = useState(false)
+
 	return (
-		<div
-			onMouseEnter={() => setMouseHover(true)}
-			onMouseLeave = {() => setMouseHover(false)}
+		<div className="relative inline-flex"
+			onMouseEnter={() => setVisible(true)}
+			onMouseLeave={() => setVisible(false)}
 		>
 			{children}
-			{mouseHover &&
-				<span className="fixed z-50 bg-zinc-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none font-">
+			{visible && (
+				<span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+					z-50 whitespace-nowrap pointer-events-none
+					bg-[#2a2a38] text-[#eaeaf4] text-xs font-medium
+					px-2.5 py-1 rounded-lg border border-white/8
+					shadow-lg shadow-black/40">
 					{content}
 				</span>
-			}
+			)}
 		</div>
 	)
 }

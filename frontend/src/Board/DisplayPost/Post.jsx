@@ -11,86 +11,97 @@ import { apiDelete, apiPut } from "../../Utils/api";
 import { getRandomPastelDate } from "../../Utils/colors";
 import getDateDifferenceISO from "../../Utils/date";
 
-import TextButton, { TextLink } from "../../components/TextButton";
+import { TextLink } from "../../components/TextButton";
 import TextArea, { TextAreaTitle } from "../../components/TextArea";
 import Tooltip from "../../components/Tooltip";
 import Loading from "../../components/Loading";
 
-export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditing}) {
+export function EditComponentButtons({ isEditing, saveEdit, discardEdit, setEditing }) {
 	return (
-		<div>
-		{ isEditing ?
-			<>
-			<TextButton text = "Save"
-				onClick={(e) => saveEdit()}/>
-			<TextButton text = "Discard"
-				onClick={discardEdit}/>
-			</>
-		:
-			<TextButton text = "Edit"
-				onClick={setEditing}/>
-		}
+		<div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/6">
+			{isEditing ? (
+				<>
+					<button
+						onClick={saveEdit}
+						className="px-3 py-1 rounded-lg text-xs font-semibold
+							bg-g_seagreen text-white hover:bg-g_seagreen-600
+							transition-colors duration-100 shadow-sm shadow-g_seagreen/20">
+						Save
+					</button>
+					<button
+						onClick={discardEdit}
+						className="px-3 py-1 rounded-lg text-xs font-medium
+							text-[#9898b8] hover:text-[#eaeaf4]
+							transition-colors duration-100">
+						Discard
+					</button>
+				</>
+			) : (
+				<button
+					onClick={setEditing}
+					className="px-3 py-1 rounded-lg text-xs font-medium
+						text-[#55556a] hover:text-g_seagreen border border-transparent
+						hover:border-g_seagreen/30 hover:bg-g_seagreen/5
+						transition-all duration-100">
+					Edit
+				</button>
+			)}
 		</div>
 	)
 }
 
-function MediaRenderer({path}) {
-	if (!path)
-		return
+function MediaRenderer({ path }) {
+	if (!path) return null
 
-	var ext = path.substr(path.lastIndexOf('.') + 1);
-	var format = getFileFormat(ext);
-	
+	const ext = path.substr(path.lastIndexOf('.') + 1)
+	const format = getFileFormat(ext)
+
 	switch (format) {
 		case 'image':
-			return <p>
-				<img src={path}
-							alt="upload123"
-							className="w-24 h-24 object-cover border-2 border-stone-200"/>
-			</p>
-
+			return (
+				<div className="mt-3">
+					<img src={path} alt="upload"
+						className="max-w-xs max-h-64 rounded-xl object-cover
+							border border-white/10 cursor-zoom-in
+							hover:border-white/20 transition-all duration-150
+							shadow-lg shadow-black/30" />
+				</div>
+			)
 		case 'audio':
-			return <p>
-				<audio controls src={path}/>
-			</p>
-
+			return <div className="mt-3"><audio controls src={path} className="w-full max-w-xs h-10" /></div>
 		case 'video':
-			return <p>
-					<video controls src={path}/>
-			</p>
-			
+			return (
+				<div className="mt-3">
+					<video controls src={path}
+						className="max-w-xs max-h-64 rounded-xl border border-white/10 shadow-lg shadow-black/30" />
+				</div>
+			)
 		default:
-			<></>
+			return null
 	}
 }
 
-function DisplayFile({post}) {
-	return <div>
-		<MediaRenderer path={`${BASE}`+post.upload_path} />
-	</div>
+function DisplayFile({ post }) {
+	return <MediaRenderer path={`${BASE}` + post.upload_path} />
 }
 
-export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
-{
+export default function DisplayPost({ post, privilegeLvl, update, canClickLink = true }) {
 	const navigate = useNavigate()
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
 	const [loading, setLoading] = useState(true)
-
 	const [canEdit, setCanEdit] = useState(false)
 	const [canDelete, setCanDelete] = useState(privilegeLvl >= 2)
-
 	const [isEditing, setIsEditing] = useState(false)
-	const [postInfo, setPostInfo] = useState({title: post.title, content: post.content})
+	const [postInfo, setPostInfo] = useState({ title: post.title, content: post.content })
 	const titleRef = useRef(null)
 	const contentRef = useRef(null)
 
-	const postColor = getRandomPastelDate(post.created_at) 
-	
+	const postColor = getRandomPastelDate(post.created_at)
+
 	useEffect(() => {
-		// if (postInfo.title === null) return
-		if (isEditing == true && titleRef.current) {
+		if (isEditing && titleRef.current) {
 			const refArea = titleRef.current
 			refArea.focus()
 			refArea.setSelectionRange(refArea.value.length, refArea.value.length)
@@ -102,8 +113,7 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 		if (userHandle.user) {
 			const userID = userHandle.user.id
 			setCanEdit(userID === post.author_id)
-			if (!canDelete)
-				setCanDelete(userID === post.author_id)
+			if (!canDelete) setCanDelete(userID === post.author_id)
 		} else {
 			setCanEdit(false)
 			setCanDelete(false)
@@ -111,7 +121,7 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 		setLoading(false)
 	}, [userHandle.loading, userHandle.user])
 
-	if (loading) return <Loading/>
+	if (loading) return <Loading />
 
 	function onEnterTitle() {
 		if (contentRef.current) {
@@ -121,25 +131,22 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 		}
 	}
 
-	async function deletePost(e) {
+	async function deletePost() {
 		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
 				notifHandle.pushSuccess("Post deleted")
-				if (update)
-					update()
-				else
-					navigate(`/board/${post.board_id}`) //need to get boardName
-			} else
+				if (update) update()
+				else navigate(`/board/${post.board_id}`)
+			} else {
 				notifHandle.pushError(res.status)
+			}
 		}
 	}
-	
+
 	async function saveEdit() {
 		const res = await apiPut(`/post/${post.id}`, {
-			body: JSON.stringify({
-				'content': postInfo.content
-			})
+			body: JSON.stringify({ 'content': postInfo.content })
 		})
 		if (res.ok) {
 			notifHandle.pushSuccess("Post edited")
@@ -151,73 +158,98 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 	}
 
 	function discardEdit() {
-		setPostInfo({title: post.title, content: post.content})
+		setPostInfo({ title: post.title, content: post.content })
 		setIsEditing(false)
 	}
 
 	return (
-	<article onClick={() => ((canClickLink && !isEditing) && navigate(`/post/${post.id}`))}
-			className="bg-zinc-700 rounded-xl p-2 cursor-pointer hover:bg-zinc-700 transition"
-			style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: postColor }}>
-		<header className="mb-2">
-			{	postInfo.title != null &&
-				(isEditing ?
-					<TextAreaTitle
-						value = {postInfo.title}
-						setValue = {(value) => {setPostInfo(prev => ({...prev, "title": value}))}}
-						onEscape = {discardEdit}
-						bgColor = {postColor}
-						onEnter = {() => onEnterTitle()}
-						ref = {titleRef}
-					/>
-				:
-					<h6 className="text-white font-bold text-base">
-						{postInfo.title}
-					</h6>
-				)
-			}
-			<div className="flex items-center gap-3">
-				<time dateTime={post.created_at}
-					className="text-xs text-zinc-400">
-					{getDateDifferenceISO(post.created_at)}
-				</time>
-				<TextLink text={post.username}
-					link={`/user/${post.username}`}
-					className="text-xs text-zinc-400"/>
-				{canDelete &&
-					<Tooltip content = "Delete">
-						<TextButton onClick = {deletePost}
-							text = "❌"/>
-					</Tooltip>
-				}
-			</div>
-		</header>
-		<hr className="mb-2 -mx-4" style={{borderStyle: 'solid', borderColor: postColor, borderTopWidth: '3px'}}/>
-		<section>
-			{ isEditing ?
-				<TextArea value = {postInfo.content}
-					setValue = {(value) => {setPostInfo(prev => ({...prev, "content": value}))}}
-					onEscape = {discardEdit}
-					bgColor = {postColor}
-					ref = {contentRef}
-				/>
-			:
-				<p className="text-gray-200 text-sm break-words whitespace-pre-wrap">
-					{postInfo.content}
-				</p>
-			}
-				<DisplayFile post={post}/>
-		</section>
-		<footer>
-			{canEdit &&
-				<EditComponentButtons isEditing = {isEditing}
-					saveEdit = {() => {saveEdit()}}
-					discardEdit = {discardEdit}
-					setEditing = {() => {setIsEditing(true)}}
-				/>
-			}
-		</footer>
+		<article
+			onClick={() => (canClickLink && !isEditing) && navigate(`/post/${post.id}`)}
+			className="group relative glass rounded-xl overflow-hidden
+				transition-all duration-200
+				hover:bg-white/8 hover:border-white/14"
+			style={{
+				borderLeftWidth: '3px',
+				borderLeftColor: postColor,
+				cursor: canClickLink ? 'pointer' : 'default',
+			}}>
 
-	</article>
+			<div className="p-4 pl-5">
+				{/* Header */}
+				<header className="mb-3">
+					{postInfo.title != null && (
+						isEditing ? (
+							<TextAreaTitle
+								value={postInfo.title}
+								setValue={(value) => setPostInfo(prev => ({ ...prev, title: value }))}
+								onEscape={discardEdit}
+								bgColor="transparent"
+								onEnter={onEnterTitle}
+								ref={titleRef}
+							/>
+						) : (
+							<h6 className="text-[#eaeaf4] font-bold text-base leading-snug mb-2
+								group-hover:text-white transition-colors duration-150">
+								{postInfo.title}
+							</h6>
+						)
+					)}
+
+					<div className="flex items-center gap-2 flex-wrap">
+						<time dateTime={post.created_at} className="text-xs text-[#55556a]">
+							{getDateDifferenceISO(post.created_at)}
+						</time>
+						<span className="text-[#55556a] text-xs">·</span>
+						<TextLink text={post.username}
+							link={`/user/${post.username}`}
+							className="text-xs text-[#9898b8] hover:text-g_seagreen font-medium" />
+						{canDelete && (
+							<Tooltip content="Delete post">
+								<button
+									onClick={(e) => { e.stopPropagation(); deletePost() }}
+									className="ml-auto text-xs text-[#55556a] hover:text-red-400
+										transition-colors duration-100 px-1.5 py-0.5 rounded
+										hover:bg-red-400/10">
+									✕
+								</button>
+							</Tooltip>
+						)}
+					</div>
+				</header>
+
+				{/* Gradient divider using the post accent color */}
+				<div className="h-px mb-3 -mx-5 -mr-4"
+					style={{ background: `linear-gradient(to right, ${postColor}55, transparent 60%)` }} />
+
+				{/* Content */}
+				<section>
+					{isEditing ? (
+						<TextArea
+							value={postInfo.content}
+							setValue={(value) => setPostInfo(prev => ({ ...prev, content: value }))}
+							onEscape={discardEdit}
+							bgColor="transparent"
+							ref={contentRef}
+						/>
+					) : (
+						<p className="text-[#c8c8dc] text-sm leading-relaxed break-words whitespace-pre-wrap">
+							{postInfo.content}
+						</p>
+					)}
+					<DisplayFile post={post} />
+				</section>
+
+				{canEdit && (
+					<footer onClick={e => e.stopPropagation()}>
+						<EditComponentButtons
+							isEditing={isEditing}
+							saveEdit={saveEdit}
+							discardEdit={discardEdit}
+							setEditing={() => setIsEditing(true)}
+						/>
+					</footer>
+				)}
+			</div>
+		</article>
 	)
 }

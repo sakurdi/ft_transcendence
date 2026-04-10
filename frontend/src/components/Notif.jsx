@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback , } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 const NotifContext = createContext();
 
@@ -9,77 +9,69 @@ export default function useNotif() {
 	return (context)
 }
 
-export function NotifProvider({children}) {
+export function NotifProvider({ children }) {
 	const [notifs, setNotifs] = useState([])
-	
+
 	const pushNotif = useCallback((children = "Default Notif", type = "notif") => {
 		const id = crypto.randomUUID()
-		setNotifs(prev => [...prev, {id, type, children}] )
+		setNotifs(prev => [...prev, { id, type, children }])
 	})
 
-	const pushSuccess = useCallback((children = "Default Success") => {
-		pushNotif(children, "success")
-	})
-
-	const pushError = useCallback((children = "Default Error") => {
-		pushNotif(children, "error")
-	})
-
-	const clearNotif = useCallback(() =>{
-		setNotifs([])
-	})
-
-	const removeNotif = useCallback((id) => {
-		setNotifs(prev => prev.filter((item) => (item.id != id)))
-	})
+	const pushSuccess = useCallback((children = "Default Success") => pushNotif(children, "success"))
+	const pushError   = useCallback((children = "Default Error")   => pushNotif(children, "error"))
+	const clearNotif  = useCallback(() => setNotifs([]))
+	const removeNotif = useCallback((id) => setNotifs(prev => prev.filter(item => item.id !== id)))
 
 	return (
-		<NotifContext.Provider value = {{pushNotif, pushSuccess, pushError, clearNotif}}>
+		<NotifContext.Provider value={{ pushNotif, pushSuccess, pushError, clearNotif }}>
 			{children}
-			{notifs.map((notif, index) =>
-				<Notif key = {notif.id}
-					type = {notif.type}
-					onDone={() => removeNotif(notif.id)}
-					index = {index}>
-					{notif.children}
-				</Notif>)}
+			<div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999]
+				flex flex-col gap-2 items-center pointer-events-none">
+				{notifs.map((notif, index) =>
+					<Notif key={notif.id}
+						type={notif.type}
+						onDone={() => removeNotif(notif.id)}
+						index={index}>
+						{notif.children}
+					</Notif>
+				)}
+			</div>
 		</NotifContext.Provider>
 	)
 }
 
-function Notif({type, onDone, index, children}) {
+function Notif({ type, onDone, children }) {
 	const [fading, setFading] = useState(false)
-	
-	const beforeFadingDuration = 1000
-	const fadingDuration = 1000
-	
+	const beforeFading = 2800
+	const fadeDuration = 400
+
 	useEffect(() => {
-		const awaitFadeTimer = setTimeout(() => {setFading(true)}, beforeFadingDuration)
-		const fadeTimer = setTimeout(() => {onDone()}, beforeFadingDuration + fadingDuration)
-		return (() => {
-			clearTimeout(awaitFadeTimer)
-			clearTimeout(fadeTimer)
-		})
+		const t1 = setTimeout(() => setFading(true), beforeFading)
+		const t2 = setTimeout(() => onDone(), beforeFading + fadeDuration)
+		return () => { clearTimeout(t1); clearTimeout(t2) }
 	}, [])
 
-	const getColors = (type = "notif") => {
-		if (type == "success") {
-			return ("bg-green-50 border-green-400 text-green-800")
-		} else if (type == "error") {
-			return ("bg-red-50 border-red-400 text-red-800")
-		} else {
-			return ("bg-gray-50 border-gray-400 text-gray-700")
-		}
-	}
+	const accent = type === "success" ? "#03B5AA" : type === "error" ? "#f55f5f" : "#9898b8"
+	const icon   = type === "success" ? "✓" : type === "error" ? "✕" : "i"
 
 	return (
-		<div style={{ bottom: `${1 + index * 4}rem` }}
-				className = {`fixed left-1/2 -translate-x-1/2
-					px-4 py-2 rounded border font-bold
-					transition-opacity duration-1000 ${fading ? "opacity-0" : "opacity-100"}
-					min-w-fit max-w-[80vw]
-				${getColors(type)}`}>
-			{children}
-		</div>	
+		<div className={`
+			pointer-events-auto flex items-center gap-3
+			px-4 py-3 rounded-xl
+			glass shadow-2xl shadow-black/40
+			min-w-[240px] max-w-[400px]
+			transition-all duration-[400ms]
+			${fading ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"}
+		`}
+			style={{ borderColor: `${accent}55`, borderWidth: '1px' }}>
+			<span className="w-5 h-5 rounded-full flex items-center justify-center
+				text-xs font-bold flex-shrink-0"
+				style={{ color: accent, border: `1px solid ${accent}60` }}>
+				{icon}
+			</span>
+			<p className="text-sm font-medium text-[#eaeaf4] truncate">
+				{children}
+			</p>
+		</div>
 	)
 }

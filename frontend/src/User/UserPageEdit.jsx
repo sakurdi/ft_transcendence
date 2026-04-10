@@ -1,37 +1,28 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
-import useNotif	from "../components/Notif"
+import useNotif from "../components/Notif"
 import { apiPut, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
-import Button, {ButtonLink} from "../components/Button"
-import TextInput from "../components/TextInput";
+import Button, { ButtonLink } from "../components/Button"
 import { ProfileAvatar } from "../Chat/Friend";
-// r.Put("/user/{username}", users.UpdateUserHandler(c))
-// type UserEdit struct {
-// 	Login    string `json:"username"`
-// 	Email    string `json:"email"`
-// 	Password string `json:"password"`
-// }
 
-export default function UserPageEdit()
-{
+export default function UserPageEdit() {
 	const { usernameParam } = useParams()
 	const notifHandler = useNotif()
 	const userHandle = useAuth()
-	const navigate = useNavigate();
+	const navigate = useNavigate()
 	const [loading, setLoading] = useState(true)
-	const [username, setUsername] = useState("") 
-	const [email, setEmail] = useState("") 
-	const [userinfo, setUserinfo] = useState(null)
+	const [username, setUsername] = useState("")
+	const [email, setEmail] = useState("")
 
 	useEffect(() => {
 		if (userHandle.loading) return
 		if (!userHandle.user) {
 			notifHandler.pushError("You are not logged in")
 			navigate(`/user/${usernameParam}`)
-		} else if (userHandle.user.username != usernameParam) {
-			notifHandler.pushError("You cannot edit another user")
+		} else if (userHandle.user.username !== usernameParam) {
+			notifHandler.pushError("You cannot edit another user's profile")
 			navigate(`/user/${usernameParam}`)
 		} else {
 			setUsername(userHandle.user.username)
@@ -41,24 +32,15 @@ export default function UserPageEdit()
 	}, [userHandle.loading])
 
 	const fetchUserinfo = async () => {
-		const res = await apiGet(`/user/${username}`)
-		if (res.ok) {
-			setUserinfo(res.json)
-		} else {
-			notifHandler.pushError(res.status)
-		}
-		setLoading(false)
+		await apiGet(`/user/${username}`)
 	}
 
 	const saveEdit = async () => {
 		const res = await apiPut(`/user/id/${userHandle.user.id}`, {
-			body: JSON.stringify({
-				'username': username,
-				'email': email,
-			})
+			body: JSON.stringify({ 'username': username, 'email': email })
 		})
 		if (res.ok) {
-			notifHandler.pushSuccess("User successfuly edited")
+			notifHandler.pushSuccess("Profile updated")
 			userHandle.update()
 			navigate(`/user/${username}`)
 		} else {
@@ -66,26 +48,46 @@ export default function UserPageEdit()
 		}
 	}
 
-	if (loading)
-		return (<Loading/>)
+	if (loading) return <Loading />
 
 	return (
-		<>
-		<div>
-			{/* Editavatar */}
-			<TextInput value = {username} onChange={setUsername}/>
-			<TextInput value = {email} onChange={setEmail}/>
-			<ButtonLink link = {`/user/${usernameParam}`}>
-				Discard
-			</ButtonLink>
-			<Button onClick={saveEdit}>
-				Save
-			</Button>
-		</div>
+		<div className="max-w-xl mx-auto space-y-5">
+			<div>
+				<h1 className="text-2xl font-bold text-[#eaeaf4] tracking-tight">Edit Profile</h1>
+				<p className="text-[#9898b8] text-sm mt-1">Update your account information.</p>
+			</div>
 
-		<div>
-			<ProfileAvatar onUploaded={fetchUserinfo}/>
+			<div className="glass rounded-2xl p-6 space-y-5">
+				<div className="space-y-1.5">
+					<label className="block text-xs font-semibold text-[#9898b8] uppercase tracking-wider">
+						Username
+					</label>
+					<input type="text" value={username} onChange={e => setUsername(e.target.value)}
+						placeholder="Username" />
+				</div>
+				<div className="space-y-1.5">
+					<label className="block text-xs font-semibold text-[#9898b8] uppercase tracking-wider">
+						Email
+					</label>
+					<input type="email" value={email} onChange={e => setEmail(e.target.value)}
+						placeholder="Email" />
+				</div>
+				<div className="flex gap-3 pt-2">
+					<Button onClick={saveEdit} className="shadow-md shadow-g_seagreen/20">
+						Save Changes
+					</Button>
+					<ButtonLink link={`/user/${usernameParam}`}>
+						Discard
+					</ButtonLink>
+				</div>
+			</div>
+
+			<div className="glass rounded-2xl p-6">
+				<h2 className="text-xs font-semibold text-[#55556a] uppercase tracking-wider mb-4">
+					Profile Picture
+				</h2>
+				<ProfileAvatar onUploaded={fetchUserinfo} />
+			</div>
 		</div>
-		</>
 	)
 }

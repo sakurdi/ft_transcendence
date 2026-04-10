@@ -7,6 +7,14 @@ export default {
 	theme: {
 		extend: {
 			colors: {
+				dark: {
+					DEFAULT: "#0c0c12",
+					surface: "#13131b",
+					card: "#18181f",
+					elevated: "#1f1f28",
+					border: "#2a2a38",
+					"border-active": "#3a3a52",
+				},
 				g_black: {
 					DEFAULT: "#221F21",
 					50: "#F1F0F1",

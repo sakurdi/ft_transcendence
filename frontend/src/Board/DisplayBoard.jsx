@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useAuth from "../User/AuthProvider";
-import DisplayThreads from "./DisplayThreads";
 import DisplayMods from "./DisplayMods";
 import getDateDifferenceISO from "../Utils/date";
 import InfinitScrollThreads from "./InfinitScrollThreads"
@@ -13,50 +12,24 @@ import CreatePost from "./CreateThread";
 import Loading from "../components/Loading";
 import useNotif from "../components/Notif";
 
-// type BoardCreate struct {
-// 	Name        string `json:"name"`
-// 	Description string `json:"description"`
-// }
-
-function DisplayBoardDescription({description, privilegeLvl, saveEdit}) {
-	
-	if (!description || description.lenght == 0){
-		return (<></>)
-	}	else if (privilegeLvl != 3) {
-		return (<p>{description}</p>)
-	} else {
-		return (<TextEdit baseValue={description} onValueSave={saveEdit}/>)
+function DisplayBoardDescription({ description, privilegeLvl, saveEdit }) {
+	if (!description || description.length === 0) return null
+	if (privilegeLvl !== 3) {
+		return <p className="text-[#9898b8] text-sm leading-relaxed mt-2">{description}</p>
 	}
+	return <TextEdit baseValue={description} onValueSave={saveEdit} />
 }
 
-export function DisplayBoardHeader({board, privilegeLvl, setRefreshKeyBoard}) {
+export function DisplayBoardHeader({ board, privilegeLvl, setRefreshKeyBoard }) {
 	const navigate = useNavigate()
 	const notifHandle = useNotif()
-
-	const undefinedOwnerName = "<undefined>"
 	const [ownerName, setOwnerName] = useState(undefined)
-
-	const DisplayBoardOwner = (ownerName) => {
-		if (ownerName == undefined) {
-			return (
-				<p>
-					{undefinedOwnerName}
-				</p>
-			)
-		}
-		return (
-			<p onClick={() => navigate(`/user/${ownerName}`)}>
-				{ownerName}
-			</p>
-		)
-	}
 
 	useEffect(() => {
 		const fetchOwnerName = async (ownerId) => {
 			const response = await apiGet(`/user/id/${ownerId}`)
 			if (response.ok) {
-				const owner = response.json 
-				setOwnerName(owner.username)
+				setOwnerName(response.json.username)
 			} else {
 				setOwnerName(undefined)
 				notifHandle.pushError(response.status)
@@ -67,32 +40,64 @@ export function DisplayBoardHeader({board, privilegeLvl, setRefreshKeyBoard}) {
 
 	const saveEdit = async (newDescription) => {
 		const res = await apiPut(`board/${board.id}`, {
-			body: JSON.stringify({
-				'name': board.name,
-				'description': newDescription,
-			})
+			body: JSON.stringify({ 'name': board.name, 'description': newDescription })
 		})
 		if (res.ok) {
-			notifHandle.pushSuccess("Board edited")
+			notifHandle.pushSuccess("Board updated")
 			setRefreshKeyBoard()
-		} else
+		} else {
 			notifHandle.pushError(res.status)
+		}
 	}
 
 	return (
-		<section>
-			<header>
-				<h1>{board.name}</h1>
-				<div>
-					<span>{DisplayBoardOwner(ownerName)}</span>
-					<time dateTime = {board.created_at}>
-						{getDateDifferenceISO(board.created_at)}
-					</time>
+		<div className="glass rounded-2xl p-6 mb-6">
+			<div className="flex items-start justify-between gap-4">
+				<div className="flex-1 min-w-0">
+					<h1 className="text-2xl font-bold text-[#eaeaf4] tracking-tight">
+						/{board.name}/
+					</h1>
+					<div className="flex items-center gap-3 mt-1.5 flex-wrap">
+						{ownerName ? (
+							<button
+								onClick={() => navigate(`/user/${ownerName}`)}
+								className="text-xs text-[#9898b8] hover:text-g_seagreen
+									transition-colors duration-100 font-medium">
+								{ownerName}
+							</button>
+						) : (
+							<span className="text-xs text-[#55556a]">Unknown owner</span>
+						)}
+						<span className="text-[#55556a] text-xs">·</span>
+						<time dateTime={board.created_at} className="text-xs text-[#55556a]">
+							{getDateDifferenceISO(board.created_at)}
+						</time>
+					</div>
+					<DisplayBoardDescription
+						description={board.description}
+						privilegeLvl={privilegeLvl}
+						saveEdit={saveEdit}
+					/>
 				</div>
-				<DisplayBoardDescription description={board.description} privilegeLvl={privilegeLvl} saveEdit={saveEdit}/>
-			</header>
-			{privilegeLvl >= 3 && <DisplayMods boardID={board.id}/>}
-		</section>
+
+				{privilegeLvl >= 2 && (
+					<span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold
+						bg-g_seagreen/15 text-g_seagreen border border-g_seagreen/30
+						shadow-sm shadow-g_seagreen/10">
+						{privilegeLvl >= 3 ? "Owner" : "Moderator"}
+					</span>
+				)}
+			</div>
+
+			{privilegeLvl >= 3 && (
+				<div className="mt-5 pt-4 border-t border-white/6">
+					<p className="text-xs text-[#55556a] uppercase tracking-wider font-semibold mb-3">
+						Mod Team
+					</p>
+					<DisplayMods boardID={board.id} />
+				</div>
+			)}
+		</div>
 	)
 }
 
@@ -101,39 +106,32 @@ export default function DisplayBoard() {
 	const notifHandle = useNotif()
 	const { boardName } = useParams()
 
-	const [refreshKeyThread, setRefreshKeyThread] = useState(0);
-	const [refreshKeyBoard, setRefreshKeyBoard] = useState(0);
+	const [refreshKeyThread, setRefreshKeyThread] = useState(0)
+	const [refreshKeyBoard, setRefreshKeyBoard] = useState(0)
 	const [loading, setLoading] = useState(true)
-	const [privilegeLvl, setPrivilegeLvl] = useState(0);
+	const [privilegeLvl, setPrivilegeLvl] = useState(0)
 
 	const [board, setBoard] = useState({
-		id: undefined,
-		name: undefined,
-		description: undefined,
-		owner_id: undefined,
-		created_at: undefined,
+		id: undefined, name: undefined,
+		description: undefined, owner_id: undefined, created_at: undefined,
 	})
 
 	useEffect(() => {
 		setLoading(true)
 		if (userHandle.loading) return
 
-		const checkIsMod = async (boardname) =>  {
+		const checkIsMod = async (boardname) => {
 			try {
-				const response = await apiGet(`/board/${boardname}/ismod`);
-				if (!response.ok) {
-					throw (response.status)
-				}
-				return response.json.ismod;
-			} catch (error) {
-				return false;
-			}
+				const response = await apiGet(`/board/${boardname}/ismod`)
+				if (!response.ok) throw (response.status)
+				return response.json.ismod
+			} catch { return false }
 		}
-	
+
 		const fetchBoard = async (boardName) => {
-			const response = await apiGet(`/board/${boardName}`,)
+			const response = await apiGet(`/board/${boardName}`)
 			if (response.ok) {
-				const nBoard = response.json 
+				const nBoard = response.json
 				const user = userHandle.user
 				if (user) {
 					setPrivilegeLvl(1)
@@ -141,36 +139,56 @@ export default function DisplayBoard() {
 						setPrivilegeLvl(3)
 					} else {
 						const isMod = await checkIsMod(nBoard.name)
-						if (isMod) {
-							setPrivilegeLvl(2)
-						}
+						if (isMod) setPrivilegeLvl(2)
 					}
-				} else
+				} else {
 					setPrivilegeLvl(0)
+				}
 				setBoard(nBoard)
-			} else
+			} else {
 				notifHandle.pushError(response.status)
+			}
 		}
 		fetchBoard(boardName)
 		setLoading(false)
 	}, [refreshKeyBoard, userHandle.loading, userHandle.user])
 
-	if (loading) return <Loading/>
+	if (loading) return <Loading />
 	if (!board.id) {
-		return ("Pas de board")
+		return (
+			<div className="flex flex-col items-center justify-center py-24 gap-3">
+				<p className="text-[#55556a] text-lg">Board not found</p>
+			</div>
+		)
 	}
-	// console.log(board)
+
 	return (
-	<>
-		<DisplayBoardHeader board = {board} privilegeLvl = {privilegeLvl} setPrivilegeLvl = {setPrivilegeLvl}
-			setRefreshKeyBoard={() => setRefreshKeyBoard(refreshKeyBoard + 1)}/>
-		<InfinitScrollThreads boardName = {boardName} privilegeLvl = {privilegeLvl}
-			refreshKeyThread={refreshKeyThread}
-			setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
-		{userHandle.user &&
-			<CreatePost board={board}
-				setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}/>
-		}
-	</>
+		<div>
+			<DisplayBoardHeader
+				board={board}
+				privilegeLvl={privilegeLvl}
+				setPrivilegeLvl={setPrivilegeLvl}
+				setRefreshKeyBoard={() => setRefreshKeyBoard(refreshKeyBoard + 1)}
+			/>
+
+			<InfinitScrollThreads
+				boardName={boardName}
+				privilegeLvl={privilegeLvl}
+				refreshKeyThread={refreshKeyThread}
+				setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}
+			/>
+
+			{userHandle.user && (
+				<div className="mt-6 pt-6 border-t border-white/6">
+					<p className="text-xs font-semibold text-[#55556a] uppercase tracking-wider mb-4">
+						New Thread
+					</p>
+					<CreatePost
+						board={board}
+						setRefreshKeyThread={() => setRefreshKeyThread(refreshKeyThread + 1)}
+					/>
+				</div>
+			)}
+		</div>
 	)
 }
