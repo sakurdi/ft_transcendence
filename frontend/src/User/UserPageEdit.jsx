@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
 import useNotif	from "../components/Notif"
-import { apiPut } from "../Utils/api";
+import { apiPut, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, {ButtonLink} from "../components/Button"
 import TextInput from "../components/TextInput";
@@ -49,9 +49,6 @@ export default function UserPageEdit()
 		}
 		setLoading(false)
 	}
-	useEffect(() => {
-		fetchUserinfo()
-	}, [username])
 
 	const saveEdit = async () => {
 		const res = await apiPut(`/user/id/${userHandle.user.id}`, {
