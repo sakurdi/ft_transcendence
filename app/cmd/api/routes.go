@@ -47,7 +47,6 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 	mux.Get("/post/{postID}/newreplies", boards.GetScrollRepliesHandler(c))
 	mux.Get("/app/uploads/database/{fileName}", boards.ServeUpload(c))
-	// mux.Put(/api)
 
 	mux.Get("/uploads/avatars/{fileName}", users.ServeAvatar(c))
 
@@ -86,7 +85,7 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/friends/request/{friendUsername}/decline", users.DeclineFriendRequestHandler(c))
 		r.Get("/friends/requests", users.GetFriendRequestHandler(c))
 
-		r.Get("/users/{username}", users.GetUserProfileHandler(c))
+		r.Get("/user/{username}", users.GetUserProfileHandler(c))
 
 		r.Post("/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
 
@@ -119,9 +118,9 @@ func routes(c *config.Config) http.Handler {
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireSuperAdmin(c))
-			r.Get("/users", users.ListUsersHandler(c))
-			r.Put("/users/{userID}/role", users.SetRoleHandler(c))
-			r.Delete("/users/{userID}", users.DeleteUserHandler(c))
+			r.Get("/user", users.ListUsersHandler(c))
+			r.Put("/user/{userID}/role", users.SetRoleHandler(c))
+			r.Delete("/user/{userID}", users.DeleteUserHandler(c))
 		})
 	})
 
