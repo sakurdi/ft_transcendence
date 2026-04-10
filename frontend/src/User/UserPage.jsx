@@ -6,7 +6,7 @@ import { apiDelete, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, { ButtonLink } from "../components/Button"
 import ApiTokenPage from "./Api/ApiKeyPage";
-import { ProfileAvatar } from "../Chat/Friend";
+import { SendRequestFromProfil } from "../Chat/Friend";
 
 const getStrTimeDate = (dateISO) => {
 	const dateAPI = new Date(dateISO);
@@ -77,13 +77,12 @@ export default function UserPage() {
 	if (!userinfo) return "User does not exist"
 	const canEdit = (userHandle.user?.username == userinfo.username) 
 	console.log(userinfo)
+	const loggedIn = (!userHandle.loading) && (userHandle.user != null)
 	return (
 		<div>
 			<img src={userinfo.avatar_url}
 					alt="avatar123"
 					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
-
-			{canEdit && <ProfileAvatar onUploaded={fetchUserinfo}/>}
 
 			{userinfo.username}
 			<time dateTime = {userinfo.member_since}>
@@ -96,6 +95,9 @@ export default function UserPage() {
 					userID = {userHandle.user.id}/>
 					<ApiTokenPage/>
 				</>
+			}
+			{!canEdit && loggedIn && 
+					<SendRequestFromProfil newFriendId={username}/>
 			}
 		</div>
 	)

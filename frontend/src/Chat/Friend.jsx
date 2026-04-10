@@ -10,6 +10,7 @@ import { maxAvatarSize } from "../Utils/Data";
 import { getFileFormatWithURL, getContentTypeData } from "../Utils/Data";
 import { getAvatarContentTypeData, getFileFormatAvatar, getMagicNumberAvatar } from "../Utils/Data";
 import uploadFile from "../Utils/Upload";
+import useNotif from "../components/Notif";
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -200,6 +201,8 @@ function ProfilShowcase() {
 // ── Avatar Upload ───────────────────────────────────────────────────────────────
 
 export function ProfileAvatar({ onUploaded }) {
+	const notifHandler = useNotif()
+
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState();
 
@@ -211,23 +214,22 @@ export function ProfileAvatar({ onUploaded }) {
 
 	const handleFileError = async (selectedFile) => {
 		if (selectedFile.size > maxAvatarSize) {
-			console.log("File is too large");
+			notifHandler.pushError("File is too large")
 			throw new Error("File is too large");
 		}
 		else if (getFileFormatAvatar(selectedFile.name) == "unknown") {
-			console.log("Wrong file extension");
+			notifHandler.pushError("Wrong file extension")
 			throw new Error("Wrong file extension");
 		}
 		else if (getAvatarContentTypeData(selectedFile.type) == "unknown") {
-			console.log("Wrong file type");
+			notifHandler.pushError("Wrong file type")
 			throw new Error("Wrong file type");
 		}
 		const magicType = await getMagicNumberAvatar(selectedFile);
 		if (magicType == "unknown") {
-			console.log("File content does not match its type");
+			notifHandler.pushError("File content does not match its type")
 			throw new Error("File content does not match its type");
 		}
-		console.log("File is valid");
 	}
 
     const uploadAvatar = async (e) => {
@@ -253,9 +255,10 @@ export function ProfileAvatar({ onUploaded }) {
 			setPreviewUrl(null);
 			setFile(null);
 			onUploaded?.();
+			notifHandler.pushSuccess("Profil picture changed")
         }
 		else {
-			console.log("Failed to upload avatar");
+			notifHandler.pushError("Error when changing profil picture")
 		}
     };
 
@@ -447,9 +450,28 @@ function FriendList(props) {
 
 // ── Friend List Request ───────────────────────────────────────────────────────────────
 
+export function SendRequestFromProfil(props) {
+	const notifHandler = useNotif()
+	const sendRequest = async () => {
+		if (!props.newFriendId)
+			return;
+		const res = await apiPost(`/friends/request/${props.newFriendId}`);
+		if (res.ok) {
+			notifHandler.pushSuccess("Friend request send")
+		}
+		else {
+			notifHandler.pushError("Cant find your friend")
+		}
+	};
+		
+	return <Row>
+			<Btn onClick={sendRequest}>Send Request</Btn>
+		</Row>
+}
+
 function SendRequest(props) {
 	const user = useContext(FriendContext);
-	
+	const notifHandler = useNotif()
 	const sendRequest = async () => {
 		if (!user.newFriendId)
 			return;
@@ -459,7 +481,7 @@ function SendRequest(props) {
 		}
 		else {
 			// handle error
-			console.log("Failed to send friend request ", user.newFriendId);
+			notifHandler.pushError("Failed to send friend request")
 		}
 	};
 		
@@ -561,10 +583,9 @@ function DMSection({ auth }) {
 	const [profilUser, setProfilUser] = useState(null);
 
 	const userCon = useContext(FriendContext);
-
+	const notifHandler = useNotif()
 
 	const userWentOffline = (userToRemove) => {
-		console.log("userToRemove", userToRemove);
 		userCon.setUserConnected(friends => {
 			const { [userToRemove]: _, ...rest} = friends;
 			return rest;
@@ -572,12 +593,10 @@ function DMSection({ auth }) {
 	}
 
 	const userWentOnline = (userToAdd) => {
-		console.log("userToAdd", userToAdd);
 		userCon.setUserConnected(friends => ({...friends, [userToAdd]: userToAdd}))
 	}
 
     handlerRef.current = function(event) {
-		// console.log(event)
         if (event.type === "history") {
             userCon.setMessages(Array.isArray(event.data) ? event.data.filter(Boolean) : [])
         }
@@ -588,14 +607,11 @@ function DMSection({ auth }) {
 
 		}
 		if (event.type === "connection") {
-			console.log(event)
 			if (event.data === "isonline")
 			{
-				console.log("isonline")
 				userWentOnline(event.user)
 			}
 			else {
-				console.log("isoffline")
 				userWentOffline(event.user)
 			}
 		}

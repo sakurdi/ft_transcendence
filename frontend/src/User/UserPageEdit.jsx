@@ -2,11 +2,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
 import useNotif	from "../components/Notif"
-import { apiPut } from "../Utils/api";
+import { apiPut, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, {ButtonLink} from "../components/Button"
 import TextInput from "../components/TextInput";
-
+import { ProfileAvatar } from "../Chat/Friend";
 // r.Put("/user/{username}", users.UpdateUserHandler(c))
 // type UserEdit struct {
 // 	Login    string `json:"username"`
@@ -23,6 +23,7 @@ export default function UserPageEdit()
 	const [loading, setLoading] = useState(true)
 	const [username, setUsername] = useState("") 
 	const [email, setEmail] = useState("") 
+	const [userinfo, setUserinfo] = useState(null)
 
 	useEffect(() => {
 		if (userHandle.loading) return
@@ -38,6 +39,16 @@ export default function UserPageEdit()
 			setLoading(false)
 		}
 	}, [userHandle.loading])
+
+	const fetchUserinfo = async () => {
+		const res = await apiGet(`/user/${username}`)
+		if (res.ok) {
+			setUserinfo(res.json)
+		} else {
+			notifHandler.pushError(res.status)
+		}
+		setLoading(false)
+	}
 
 	const saveEdit = async () => {
 		const res = await apiPut(`/user/id/${userHandle.user.id}`, {
@@ -59,6 +70,7 @@ export default function UserPageEdit()
 		return (<Loading/>)
 
 	return (
+		<>
 		<div>
 			{/* Editavatar */}
 			<TextInput value = {username} onChange={setUsername}/>
@@ -70,5 +82,10 @@ export default function UserPageEdit()
 				Save
 			</Button>
 		</div>
+
+		<div>
+			<ProfileAvatar onUploaded={fetchUserinfo}/>
+		</div>
+		</>
 	)
 }

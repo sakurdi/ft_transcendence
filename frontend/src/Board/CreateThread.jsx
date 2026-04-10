@@ -72,7 +72,6 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		}
 
 		const magicType = await getMagicNumber(selectedFile);
-		console.log("magictype:", magicType)
 		if (magicType == "unknown" || magicType !== declaredType) {
 			infoElementError.textContent = "Wrong file type magic number";
 			infoElementError.style.color = "red";

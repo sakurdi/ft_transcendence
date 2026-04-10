@@ -74,13 +74,11 @@ export function getFileFormatAvatar(fileURL) {
 
 export function buildAcceptedFormat() {
 	var accepted = Object.entries(mime).map(([ext, type]) => `${type}`).join(", ");
-	console.log("accepetd", accepted)
 	return accepted;
 }
 
 export function buildAcceptedAvatarFormat() {
 	var accepted = Object.entries(mimeAvatar).map(([ext, type]) => `${type}`).join(", ");
-	console.log("accepetd", accepted)
 	return accepted;
 }
 
@@ -99,7 +97,6 @@ export function getAvatarContentTypeData(type) {
 export async function getMagicNumber(file) {
 	if (!file)
 	{
-		console.log("file error")
 		return "unknown"
 	}
 
@@ -187,11 +184,9 @@ export async function getMagicNumber(file) {
 		)
 			return "video";
 
-		console.log("fin")
 		return "unknown"
 	}
 	catch (err) {
-		console.log("error:", err);
 		return "unknown"
 	}
 }
@@ -200,7 +195,6 @@ export async function getMagicNumber(file) {
 export async function getMagicNumberAvatar(file) {
 	if (!file)
 	{
-		console.log("file error")
 		return "unknown"
 	}
 
@@ -240,11 +234,9 @@ export async function getMagicNumberAvatar(file) {
 			bytes[7] === 0x0A
 		)
 			return "image";
-		console.log("fin")
 		return "unknown"
 	}
 	catch (err) {
-		console.log("error:", err);
 		return "unknown"
 	}
 }
