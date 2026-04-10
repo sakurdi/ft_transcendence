@@ -289,6 +289,9 @@ func ChangePasswordHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 		utils.WriteNewResponse(w, true, "Password successfuly changed")
+	}
+}
+
 func CreateAPIKeyHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := middleware.GetUserID(c, r)
