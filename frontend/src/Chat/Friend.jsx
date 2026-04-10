@@ -10,6 +10,7 @@ import { maxAvatarSize } from "../Utils/Data";
 import { getFileFormatWithURL, getContentTypeData } from "../Utils/Data";
 import { getAvatarContentTypeData, getFileFormatAvatar, getMagicNumberAvatar } from "../Utils/Data";
 import uploadFile from "../Utils/Upload";
+import useNotif from "../components/Notif";
 
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
@@ -447,9 +448,28 @@ function FriendList(props) {
 
 // ── Friend List Request ───────────────────────────────────────────────────────────────
 
+export function SendRequestFromProfil(props) {
+	const notifHandler = useNotif()
+	const sendRequest = async () => {
+		if (!props.newFriendId)
+			return;
+		const res = await apiPost(`/friends/request/${props.newFriendId}`);
+		if (res.ok) {
+			notifHandler.pushSuccess("Friend request send")
+		}
+		else {
+			notifHandler.pushError("Cant find your friend")
+		}
+	};
+		
+	return <Row>
+			<Btn onClick={sendRequest}>Send Request</Btn>
+		</Row>
+}
+
 function SendRequest(props) {
 	const user = useContext(FriendContext);
-	
+	const notifHandler = useNotif()
 	const sendRequest = async () => {
 		if (!user.newFriendId)
 			return;
@@ -459,6 +479,7 @@ function SendRequest(props) {
 		}
 		else {
 			// handle error
+			notifHandler.pushError("Cant find your friend")
 			console.log("Failed to send friend request ", user.newFriendId);
 		}
 	};
