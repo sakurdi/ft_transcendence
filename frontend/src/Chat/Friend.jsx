@@ -205,6 +205,8 @@ export function ProfileAvatar({ onUploaded }) {
 
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState();
+	const [isUploading, setIsUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState(0);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -249,8 +251,13 @@ export function ProfileAvatar({ onUploaded }) {
 
         const formData = new FormData();
         formData.append("avatar", file);
+		setIsUploading(true);
+		setUploadProgress(0);
 		// const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });
-		const res = await uploadFile(`/uploads/avatar/${file.name}`, formData);
+		const res = await uploadFile(`/uploads/avatar/${file.name}`, formData, {
+			onProgress: (percent) => setUploadProgress(percent),
+		});
+		setIsUploading(false);
         if (res.ok) {
 			setPreviewUrl(null);
 			setFile(null);
@@ -269,14 +276,24 @@ export function ProfileAvatar({ onUploaded }) {
 
 			<input id="avatar-upload"
 				type="file" 
-				// accept={buildAcceptedAvatarFormat()} 
+				accept={buildAcceptedAvatarFormat()} 
 				onChange={handleFileChange} 
 				className="input-avatar"/>
 
 			<button onClick={uploadAvatar}
-				className="bg-sky-600 text-white rounded">
-				Upload
+				className="bg-sky-600 text-white rounded"
+				disabled={isUploading}>
+				{isUploading ? `Upload ${uploadProgress}%` : "Upload"}
 			</button>
+
+			<div className="w-full px-4 pb-3">
+				<div className="w-full bg-stone-200 rounded h-2 overflow-hidden">
+					<div
+						className="h-2 bg-sky-600 transition-all duration-200"
+						style={{ width: `${uploadProgress}%` }}
+					/>
+				</div>
+			</div>
 		</div>
 	);
 }
