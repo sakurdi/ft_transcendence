@@ -12,7 +12,16 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+
+	"io"
+	"os"
+	"fmt"
+	"path/filepath"
 )
+
+const upload_database_path string = "/app/uploads/database"
+
+const maxUploadSize = 5 << 20 // 5 MB
 
 func CreateBoardHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +176,20 @@ func GetRepliesHandler(c *config.Config) http.HandlerFunc {
 	}
 }
 
-func PostHandler(c *config.Config) http.HandlerFunc {
+func ServeUpload(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fileName := chi.URLParam(r, "fileName")
+		filePath := filepath.Join("/app/uploads/database", fileName)
+
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			utils.WriteNewResponse(w, false, "File not found")
+			return
+		}
+		http.ServeFile(w, r, filePath)
+	}
+}
+
+func CreatePostHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		userID := middleware.GetUserID(c, r)
@@ -176,31 +198,72 @@ func PostHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Invalid board ID")
 			return
 		}
-		var body models.PostCreate
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Content == "" {
-			utils.WriteNewResponse(w, false, "Invalid request")
+
+		err2 := r.ParseMultipartForm(maxUploadSize)
+		if (err2 != nil) {
+			utils.WriteNewResponse(w, false, "Error parsing form data")
 			return
 		}
-		if body.Title == nil || *body.Title == "" {
-			utils.WriteNewResponse(w, false, "Title must not be empty")
+
+		title_value := r.FormValue("title")
+
+		parent_id := r.FormValue("parent_id")
+		parent_id_int, err := strconv.Atoi(parent_id)
+		if (err != nil) {
+			utils.WriteNewResponse(w, false, "Invalid parent ID")
 			return
 		}
-		pID := chi.URLParam(r, "postID")
-		if pID != "" {
-			parentID, err := strconv.Atoi(pID)
-			if err != nil {
-				utils.WriteNewResponse(w, false, "Invalid post ID")
-				return
-			}
-			parent, err := store.GetPost(c.DB, r.Context(), parentID)
-			if err != nil {
-				utils.WriteNewResponse(w, false, "Post not found")
-				return
-			}
-			body.ParentID = &parentID
-			body.Title = nil
-			boardID = parent.BoardID
+		var parentIDptr *int
+		if (parent_id_int != 0) {
+			parentIDptr = &parent_id_int
 		}
+
+		body := models.PostCreate {
+			Title: &title_value,
+			Content: r.FormValue("content"),
+			ParentID: parentIDptr,
+		}
+
+		if body.ParentID == nil && (body.Title == nil || *body.Title == "") {
+			utils.WriteNewResponse(w, false, "Threads need a title")
+			return
+		}
+
+		file, _, err := r.FormFile("upload")
+		if (err == nil) {
+			defer file.Close()
+
+			buffer := make([]byte, 512)
+			_, err = file.Read(buffer)
+			if err != nil {
+				return
+			}
+			file.Seek(0, 0)
+
+			contentType := http.DetectContentType(buffer)
+
+			ext, err := utils.GetContentType(contentType)
+			if (err != nil) {
+				utils.WriteNewResponse(w, false, "File type not allowed")
+				return
+			}
+
+			newFilename := utils.GenerateFilename()
+
+			fileName := fmt.Sprintf("user_%d_%s%s", userID, newFilename, ext)
+			savePath := filepath.Join(upload_database_path, fileName)
+
+			dst, err := os.Create((savePath))
+			if err != nil {
+				utils.WriteNewResponse(w, false, "Error saving file")
+				return
+			}
+			defer dst.Close()
+			io.Copy(dst, file)
+
+			body.UploadPath = savePath
+		}
+
 		id, err := store.CreatePost(c.DB, r.Context(), body, boardID, userID)
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
@@ -445,6 +508,18 @@ func GetPostHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Internal server error")
 		} else {
 			utils.WriteNewResponse(w, true, "Success", post)
+		}
+	}
+}
+
+func GetBoard(c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+		board, err := store.GetBoardList(c.DB, r.Context(), query)
+		if err != nil {
+			utils.WriteNewResponse(w, false, "Internal server error")
+		} else {
+			utils.WriteNewResponse(w, true, "Success", board)
 		}
 	}
 }

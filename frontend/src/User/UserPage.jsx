@@ -6,6 +6,7 @@ import { apiDelete, apiGet } from "../Utils/api";
 import Loading from "../components/Loading";
 import Button, { ButtonLink } from "../components/Button"
 import ApiTokenPage from "./Api/ApiKeyPage";
+import { ProfileAvatar } from "../Chat/Friend";
 
 const getStrTimeDate = (dateISO) => {
 	const dateAPI = new Date(dateISO);
@@ -14,15 +15,6 @@ const getStrTimeDate = (dateISO) => {
 	const date = dateAPI.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric", year: "2-digit"})
 	return (time + " " + date)
 }
-
-
-// r.Put("/user/{username}", users.UpdateUserHandler(c))
-// r.Delete("/users/{userID}", users.DeleteUserHandler(c))
-// type UserEdit struct {
-// 	Login    string `json:"username"`
-// 	Email    string `json:"email"`
-// 	Password string `json:"password"`
-// }
 
 export function UserSettings({username, userID, updateUser}) {
 	const notifHandler = useNotif()
@@ -67,20 +59,19 @@ export default function UserPage() {
 	const [userinfo, setUserinfo] = useState(null)
 
 	const refreshPage = () => setRefreshKey(refreshKey + 1)
+	const fetchUserinfo = async () => {
+		const res = await apiGet(`/user/${username}`)
+		if (res.ok) {
+			setUserinfo(res.json)
+		} else {
+			notifHandle.pushError(res.status)
+		}
+		setLoading(false)
+	}
 
 	useEffect(() => {
-		const fetchUserinfo = async (username) => {
-			const res = await apiGet(`/user/${username}`)
-			if (res.ok) {
-				setUserinfo(res.json)
-			} else {
-				notifHandle.pushError(res.status)
-			}
-			setLoading(false)
-		}
-		console.log(username)
-		fetchUserinfo(username)
-	}, [refreshKey])
+		fetchUserinfo()
+	}, [refreshKey, username])
 
 	if (loading || userHandle.loading) return <Loading/>
 	if (!userinfo) return "User does not exist"
@@ -88,10 +79,13 @@ export default function UserPage() {
 	console.log(userinfo)
 	return (
 		<div>
-			<img src={userinfo.avatar_url}/>
-			<p>
-				{userinfo.username}
-			</p>
+			<img src={userinfo.avatar_url}
+					alt="avatar123"
+					className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
+
+			{canEdit && <ProfileAvatar onUploaded={fetchUserinfo}/>}
+
+			{userinfo.username}
 			<time dateTime = {userinfo.member_since}>
 				{getStrTimeDate(userinfo.member_since)}
 			</time>

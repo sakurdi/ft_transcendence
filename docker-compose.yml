@@ -50,6 +50,7 @@ services:
     container_name: app
     volumes:
       - ./app:/app
+      - ./uploads:/app/uploads
     environment:
       VAULT_ADDR: "http://vault:8200"
       VAULT_TOKEN: "dev-token"

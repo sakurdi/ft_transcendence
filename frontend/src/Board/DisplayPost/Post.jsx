@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
 
+import getFileFormat from "../../Utils/Data";
+import { BASE } from "../../Utils/api.jsx";
+
 import useAuth from "../../User/AuthProvider";
 import useNotif from "../../components/Notif";
 
@@ -31,7 +34,43 @@ export function EditComponentButtons({isEditing, saveEdit, discardEdit, setEditi
 	)
 }
 
-export default function Post({post, privilegeLvl, update, canClickLink = true})
+function MediaRenderer({path}) {
+	if (!path)
+		return
+
+	var ext = path.substr(path.lastIndexOf('.') + 1);
+	var format = getFileFormat(ext);
+	
+	switch (format) {
+		case 'image':
+			return <p>
+				<img src={path}
+							alt="upload123"
+							className="w-24 h-24 object-cover border-2 border-stone-200"/>
+			</p>
+
+		case 'audio':
+			return <p>
+				<audio controls src={path}/>
+			</p>
+
+		case 'video':
+			return <p>
+					<video controls src={path}/>
+			</p>
+			
+		default:
+			<></>
+	}
+}
+
+function DisplayFile({post}) {
+	return <div>
+		<MediaRenderer path={`${BASE}`+post.upload_path} />
+	</div>
+}
+
+export default function DisplayPost({post, privilegeLvl, update, canClickLink = true})
 {
 	const navigate = useNavigate()
 	const userHandle = useAuth()
@@ -167,6 +206,7 @@ export default function Post({post, privilegeLvl, update, canClickLink = true})
 					{postInfo.content}
 				</p>
 			}
+				<DisplayFile post={post}/>
 		</section>
 		<footer>
 			{canEdit &&
@@ -177,6 +217,7 @@ export default function Post({post, privilegeLvl, update, canClickLink = true})
 				/>
 			}
 		</footer>
+
 	</article>
 	)
 }

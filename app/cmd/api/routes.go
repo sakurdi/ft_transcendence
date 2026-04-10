@@ -46,6 +46,10 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/post/{postID}", boards.GetPostHandler(c))
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 	mux.Get("/post/{postID}/newreplies", boards.GetScrollRepliesHandler(c))
+	mux.Get("/app/uploads/database/{fileName}", boards.ServeUpload(c))
+	// mux.Put(/api)
+
+	mux.Get("/uploads/avatars/{fileName}", users.ServeAvatar(c))
 
 	mux.Get("/ws/board/{boardID}", wshandler.BoardSocket(c))
 	mux.Get("/ws/thread/{postID}", wshandler.ThreadSocket(c))
@@ -56,6 +60,8 @@ func routes(c *config.Config) http.Handler {
 
 	mux.Get("/board/{boardID}/members", boards.GetBoardModTeamHandler(c))
 
+	mux.Get("/board", boards.GetBoard(c))
+
 	mux.Group(func(r chi.Router) {
 		r.Use(AppMiddleware.Auth(c))
 		r.Use(AppMiddleware.DjangoFreeman(c))
@@ -63,11 +69,28 @@ func routes(c *config.Config) http.Handler {
 		r.Post("/logout", users.LogoutHandler(c))
 		r.Post("/board/new", boards.CreateBoardHandler(c))
 
-		r.Post("/board/{boardID}/post", boards.PostHandler(c))
+		r.Post("/board/{boardID}/post", boards.CreatePostHandler(c))
 		r.Post("/post/{postID}/reply", boards.ReplyHandler(c))
 		r.Put("/post/{postID}", boards.EditPostHandler(c))
 
-		r.Get("/ws/dm/{userID}", wshandler.DMSocket(c))
+		// r.Put("/post/{postID}", boards.EditPostHandler(c))
+
+		r.Get("/ws/dm/{username}", wshandler.DMSocket(c))
+
+		r.Post("/friends/{friendUsername}", users.FriendHandler(c))
+		r.Delete("/friends/{friendUsername}", users.UnfriendHandler(c))
+		r.Get("/friends", users.GetFriendsHandler(c))
+
+		r.Post("/friends/request/{friendUsername}", users.SendFriendRequestHandler(c))
+		r.Post("/friends/request/{friendUsername}/accept", users.AcceptFriendRequestHandler(c))
+		r.Post("/friends/request/{friendUsername}/decline", users.DeclineFriendRequestHandler(c))
+		r.Get("/friends/requests", users.GetFriendRequestHandler(c))
+
+		r.Get("/users/{username}", users.GetUserProfileHandler(c))
+
+		r.Post("/uploads/avatar/{fileName}", users.UploadAvatarHandler(c))
+
+		r.Get("/ws/presence", wshandler.CheckPresence(c))
 
 		r.Put("/user/id/{userID}", users.UpdateUserHandler(c))
 		r.Delete("/user/id/{userID}", users.DeleteUserHandler(c))
@@ -77,6 +100,7 @@ func routes(c *config.Config) http.Handler {
 		r.Delete("/api-keys/{keyID}", users.RevokeAPIKeyHandler(c))
 
 		r.Get("/board/{boardName}/ismod", boards.IsModHandler(c))
+
 
 		r.Group(func(r chi.Router) {
 			r.Use(AppMiddleware.RequireBoardAdmin(c))
