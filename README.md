@@ -1,9 +1,9 @@
 *This project has been created as part of the 42 curriculum by saal-kur, kevwang, gaeudes, esouhail, and hsebiane.*
 
-# Push
+# ft_transcendence
 
 ## Description
-**Push** is a comprehensive social platform and forum designed to facilitate community interaction through organized discussion boards, real-time communication, and secure data management. The project aims to provide a robust, scalable architecture for user-generated content, featuring:
+**ft_transcendence** is a comprehensive social platform and forum designed to facilitate community interaction through organized discussion boards, real-time communication, and secure data management. The project aims to provide a robust, scalable architecture for user-generated content, featuring:
 - **Community Boards:** Hierarchical discussion areas with moderation capabilities.
 - **Real-time Interaction:** Direct messaging and live updates via WebSockets.
 - **Security-First Design:** Integration with HashiCorp Vault for sensitive secret management and API key authentication.
@@ -20,7 +20,7 @@
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd push
+    cd ft_transcendence
     ```
 2.  **Environment Configuration:**
     Ensure the `.env` file (if required by specific modules) is properly configured. The current setup relies on Docker environment variables defined in `docker-compose.yml`.
