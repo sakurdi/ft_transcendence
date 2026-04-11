@@ -8,38 +8,38 @@ export default function FooterTOS() {
 			<footer className="text-center mt-auto text-[0.65rem] px-2 py-1 rounded-lg bg-g_seagreen/15 text-g_seagreen
 								font-semibold">
 				<div>
-					<btn className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+					<button className="inline-flex items-center rounded-lg text-sm font-medium
 							text-[#9898b8] hover:text-[#eaeaf4] hover:bg-white/8 transition-all duration-150"
 						onClick={() => navigate(`/termofservice`)}>
 							Term of service
-					</btn>
+					</button>
 				</div>
 				<div>
-					<btn className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+					<button className="inline-flex items-center rounded-lg text-sm font-medium
 							text-[#9898b8] hover:text-[#eaeaf4] hover:bg-white/8 transition-all duration-150"
 						onClick={() => navigate(`/privacy`)}>
 							Privacy
-					</btn>
+					</button>
 				</div>
 				<div>
-					<btn className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+					<button className="inline-flex items-center rounded-lg text-sm font-medium
 							text-[#9898b8] hover:text-[#eaeaf4] hover:bg-white/8 transition-all duration-150"
 						onClick={() => navigate(`/contact`)}>
 							Contact
-					</btn>
+					</button>
 				</div>
-				<div>
-					<p className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+				{/* <div>
+					<p className="inline-flex items-center rounded-lg text-sm font-medium
 							text-[#9898b8] transition-all duration-150">
 						© 2026 ft_transcendence
 					</p>
 				</div>
 				<div>
-					<p className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+					<p className="inline-flex items-center rounded-lg text-sm font-medium
 							text-[#9898b8] transition-all duration-150">
 						Samy uWu (✿◠‿◠)
 					</p>
-				</div>
+				</div> */}
 				
 			</footer>
 		</>
