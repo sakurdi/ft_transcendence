@@ -15,8 +15,8 @@ export default function BoardList() {
 
 	const [page, setPage] = useState(1)
 	const [limit, setLimit] = useState(10)
-	const [sort, setSort] = useState("name")
-	const [order, setOrder] = useState("asc")
+	const [sort, setSort] = useState("created_at")
+	const [order, setOrder] = useState("desc")
 	const [filter, setFilter] = useState("")
 	const [totalResult, setTotalResult] = useState(0)
 
@@ -56,8 +56,8 @@ export default function BoardList() {
 	}
 
 	const clearFilter = () => {
-		setPage(1); setLimit(10); setSort("name"); setOrder("asc"); setFilter("")
-		fetchBoards({ page: 1, limit: 10, sort: "name", order: "asc", filter: "" })
+		setPage(1); setLimit(10); setSort("created_at"); setOrder("desc"); setFilter("")
+		fetchBoards({ page: 1, limit: 10, sort: "created_at", order: "desc", filter: "" })
 	}
 
 	// Initial load
