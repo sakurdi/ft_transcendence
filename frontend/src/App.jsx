@@ -17,6 +17,10 @@ import ChangePassword from "./User/ChangePassword";
 import AdminPage from "./User/AdminPage";
 import {FriendChat} from "./Chat/Friend";
 import BoardList from "./Board/DisplayBoardSearch";
+import PrivacyPage from "./Privacy/Privacy";
+import TermOfServicePage from "./Privacy/TermOfService.jsx"
+import FooterTOS from "./Privacy/Footer.jsx"
+import Contact from "./Privacy/Contact.jsx";
 
 const Home = () => {
 	return (
@@ -48,6 +52,7 @@ const Home = () => {
 				</div>
 			</div>
 			<FriendChat />
+			<FooterTOS/>
 		</Layout>
 	)
 }
@@ -73,6 +78,9 @@ export default function App() {
 					<Route path='/board/:boardName' element={<Layout><DisplayBoard/></Layout>} />
 					<Route path='/post/:postID' element={<Layout><PostPage/></Layout>} />
 					<Route path='/admin' element={<Layout><AdminPage /></Layout>} />
+					<Route path='/privacy' element={<Layout><PrivacyPage/></Layout>} />
+					<Route path='/termofservice' element={<Layout><TermOfServicePage/></Layout>} />
+					<Route path='/contact' element={<Layout><Contact/></Layout>} />
 				</Routes>
 			</BrowserRouter>
 		</AuthProvider>
