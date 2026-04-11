@@ -179,21 +179,21 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 				{/* Header */}
 				<header className="mb-3">
 					{postInfo.title != null && (
-						isEditing ? (
-							<TextAreaTitle
-								value={postInfo.title}
-								setValue={(value) => setPostInfo(prev => ({ ...prev, title: value }))}
-								onEscape={discardEdit}
-								bgColor="transparent"
-								onEnter={onEnterTitle}
-								ref={titleRef}
-							/>
-						) : (
+						// isEditing ? (
+						// 	<TextAreaTitle
+						// 		value={postInfo.title}
+						// 		setValue={(value) => setPostInfo(prev => ({ ...prev, title: value }))}
+						// 		onEscape={discardEdit}
+						// 		bgColor="transparent"
+						// 		onEnter={onEnterTitle}
+						// 		ref={titleRef}
+						// 	/>
+						// ) : (
 							<h6 className="text-[#eaeaf4] font-bold text-base leading-snug mb-2
 								group-hover:text-white transition-colors duration-150">
 								{postInfo.title}
 							</h6>
-						)
+						// )
 					)}
 
 					<div className="flex items-center gap-2 flex-wrap">

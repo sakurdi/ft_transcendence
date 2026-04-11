@@ -32,7 +32,7 @@ export function DisplayBoardHeader({ board, privilegeLvl, setRefreshKeyBoard }) 
 				setOwnerName(response.json.username)
 			} else {
 				setOwnerName(undefined)
-				notifHandle.pushError(response.status)
+				// notifHandle.pushError(response.status)
 			}
 		}
 		fetchOwnerName(board.owner_id)
@@ -66,7 +66,7 @@ export function DisplayBoardHeader({ board, privilegeLvl, setRefreshKeyBoard }) 
 								{ownerName}
 							</button>
 						) : (
-							<span className="text-xs text-[#55556a]">Unknown owner</span>
+							<span className="text-xs text-[#55556a]">[deleted]</span>
 						)}
 						<span className="text-[#55556a] text-xs">·</span>
 						<time dateTime={board.created_at} className="text-xs text-[#55556a]">
