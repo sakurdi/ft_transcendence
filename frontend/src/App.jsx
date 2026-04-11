@@ -74,8 +74,7 @@ export default function App() {
   return (
 	<NotifProvider>
 		<AuthProvider>
-			<BrowserRouter future={{v7_relativeSplatPath: false, v7_startTransition: true,}}>
-			
+			<BrowserRouter future={{ v7_relativeSplatPath: false, v7_startTransition: true }}>
 				<NavBar/>
 				<Routes>
 					<Route path='/' element={<Home/>} />

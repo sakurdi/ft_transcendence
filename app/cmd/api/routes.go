@@ -21,6 +21,11 @@ func routes(c *config.Config) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(c.Session.LoadAndSave)
 
+	mux.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+
 	mux.Route("/public/v1", func(r chi.Router) {
 		r.Use(AppMiddleware.APIKeyAuth(c))
 		r.Use(AppMiddleware.RateLimit)
