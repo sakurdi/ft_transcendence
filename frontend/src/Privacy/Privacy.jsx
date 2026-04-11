@@ -68,11 +68,6 @@ export default function PrivacyPage() {
 				<h1 className="text-2xl sm:text-3xl font-bold mb-2">Privacy Policy</h1>
 				<p className="text-sm text-[#9898b8] mb-6">Last updated: April 11, 2026</p>
 
-				<p className="text-sm text-[#eaeaf4] leading-7 mb-6">
-					This policy explains what data we collect, why we collect it, and how we protect
-					it when you use ft_transcendence.
-				</p>
-
 				<div className="space-y-6">
 					{sections.map((section) => (
 						<article key={section.title} className="space-y-3">

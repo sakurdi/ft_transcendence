@@ -65,12 +65,6 @@ export default function TermOfServicePage() {
 			<div className="glass rounded-2xl p-6 sm:p-8 border border-white/10">
 				<h1 className="text-2xl sm:text-3xl font-bold mb-2">Terms of Service</h1>
 				<p className="text-sm text-[#9898b8] mb-6">Last updated: April 10, 2026</p>
-
-				<p className="text-sm text-[#eaeaf4] leading-7 mb-6">
-					By accessing or using ft_transcendence, you agree to these Terms of Service.
-					If you do not agree, please do not use the service.
-				</p>
-
 				<div className="space-y-6">
 					{sections.map((section) => (
 						<article key={section.title} className="space-y-3">
