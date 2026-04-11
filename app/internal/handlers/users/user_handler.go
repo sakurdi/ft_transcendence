@@ -47,6 +47,11 @@ func LoginHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
+		role, err := store.GetUserRole(c.DB, r.Context(), userID)
+		if err == nil && role == "banned" {
+			utils.WriteNewResponse(w, false, "User account is banned")
+			return
+		}
 		c.Session.Put(r.Context(), "user_id", userID)
 		c.Session.Put(r.Context(), "username", userInfo.Login)
 
