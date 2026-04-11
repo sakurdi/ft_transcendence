@@ -224,8 +224,6 @@ export function ProfileAvatar({ onUploaded }) {
     )
 }
 
-// ── Chat Message Window ────────────────────────────────────────────────────────
-
 function TypingDots() {
     return (
         <div className="flex items-center gap-1 px-3 py-2">
@@ -288,7 +286,6 @@ function ChatWindow({ auth, activePeer, isRemoteTyping }) {
                 })
             )}
 
-            {/* Typing indicator */}
             {isRemoteTyping && (
                 <div className="flex gap-2 flex-row">
                     <div className="w-6 h-6 rounded-full bg-[#2a2a38] border border-white/8
@@ -305,7 +302,6 @@ function ChatWindow({ auth, activePeer, isRemoteTyping }) {
     )
 }
 
-// ── Friend List ────────────────────────────────────────────────────────────────
 
 function ConnectionDot({ username }) {
     const user = useContext(FriendContext)
@@ -335,6 +331,8 @@ function FriendList({ connectDM }) {
         const res = await apiDelete(`/friends/${username}`)
         if (res.ok) { user.setNewFriendId(""); getFriends() }
     }
+
+	useEffect(() => {getFriends()}, [])
 
     return (
         <div className="space-y-px">
@@ -386,7 +384,6 @@ function FriendList({ connectDM }) {
     )
 }
 
-// ── Friend Requests ────────────────────────────────────────────────────────────
 
 export function SendRequestFromProfil({ newFriendId }) {
     const notifHandler = useNotif()
@@ -427,7 +424,6 @@ function FriendRequests({ getFriends, getRequests }) {
 
     return (
         <div className="space-y-4">
-            {/* Add friend */}
             <div className="space-y-2">
                 <p className="text-xs font-medium text-[#7878a0]">Add friend</p>
                 <div className="flex gap-1.5">
@@ -460,7 +456,6 @@ function FriendRequests({ getFriends, getRequests }) {
                 </div>
             </div>
 
-            {/* Pending requests */}
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -511,8 +506,6 @@ function FriendRequests({ getFriends, getRequests }) {
     )
 }
 
-// ── Tab Navigation ─────────────────────────────────────────────────────────────
-
 function TabBtn({ active, onClick, children, hasBadge }) {
     return (
         <button onClick={onClick}
@@ -529,14 +522,12 @@ function TabBtn({ active, onClick, children, hasBadge }) {
     )
 }
 
-// ── DM Section ─────────────────────────────────────────────────────────────────
-
 function DMSection({ auth }) {
     const { push } = useLog()
     const socket = useSocket(push)
     const presenceSocket = useSocket(push)
     const [message, setMessage] = useState("")
-    const [activeTab, setActiveTab] = useState("chat")
+    const [activeTab, setActiveTab] = useState("friends")
 
     const handlerRef = useRef(null)
     const typingTimerRef = useRef(null)
@@ -568,7 +559,9 @@ function DMSection({ auth }) {
             if (event.data === "isonline") userWentOnline(event.user)
             else userWentOffline(event.user)
         }
-        if (event.type === "typing") {
+        if (event.type === "typing" && event.user != (auth.user?.username || "")) {
+			// console.log(event)
+			// console.log(auth.user)
             setIsRemoteTyping(true)
             clearTimeout(typingTimerRef.current)
             typingTimerRef.current = setTimeout(() => setIsRemoteTyping(false), 2500)
@@ -621,7 +614,6 @@ function DMSection({ auth }) {
         }
     }, [auth.user])
 
-    // Auto-refresh friend requests every 30s while the panel is open
     useEffect(() => {
         if (!auth.user) return
         getRequests()
@@ -633,7 +625,6 @@ function DMSection({ auth }) {
         <>
             <ProfilShowcase />
 
-            {/* Pill tabs */}
             <div className="px-3 py-2 flex-shrink-0">
                 <div className="flex gap-1 p-1 bg-[#111118] rounded-xl">
                     <TabBtn active={activeTab === "chat"} onClick={() => setActiveTab("chat")}>
@@ -651,7 +642,6 @@ function DMSection({ auth }) {
                 </div>
             </div>
 
-            {/* Tab content */}
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 {activeTab === "chat" && (
                     <div className="flex flex-col h-full min-h-0">
@@ -706,7 +696,6 @@ function DMSection({ auth }) {
     )
 }
 
-// ── FriendChat (exported widget) ───────────────────────────────────────────────
 
 export function FriendChat() {
     const auth = useAuth()
@@ -716,7 +705,6 @@ export function FriendChat() {
 
     return (
         <>
-            {/* Toggle button */}
             <button
                 className={`fixed right-6 z-[1100]
                     flex items-center gap-2 px-4 py-2.5 rounded-full
@@ -730,14 +718,12 @@ export function FriendChat() {
                 {isOpen ? "Close" : "Chat"}
             </button>
 
-            {/* Chat panel */}
             {isOpen && (
                 <div className="fixed bottom-0 right-6 w-80 z-[1000] flex flex-col
                     bg-[#18181f] border border-white/8 rounded-t-2xl
                     shadow-2xl shadow-black/60 overflow-hidden"
                     style={{ height: "480px" }}>
 
-                    {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 flex-shrink-0
                         border-b border-white/5">
                         <span className="text-sm font-semibold text-[#eaeaf4]">Messages</span>

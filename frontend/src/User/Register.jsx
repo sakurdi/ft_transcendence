@@ -109,8 +109,6 @@ export default function Register() {
 					value={values.password2}
 					onChange={(password) => setValue("password2", password)}
 					placeholder="Confirm password"
-					onEnter={onSubmit}
-					
 				/>
 				<Button type="submit" className="w-80 justify-center py-2.5 mt-2">
 					Create Account

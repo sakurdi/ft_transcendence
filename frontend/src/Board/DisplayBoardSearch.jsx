@@ -15,12 +15,11 @@ export default function BoardList() {
 
 	const [page, setPage] = useState(1)
 	const [limit, setLimit] = useState(10)
-	const [sort, setSort] = useState("name")
-	const [order, setOrder] = useState("asc")
+	const [sort, setSort] = useState("created_at")
+	const [order, setOrder] = useState("desc")
 	const [filter, setFilter] = useState("")
 	const [totalResult, setTotalResult] = useState(0)
 
-	// Build query from current state + optional overrides
 	function buildQuery(overrides = {}) {
 		const params = new URLSearchParams({
 			page:  overrides.page  ?? page,
@@ -49,15 +48,14 @@ export default function BoardList() {
 		} else {
 			const parsedBoards = Array.isArray(response.json?.board_list) ? response.json.board_list : []
 			setBoards(parsedBoards)
-			// prefer total_result from server; fall back to the slice length
 			setTotalResult(response.json?.total_result || parsedBoards.length)
 		}
 		setLoading(false)
 	}
 
 	const clearFilter = () => {
-		setPage(1); setLimit(10); setSort("name"); setOrder("asc"); setFilter("")
-		fetchBoards({ page: 1, limit: 10, sort: "name", order: "asc", filter: "" })
+		setPage(1); setLimit(10); setSort("created_at"); setOrder("desc"); setFilter("")
+		fetchBoards({ page: 1, limit: 10, sort: "created_at", order: "desc", filter: "" })
 	}
 
 	// Initial load

@@ -47,7 +47,6 @@ func routes(c *config.Config) http.Handler {
 	mux.Get("/post/{postID}/replies", boards.GetRepliesHandler(c))
 	mux.Get("/post/{postID}/newreplies", boards.GetScrollRepliesHandler(c))
 	mux.Get("/app/uploads/database/{fileName}", boards.ServeUpload(c))
-	// mux.Put(/api)
 
 	mux.Get("/uploads/avatars/{fileName}", users.ServeAvatar(c))
 

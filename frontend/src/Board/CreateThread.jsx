@@ -91,6 +91,10 @@ export default function CreatePost({ board, setRefreshKeyThread }) {
 	}
 
 	async function onSubmit() {
+		if (title == "") {
+			notifHandle.pushError("Title cannot be empty")
+			return
+		}
 		setIsUploading(true)
 		setUploadProgress(0)
 		const res = await uploadFile(`/board/${board.id}/post`, buildFormData(), {
@@ -104,8 +108,12 @@ export default function CreatePost({ board, setRefreshKeyThread }) {
 			notifHandle.pushError(res.status)
 		} else {
 			notifHandle.pushSuccess(`Thread "${title}" created`)
-			setTitle(""); setContent(""); setFile(null); setPreviewUrl(null)
-			setFileInfo(""); setFileError("")
+			setTitle("")
+			setContent("")
+			setFile(null)
+			setPreviewUrl(null)
+			setFileInfo("")
+			setFileError("")
 			setRefreshKeyThread()
 		}
 	}
