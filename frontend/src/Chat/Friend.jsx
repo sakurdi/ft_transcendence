@@ -522,14 +522,12 @@ function TabBtn({ active, onClick, children, hasBadge }) {
     )
 }
 
-// ── DM Section ─────────────────────────────────────────────────────────────────
-
 function DMSection({ auth }) {
     const { push } = useLog()
     const socket = useSocket(push)
     const presenceSocket = useSocket(push)
     const [message, setMessage] = useState("")
-    const [activeTab, setActiveTab] = useState("chat")
+    const [activeTab, setActiveTab] = useState("friends")
 
     const handlerRef = useRef(null)
     const typingTimerRef = useRef(null)
