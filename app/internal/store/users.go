@@ -94,7 +94,7 @@ func DeleteUser(db *pgxpool.Pool, ctx context.Context, userID int) error {
 }
 
 func GetAllUsers(db *pgxpool.Pool, ctx context.Context) ([]models.UserProfile, error) {
-	rows, err := db.Query(ctx, "SELECT id, login, role, created_at FROM users ORDER BY created_at ASC")
+	rows, err := db.Query(ctx, "SELECT id, login, email, role, created_at FROM users ORDER BY created_at ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func GetAllUsers(db *pgxpool.Pool, ctx context.Context) ([]models.UserProfile, e
 	users := []models.UserProfile{}
 	for rows.Next() {
 		var u models.UserProfile
-		if err := rows.Scan(&u.ID, &u.Login, &u.Role, &u.Creation_date); err != nil {
+		if err := rows.Scan(&u.ID, &u.Login, &u.Email, &u.Role, &u.Creation_date); err != nil {
 			return nil, err
 		}
 		users = append(users, u)

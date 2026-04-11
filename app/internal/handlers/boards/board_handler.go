@@ -340,11 +340,11 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
-		if err != nil {
-			utils.WriteNewResponse(w, false, "Internal server error")
-			return
-		} else if !isMod {
+		authorID, err := store.GetPostAuthorID(c.DB, r.Context(), postID)
+		isAuthor := (err == nil && userID == authorID)
+		isMod, _ := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
+
+		if !isAuthor && !isMod {
 			utils.WriteNewResponse(w, false, "You dont have the rights to delete this post")
 			return
 		}

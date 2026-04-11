@@ -25,6 +25,7 @@ type UserInfo struct {
 type UserProfile struct {
 	ID            int       `json:"id"`
 	Login         string    `json:"username"`
+	Email         string    `json:"email"`
 	Role          string    `json:"role"`
 	Avatar        string    `json:"avatar_url"`
 	Creation_date time.Time `json:"member_since"`

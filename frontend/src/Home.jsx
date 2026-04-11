@@ -36,15 +36,26 @@ const FeatureCard = ({ title, description, link, icon }) => (
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const [boards, setBoards] = useState([]);
+  const [totalBoards, setTotalBoards] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchHomeData = async () => {
+      setLoading(true);
       const res = await apiGet("/board?limit=3");
-      if (res.ok) setBoards(res.json?.board_list || res.json || []);
+      if (res.ok) {
+        // Handle both Array response and Object with board_list
+        if (Array.isArray(res.json)) {
+          setBoards(res.json);
+          setTotalBoards(res.json.length);
+        } else {
+          setBoards(res.json?.board_list || []);
+          setTotalBoards(res.json?.total_result || 0);
+        }
+      }
       setLoading(false);
     };
-    fetchStats();
+    fetchHomeData();
   }, []);
 
   if (authLoading || loading) return <div className="p-12"><Loading /></div>;
@@ -75,11 +86,11 @@ export default function Home() {
         <div className="absolute top-0 right-0 -mt-24 -mr-24 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
       </section>
 
-      {/* Stats */}
+      {/* Dynamic Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard label="Boards" value={boards.length} icon="📂" />
+        <StatCard label="Total Boards" value={totalBoards} icon="📂" />
         <StatCard label="Platform" value="Open" icon="🌐" />
-        <StatCard label="API" value="Public" icon="⚡" />
+        <StatCard label="API Status" value="Online" icon="⚡" />
       </div>
 
       {/* Core Features */}

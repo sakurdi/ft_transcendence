@@ -106,13 +106,18 @@ export default function DisplayPost({post, privilegeLvl, update, canClickLink = 
 	async function deletePost(e) {
 		e.stopPropagation()
 		if (window.confirm(`Delete this post?`)) {
+			// Using the board-contextual deletion route
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
-				notifHandle.pushSuccess("Post deleted")
-				if (update) update()
-				else navigate(`/board`)
-			} else
-				notifHandle.pushError(res.status)
+				notifHandle.pushSuccess("Post removed")
+				if (update) {
+					update()
+				} else {
+					navigate(`/board`)
+				}
+			} else {
+				notifHandle.pushError(res.status || "Failed to delete post")
+			}
 		}
 	}
 	
