@@ -302,7 +302,6 @@ function ChatWindow({ auth, activePeer, isRemoteTyping }) {
     )
 }
 
-// ── Friend List ────────────────────────────────────────────────────────────────
 
 function ConnectionDot({ username }) {
     const user = useContext(FriendContext)
@@ -385,7 +384,6 @@ function FriendList({ connectDM }) {
     )
 }
 
-// ── Friend Requests ────────────────────────────────────────────────────────────
 
 export function SendRequestFromProfil({ newFriendId }) {
     const notifHandler = useNotif()
@@ -426,7 +424,6 @@ function FriendRequests({ getFriends, getRequests }) {
 
     return (
         <div className="space-y-4">
-            {/* Add friend */}
             <div className="space-y-2">
                 <p className="text-xs font-medium text-[#7878a0]">Add friend</p>
                 <div className="flex gap-1.5">
@@ -459,7 +456,6 @@ function FriendRequests({ getFriends, getRequests }) {
                 </div>
             </div>
 
-            {/* Pending requests */}
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -509,8 +505,6 @@ function FriendRequests({ getFriends, getRequests }) {
         </div>
     )
 }
-
-// ── Tab Navigation ─────────────────────────────────────────────────────────────
 
 function TabBtn({ active, onClick, children, hasBadge }) {
     return (
@@ -622,7 +616,6 @@ function DMSection({ auth }) {
         }
     }, [auth.user])
 
-    // Auto-refresh friend requests every 30s while the panel is open
     useEffect(() => {
         if (!auth.user) return
         getRequests()
@@ -634,7 +627,6 @@ function DMSection({ auth }) {
         <>
             <ProfilShowcase />
 
-            {/* Pill tabs */}
             <div className="px-3 py-2 flex-shrink-0">
                 <div className="flex gap-1 p-1 bg-[#111118] rounded-xl">
                     <TabBtn active={activeTab === "chat"} onClick={() => setActiveTab("chat")}>
@@ -652,7 +644,6 @@ function DMSection({ auth }) {
                 </div>
             </div>
 
-            {/* Tab content */}
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 {activeTab === "chat" && (
                     <div className="flex flex-col h-full min-h-0">
