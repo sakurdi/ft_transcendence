@@ -29,7 +29,7 @@ const Home = () => {
 						Welcome to <span className="text-g_seagreen">ft_transcendence</span>
 					</h1>
 					<p className="text-[#9898b8] text-lg max-w-md mx-auto">
-						A community-driven board for threads, posts, and conversations.
+						A simple discussion platform
 					</p>
 				</div>
 				<div className="flex gap-4 flex-wrap justify-center">
