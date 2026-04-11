@@ -133,7 +133,10 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 	}
 
 	async function deletePost() {
-		if (window.confirm(`Delete "${post.title}"? This action cannot be undone.`)) {
+		const deleteConfirmMessage = (post.title != null)
+			? `Delete "${post.title}"? This action cannot be undone.`
+			: `Delete this reply? This action cannot be undone.`
+		if (window.confirm(deleteConfirmMessage)) {
 			const res = await apiDelete(`/board/${post.board_id}/post/${post.id}`)
 			if (res.ok) {
 				notifHandle.pushSuccess("Post deleted")

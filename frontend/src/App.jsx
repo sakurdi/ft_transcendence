@@ -1,11 +1,11 @@
+import Register from "./User/Register";
+import Login from "./User/Login";
+import Logout from "./User/Logout";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./User/AuthProvider";
 import { useEffect } from "react";
 import useNotif, { NotifProvider } from "./components/Notif";
 
-import Register from "./User/Register";
-import Login from "./User/Login";
-import Logout from "./User/Logout";
 import UserPage from "./User/UserPage";
 import UserPageEdit from "./User/UserPageEdit";
 import PostPage from "./Board/DisplayPost/PostPage";

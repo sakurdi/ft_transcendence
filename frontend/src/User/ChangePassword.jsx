@@ -1,3 +1,4 @@
+import { PasswordInput } from "../components/TextInput";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "./AuthProvider";
@@ -5,7 +6,6 @@ import useNotif from "../components/Notif"
 import { apiPut } from "../Utils/api";
 
 import Loading from "../components/Loading";
-import { PasswordInput } from "../components/TextInput";
 import Button from "../components/Button";
 import Card from "../components/Card";
 
