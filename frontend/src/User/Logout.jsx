@@ -26,11 +26,6 @@ export function LogoutButton() {
 			Logout
 		</Button>
 	)
-	return (
-		<ButtonLink link = "/logout">
-			Logout
-		</ButtonLink>
-	)
 }
 
 
