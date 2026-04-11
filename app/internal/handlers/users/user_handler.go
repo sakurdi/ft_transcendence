@@ -204,7 +204,7 @@ func ListUsersHandler(c *config.Config) http.HandlerFunc {
 
 func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//sessionUserID := middleware.GetUserID(c, r)
+		sessionUserID := middleware.GetUserID(c, r)
 		targetUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 		if err != nil {
 			utils.WriteNewResponse(w, false, "Invalid user ID")
@@ -218,7 +218,9 @@ func DeleteUserHandler(c *config.Config) http.HandlerFunc {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
 			return
 		}
-		c.Session.Destroy(r.Context())
+		if (sessionUserID == targetUserID) {
+			c.Session.Destroy(r.Context())
+		}
 		utils.WriteNewResponse(w, true, "User deleted")
 	}
 }

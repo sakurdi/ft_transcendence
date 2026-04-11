@@ -44,6 +44,7 @@ function UserRow({ user, onRoleChanged, onDeleted }) {
 		const res = await apiDelete(`/users/${user.id}`)
 		if (res.ok) {
 			notifHandle.pushSuccess(`User "${user.username}" deleted`)
+
 			onDeleted(user.id)
 		} else {
 			notifHandle.pushError(res.status ?? "Failed to delete user")
@@ -143,6 +144,9 @@ export default function AdminPage() {
 
 	const handleDeleted = (id) => {
 		setUsers(prev => prev.filter(u => u.id !== id))
+		if (id == userHandle.user.id) {
+			userHandle.update()
+		}
 	}
 
 	if (userHandle.loading || loading) return (
