@@ -28,10 +28,12 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (login, password, email, role) VALUES
-    ('saal-kur','$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saal-kur@goat.com', 'superadmin'),
-    ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@petitgoat.com', 'superadmin'),
-    ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@midgoat.com', 'superadmin'),
-    ('peon', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'bonjour@bonjour.com', 'user')
+    ('saalkur','$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'saalkur@goat.com', 'superadmin'),
+    ('gaeudes', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'gaeudes@goat.com', 'superadmin'),
+    ('kevwang', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'kevwang@goat.com', 'superadmin'),
+    ('esouhail', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'esouhail@goat.com', 'superadmin'),
+    ('peon', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'nul@guez.com', 'user'),
+    ('banned', '$2a$12$i9shXAGfRac6qgTuKXkpnuRJk7WLcjSb6CG5ove1Ze8dSCst.av9K', 'banned@banned.com', 'banned')
 ON CONFLICT DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(login);
@@ -80,8 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_board_moderators_board ON board_moderators(board_
 CREATE INDEX IF NOT EXISTS idx_board_moderators_user ON board_moderators(user_id);
 
 INSERT INTO boards (name, description, owner_id) VALUES
-    ('42', 'horrible ecole', (SELECT id FROM users WHERE login = 'saal-kur')),
-    ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saal-kur'))
+    ('League', 'Ligue des legendes', (SELECT id FROM users WHERE login = 'saalkur'))
 
 ON CONFLICT (name) DO NOTHING;
 
@@ -148,14 +149,8 @@ CREATE TABLE IF NOT EXISTS friend_requests (
 );
 
 INSERT INTO posts (board_id, author_id, title, content)
-SELECT b.id, u.id, 'nouveau cursus?', 'daube'
-FROM boards b JOIN users u ON u.login = 'saal-kur'
-WHERE b.name = '42'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO posts (board_id, author_id, title, content)
 SELECT b.id, u.id, 'poppy', 'poppy'
-FROM boards b JOIN users u ON u.login = 'saal-kur'
+FROM boards b JOIN users u ON u.login = 'saalkur'
 WHERE b.name = 'League'
 ON CONFLICT DO NOTHING;
 
@@ -184,18 +179,6 @@ JOIN users u ON u.login = 'kevwang'
 JOIN generate_series(1, 100) AS gs(n) ON TRUE
 JOIN posts parent ON parent.title = 'League Thread #100'
 WHERE b.name = 'League'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO posts (board_id, author_id, content, parent_id)
-SELECT
-    b.id,
-    u.id,
-    'Je suis d''accord, c''est dur',
-    p.id
-FROM boards b
-JOIN users u ON u.login = 'gaeudes'
-JOIN posts p ON p.title = 'ecole de merde'
-WHERE b.name = '42'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO posts (board_id, author_id, content, parent_id)
