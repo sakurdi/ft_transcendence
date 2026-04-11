@@ -3,9 +3,13 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  logLevel: 'silent',
   server: {
     host: true,
     port: 5173,
-    strictPort: true
+    strictPort: true,
+    hmr: {
+      overlay: false
+    },
   }
 });

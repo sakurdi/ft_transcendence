@@ -89,8 +89,12 @@ services:
     networks:
       - app_net
     depends_on:
-      - app
-      - frontend
+      app:
+        condition: service_started
+      frontend:
+        condition: service_started
+      db:
+        condition: service_started
 
 networks:
   app_net:
