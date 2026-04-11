@@ -333,6 +333,8 @@ function FriendList({ connectDM }) {
         if (res.ok) { user.setNewFriendId(""); getFriends() }
     }
 
+	useEffect(() => {getFriends()}, [])
+
     return (
         <div className="space-y-px">
             <div className="flex items-center justify-between mb-3">
@@ -705,7 +707,6 @@ function DMSection({ auth }) {
     )
 }
 
-// ── FriendChat (exported widget) ───────────────────────────────────────────────
 
 export function FriendChat() {
     const auth = useAuth()
@@ -715,7 +716,6 @@ export function FriendChat() {
 
     return (
         <>
-            {/* Toggle button */}
             <button
                 className={`fixed right-6 z-[1100]
                     flex items-center gap-2 px-4 py-2.5 rounded-full
@@ -729,14 +729,12 @@ export function FriendChat() {
                 {isOpen ? "Close" : "Chat"}
             </button>
 
-            {/* Chat panel */}
             {isOpen && (
                 <div className="fixed bottom-0 right-6 w-80 z-[1000] flex flex-col
                     bg-[#18181f] border border-white/8 rounded-t-2xl
                     shadow-2xl shadow-black/60 overflow-hidden"
                     style={{ height: "480px" }}>
 
-                    {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 flex-shrink-0
                         border-b border-white/5">
                         <span className="text-sm font-semibold text-[#eaeaf4]">Messages</span>
