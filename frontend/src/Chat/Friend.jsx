@@ -224,8 +224,6 @@ export function ProfileAvatar({ onUploaded }) {
     )
 }
 
-// ── Chat Message Window ────────────────────────────────────────────────────────
-
 function TypingDots() {
     return (
         <div className="flex items-center gap-1 px-3 py-2">
@@ -288,7 +286,6 @@ function ChatWindow({ auth, activePeer, isRemoteTyping }) {
                 })
             )}
 
-            {/* Typing indicator */}
             {isRemoteTyping && (
                 <div className="flex gap-2 flex-row">
                     <div className="w-6 h-6 rounded-full bg-[#2a2a38] border border-white/8
@@ -568,7 +565,9 @@ function DMSection({ auth }) {
             if (event.data === "isonline") userWentOnline(event.user)
             else userWentOffline(event.user)
         }
-        if (event.type === "typing") {
+        if (event.type === "typing" && event.user != (auth.user?.username || "")) {
+			// console.log(event)
+			// console.log(auth.user)
             setIsRemoteTyping(true)
             clearTimeout(typingTimerRef.current)
             typingTimerRef.current = setTimeout(() => setIsRemoteTyping(false), 2500)
