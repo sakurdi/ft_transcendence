@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./User/AuthProvider";
-import { NotifProvider } from "./components/Notif";
+import useNotif, { NotifProvider } from "./components/Notif";
 
 import Register from "./User/Register";
 import Login from "./User/Login";
@@ -17,6 +17,8 @@ import ChangePassword from "./User/ChangePassword";
 import AdminPage from "./User/AdminPage";
 import {FriendChat} from "./Chat/Friend";
 import BoardList from "./Board/DisplayBoardSearch";
+import { useEffect } from "react";
+import Loading from "./components/Loading";
 
 const Home = () => {
 	return (
@@ -52,6 +54,15 @@ const Home = () => {
 	)
 }
 
+function NoRouteFound() {
+	const navigate = useNavigate()
+	const notifHandle = useNotif()
+	useEffect(() => {
+		notifHandle.pushNotif("Page not found")
+		navigate('/')
+	}, [])
+	return (<Loading/>)
+}
 
 export default function App() {
   return (
@@ -73,6 +84,7 @@ export default function App() {
 					<Route path='/board/:boardName' element={<Layout><DisplayBoard/></Layout>} />
 					<Route path='/post/:postID' element={<Layout><PostPage/></Layout>} />
 					<Route path='/admin' element={<Layout><AdminPage /></Layout>} />
+					<Route path='*' element={<NoRouteFound/>} />
 				</Routes>
 			</BrowserRouter>
 		</AuthProvider>
