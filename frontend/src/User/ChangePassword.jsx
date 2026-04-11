@@ -42,7 +42,9 @@ export default function ChangePassword() {
 
 	const onSubmit = async () => {
 		if (checkPassword(pwInfo.p1, pwInfo.p2, notifHandle.pushError)) {
-			const res = await apiPut("TODO") // TODO: wire up endpoint
+			const res = await apiPut(`/user/${userHandle.user.username}/password`, {
+				body: JSON.stringify({ old_password: pwInfo.old, new_password: pwInfo.p1 })
+			})
 			if (!res.ok) {
 				notifHandle.pushError(res.status)
 				setPwInfo({ old: "", p1: "", p2: "" })

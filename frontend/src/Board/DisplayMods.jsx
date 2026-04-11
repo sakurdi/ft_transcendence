@@ -17,7 +17,7 @@ export function DisplayOneMod({ mod, refreshMods, boardID }) {
 				notifHandler.pushSuccess(`${mod.username} demoted`)
 				refreshMods()
 			} else {
-				notifHandler.pushError(res.stats)
+				notifHandler.pushError(res.status)
 			}
 		}
 	}

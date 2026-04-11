@@ -39,13 +39,13 @@ func RequireBoardMod(c *config.Config) func(http.Handler) http.Handler {
 			role, err := store.GetUserRole(c.DB, r.Context(), userID)
 			if err == nil && role == "superadmin" {
 				next.ServeHTTP(w, r)
+				return
 			}
 			isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isMod {
 				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
 			}
-
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -63,6 +63,7 @@ func RequireBoardAdmin(c *config.Config) func(http.Handler) http.Handler {
 			role, err := store.GetUserRole(c.DB, r.Context(), userID)
 			if err == nil && role == "superadmin" {
 				next.ServeHTTP(w, r)
+				return
 			}
 			isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isAdmin {

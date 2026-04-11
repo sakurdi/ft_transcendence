@@ -112,8 +112,9 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 		if (userHandle.loading) return
 		if (userHandle.user) {
 			const userID = userHandle.user.id
+			const isSuperAdmin = userHandle.user.role === 'superadmin'
 			setCanEdit(userID === post.author_id)
-			if (!canDelete) setCanDelete(userID === post.author_id)
+			setCanDelete(isSuperAdmin || privilegeLvl >= 2 || userID === post.author_id)
 		} else {
 			setCanEdit(false)
 			setCanDelete(false)
@@ -203,6 +204,18 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 						<TextLink text={post.username}
 							link={`/user/${post.username}`}
 							className="text-xs text-[#9898b8] hover:text-g_seagreen font-medium" />
+						{canClickLink && (
+							<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+								text-[0.65rem] font-semibold border ${
+								(post.reply_count ?? 0) === 0
+									? "text-[#9898b8] bg-white/[0.06] border-white/[0.12]"
+									: (post.reply_count ?? 0) >= 10
+										? "text-red-400 bg-red-500/10 border-red-500/25"
+										: "text-g_seagreen bg-g_seagreen/10 border-g_seagreen/25"
+							}`}>
+								↩ {post.reply_count ?? 0}
+							</span>
+						)}
 						{canDelete && (
 							<Tooltip content="Delete post">
 								<button

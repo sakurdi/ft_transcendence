@@ -15,7 +15,7 @@ export function NewApiKey({ setLoadingTrue }) {
 
 	const onClick = async () => {
 		if (keyName === "") { notifHandle.pushError("Key name cannot be empty"); return }
-		const res = await apiPost("/api-keys", { body: JSON.stringify({ 'name': keyName }) })
+		const res = await apiPost("/api/api-keys", { body: JSON.stringify({ 'name': keyName }) })
 		if (res.ok) {
 			setKeyName(""); notifHandle.pushSuccess("API key created"); setLoadingTrue()
 		} else {
@@ -45,7 +45,7 @@ function DisplayOneApiKey({ oneToken, setLoadingTrue }) {
 
 	const deleteKey = async () => {
 		if (!window.confirm(`Delete API key "${oneToken.name}"?`)) return
-		const res = await apiDelete(`/api-keys/${oneToken.id}`)
+		const res = await apiDelete(`/api/api-keys/${oneToken.id}`)
 		if (res.ok) {
 			notifHandle.pushSuccess(`Key "${oneToken.name}" deleted`); setLoadingTrue()
 		} else {
@@ -108,7 +108,7 @@ export function ViewApiTokens() {
 		if (userHandle.loading) return
 		if (!userHandle.user) { notifHandle.pushError("Login required"); navigate('/') }
 		const fetchTokens = async () => {
-			const res = await apiGet("/api-keys")
+			const res = await apiGet("/api/api-keys")
 			if (res.ok) setTokens(res.json)
 			else notifHandle.pushError(res.status)
 		}

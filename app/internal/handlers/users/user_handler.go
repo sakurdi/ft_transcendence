@@ -227,11 +227,17 @@ func SetRoleHandler(c *config.Config) http.HandlerFunc {
 		}
 		var userInfo models.UserProfile
 		if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil || userInfo.Role == "" {
-			utils.WriteNewResponse(w, false, "Internal Server Error")
-		} else if err := store.SetUserRole(c.DB, r.Context(), targetUserID, userInfo.Role); err != nil {
+			utils.WriteNewResponse(w, false, "Invalid request")
+			return
+		}
+		if userInfo.Role != "superadmin" && userInfo.Role != "user" && userInfo.Role != "banned" {
+			utils.WriteNewResponse(w, false, "Invalid role: must be 'superadmin', 'user', or 'banned'")
+			return
+		}
+		if err := store.SetUserRole(c.DB, r.Context(), targetUserID, userInfo.Role); err != nil {
 			utils.WriteNewResponse(w, false, "Internal Server Error")
 		} else {
-			utils.WriteNewResponse(w, false, "Role set")
+			utils.WriteNewResponse(w, true, "Role updated")
 		}
 	}
 }

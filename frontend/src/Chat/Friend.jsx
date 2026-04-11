@@ -188,7 +188,7 @@ export function ProfileAvatar({ onUploaded }) {
                         alt="preview" />
                 ) : (
                     <div className="w-16 h-16 rounded-xl bg-[#1f1f28] border border-white/8
-                        flex items-center justify-center text-[#46465a] text-xs">
+                        flex items-center justify-center text-[#6b6b85] text-xs">
                         No image
                     </div>
                 )}
@@ -226,23 +226,35 @@ export function ProfileAvatar({ onUploaded }) {
 
 // ── Chat Message Window ────────────────────────────────────────────────────────
 
-function ChatWindow({ auth }) {
+function TypingDots() {
+    return (
+        <div className="flex items-center gap-1 px-3 py-2">
+            {[0, 150, 300].map(delay => (
+                <span key={delay}
+                    className="w-1.5 h-1.5 rounded-full bg-[#8a8aa8] animate-bounce"
+                    style={{ animationDelay: `${delay}ms` }} />
+            ))}
+        </div>
+    )
+}
+
+function ChatWindow({ auth, activePeer, isRemoteTyping }) {
     const user = useContext(FriendContext)
     const msgsRef = useRef(null)
 
     useEffect(() => {
         if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
-    }, [user.messages])
+    }, [user.messages, isRemoteTyping])
 
     return (
         <div ref={msgsRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
-            {user.messages.length === 0 ? (
+            {user.messages.length === 0 && !isRemoteTyping ? (
                 <div className="h-full flex flex-col items-center justify-center gap-2 py-10">
                     <div className="w-10 h-10 rounded-full bg-white/4 flex items-center justify-center text-lg">
                         💬
                     </div>
-                    <p className="text-xs text-[#46465a]">No messages yet</p>
-                    <p className="text-[0.65rem] text-[#46465a]">Select a friend to start chatting</p>
+                    <p className="text-xs text-[#8a8aa8]">No messages yet</p>
+                    <p className="text-[0.65rem] text-[#6b6b85]">Select a friend to start chatting</p>
                 </div>
             ) : (
                 user.messages.map((m, i) => {
@@ -265,15 +277,29 @@ function ChatWindow({ auth }) {
                                 <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed ${
                                     isMine
                                         ? "bg-g_seagreen/20 border border-g_seagreen/25 text-[#eaeaf4] rounded-br-sm"
-                                        : "bg-white/5 border border-white/6 text-[#c8c8d8] rounded-bl-sm"
+                                        : "bg-white/8 border border-white/10 text-[#dcdcf0] rounded-bl-sm"
                                 }`}>
                                     {m.content}
                                 </div>
-                                {time && <span className="text-[0.6rem] text-[#46465a]">{time}</span>}
+                                {time && <span className="text-[0.6rem] text-[#6b6b85]">{time}</span>}
                             </div>
                         </div>
                     )
                 })
+            )}
+
+            {/* Typing indicator */}
+            {isRemoteTyping && (
+                <div className="flex gap-2 flex-row">
+                    <div className="w-6 h-6 rounded-full bg-[#2a2a38] border border-white/8
+                        flex items-center justify-center text-[0.6rem] font-bold text-[#8a8aa8]
+                        flex-shrink-0 self-end mb-1">
+                        {activePeer?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="bg-white/8 border border-white/10 rounded-2xl rounded-bl-sm">
+                        <TypingDots />
+                    </div>
+                </div>
             )}
         </div>
     )
@@ -313,16 +339,16 @@ function FriendList({ connectDM }) {
     return (
         <div className="space-y-px">
             <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-[#55556a]">Friends</p>
+                <p className="text-xs font-medium text-[#7878a0]">Friends</p>
                 <button onClick={getFriends}
-                    className="text-base leading-none text-[#46465a] hover:text-g_seagreen
+                    className="text-base leading-none text-[#6b6b85] hover:text-g_seagreen
                         transition-colors duration-100 px-1.5 py-0.5 rounded"
                     title="Refresh">
                     ↻
                 </button>
             </div>
             {!user.friends || user.friends.length === 0 ? (
-                <p className="text-xs text-[#46465a] py-6 text-center">No friends yet</p>
+                <p className="text-xs text-[#6b6b85] py-6 text-center">No friends yet</p>
             ) : (
                 user.friends.map(friend => (
                     <div key={friend.id}
@@ -348,7 +374,7 @@ function FriendList({ connectDM }) {
                                 View
                             </button>
                             <button onClick={() => removeFriend(friend.username)}
-                                className="text-[0.65rem] px-1.5 py-1 rounded-lg text-[#55556a]
+                                className="text-[0.65rem] px-1.5 py-1 rounded-lg text-[#7878a0]
                                     hover:text-red-400 hover:bg-red-500/8 transition-colors duration-100">
                                 ✕
                             </button>
@@ -403,7 +429,7 @@ function FriendRequests({ getFriends, getRequests }) {
         <div className="space-y-4">
             {/* Add friend */}
             <div className="space-y-2">
-                <p className="text-xs font-medium text-[#55556a]">Add friend</p>
+                <p className="text-xs font-medium text-[#7878a0]">Add friend</p>
                 <div className="flex gap-1.5">
                     <input
                         type="text"
@@ -438,7 +464,7 @@ function FriendRequests({ getFriends, getRequests }) {
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium text-[#55556a]">Pending</p>
+                        <p className="text-xs font-medium text-[#7878a0]">Pending</p>
                         {user.friendRequests.length > 0 && (
                             <span className="px-1.5 py-0.5 rounded-full bg-g_seagreen/15 text-g_seagreen text-[0.6rem] font-bold">
                                 {user.friendRequests.length}
@@ -446,14 +472,14 @@ function FriendRequests({ getFriends, getRequests }) {
                         )}
                     </div>
                     <button onClick={getRequests}
-                        className="text-base leading-none text-[#46465a] hover:text-g_seagreen
+                        className="text-base leading-none text-[#6b6b85] hover:text-g_seagreen
                             transition-colors duration-100 px-1.5 py-0.5 rounded"
                         title="Refresh">
                         ↻
                     </button>
                 </div>
                 {user.friendRequests.length === 0 ? (
-                    <p className="text-xs text-[#46465a] py-2">No pending requests</p>
+                    <p className="text-xs text-[#6b6b85] py-2">No pending requests</p>
                 ) : (
                     user.friendRequests.map(request => (
                         <div key={request.id}
@@ -472,7 +498,7 @@ function FriendRequests({ getFriends, getRequests }) {
                                     ✓
                                 </button>
                                 <button onClick={() => declineRequest(request.username)}
-                                    className="text-xs px-2 py-1 rounded-lg text-[#55556a]
+                                    className="text-xs px-2 py-1 rounded-lg text-[#7878a0]
                                         hover:text-red-400 hover:bg-red-500/8 transition-colors duration-100">
                                     ✕
                                 </button>
@@ -493,7 +519,7 @@ function TabBtn({ active, onClick, children, hasBadge }) {
             className={`relative flex-1 py-1.5 text-xs font-medium rounded-lg transition-all duration-150
                 ${active
                     ? "bg-white/8 text-[#eaeaf4] shadow-sm"
-                    : "text-[#55556a] hover:text-[#9898b8]"
+                    : "text-[#8a8aa8] hover:text-[#c8c8e8]"
                 }`}>
             {children}
             {hasBadge && (
@@ -513,7 +539,10 @@ function DMSection({ auth }) {
     const [activeTab, setActiveTab] = useState("chat")
 
     const handlerRef = useRef(null)
+    const typingTimerRef = useRef(null)
     const userCon = useContext(FriendContext)
+    const [activePeer, setActivePeer] = useState(null)
+    const [isRemoteTyping, setIsRemoteTyping] = useState(false)
 
     const userWentOffline = (userToRemove) => {
         userCon.setUserConnected(prev => {
@@ -532,15 +561,25 @@ function DMSection({ auth }) {
         }
         if (event.type === "new_message" && event.data) {
             userCon.setMessages(prev => [...prev, event.data])
+            setIsRemoteTyping(false)
+            clearTimeout(typingTimerRef.current)
         }
         if (event.type === "connection") {
             if (event.data === "isonline") userWentOnline(event.user)
             else userWentOffline(event.user)
         }
+        if (event.type === "typing") {
+            setIsRemoteTyping(true)
+            clearTimeout(typingTimerRef.current)
+            typingTimerRef.current = setTimeout(() => setIsRemoteTyping(false), 2500)
+        }
     }
 
     const connectDM = async (username) => {
         if (!username) return
+        setActivePeer(username)
+        setIsRemoteTyping(false)
+        clearTimeout(typingTimerRef.current)
         userCon.setMessages([])
         socket.connect(wsUrl(`/ws/dm/${username}`), (event) => handlerRef.current(event))
     }
@@ -616,7 +655,16 @@ function DMSection({ auth }) {
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 {activeTab === "chat" && (
                     <div className="flex flex-col h-full min-h-0">
-                        <ChatWindow auth={auth} />
+                        {activePeer && (
+                            <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0 border-b border-white/5">
+                                <div className="w-5 h-5 rounded-full bg-[#2a2a38] border border-white/8
+                                    flex items-center justify-center text-[0.55rem] font-bold text-g_seagreen flex-shrink-0">
+                                    {activePeer[0].toUpperCase()}
+                                </div>
+                                <span className="text-xs font-semibold text-[#c8c8e8] truncate">{activePeer}</span>
+                            </div>
+                        )}
+                        <ChatWindow auth={auth} activePeer={activePeer} isRemoteTyping={isRemoteTyping} />
                         <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-white/5 flex gap-2">
                             <input
                                 autoFocus
@@ -670,12 +718,13 @@ export function FriendChat() {
         <>
             {/* Toggle button */}
             <button
-                className="fixed right-6 bottom-6 z-[1100]
+                className={`fixed right-6 z-[1100]
                     flex items-center gap-2 px-4 py-2.5 rounded-full
                     bg-[#18181f] border border-white/8 shadow-xl shadow-black/40
                     text-sm font-semibold text-[#eaeaf4]
                     hover:border-g_seagreen/40 hover:text-g_seagreen
-                    transition-all duration-150 active:scale-[0.97]"
+                    transition-all duration-150 active:scale-[0.97]
+                    ${isOpen ? "bottom-[500px]" : "bottom-6"}`}
                 onClick={() => setIsOpen(prev => !prev)}>
                 <span>{isOpen ? "✕" : "💬"}</span>
                 {isOpen ? "Close" : "Chat"}

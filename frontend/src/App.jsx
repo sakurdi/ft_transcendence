@@ -14,6 +14,7 @@ import Layout from "./components/Layout";
 import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
+import AdminPage from "./User/AdminPage";
 import {FriendChat} from "./Chat/Friend";
 import BoardList from "./Board/DisplayBoardSearch";
 
@@ -71,6 +72,7 @@ export default function App() {
 					<Route path="/user/:usernameParam/edit" element={<Layout><UserPageEdit /></Layout>} />
 					<Route path='/board/:boardName' element={<Layout><DisplayBoard/></Layout>} />
 					<Route path='/post/:postID' element={<Layout><PostPage/></Layout>} />
+					<Route path='/admin' element={<Layout><AdminPage /></Layout>} />
 				</Routes>
 			</BrowserRouter>
 		</AuthProvider>
