@@ -9,10 +9,10 @@ export function LogoutButton() {
 	const userHandle = useAuth()
 	const notifHandle = useNotif()
 
-	const logout = () => {
+	const logout = async () => {
 		if (!userHandle.loading && userHandle.user) {
 			try {
-				userHandle.logout()
+				await userHandle.logout()
 				notifHandle.pushSuccess("Logged out")
 			} catch (error) {
 				notifHandle.pushError(error)
@@ -25,11 +25,6 @@ export function LogoutButton() {
 		<Button onClick={logout}>
 			Logout
 		</Button>
-	)
-	return (
-		<ButtonLink link = "/logout">
-			Logout
-		</ButtonLink>
 	)
 }
 
