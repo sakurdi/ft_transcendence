@@ -20,7 +20,6 @@ export default function BoardList() {
 	const [filter, setFilter] = useState("")
 	const [totalResult, setTotalResult] = useState(0)
 
-	// Build query from current state + optional overrides
 	function buildQuery(overrides = {}) {
 		const params = new URLSearchParams({
 			page:  overrides.page  ?? page,
@@ -49,7 +48,6 @@ export default function BoardList() {
 		} else {
 			const parsedBoards = Array.isArray(response.json?.board_list) ? response.json.board_list : []
 			setBoards(parsedBoards)
-			// prefer total_result from server; fall back to the slice length
 			setTotalResult(response.json?.total_result || parsedBoards.length)
 		}
 		setLoading(false)

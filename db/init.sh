@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS boards (
     id SERIAL PRIMARY KEY,
     name CITEXT UNIQUE NOT NULL CHECK (char_length(name) <= 50),
     description TEXT,
-    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
