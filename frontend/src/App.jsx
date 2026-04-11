@@ -1,3 +1,4 @@
+import ChangePassword from "./User/ChangePassword";
 import Register from "./User/Register";
 import Login from "./User/Login";
 import Logout from "./User/Logout";
@@ -14,7 +15,6 @@ import NavBar from "./NavBar";
 import Layout from "./components/Layout";
 import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
-import ChangePassword from "./User/ChangePassword";
 import AdminPage from "./User/AdminPage";
 import { FriendChat } from "./Chat/Friend";
 import BoardList from "./Board/DisplayBoardSearch";

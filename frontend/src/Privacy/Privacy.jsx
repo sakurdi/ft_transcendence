@@ -23,7 +23,6 @@ const sections = [
 		content: [
 			"Passwords are stored only in hashed form.",
 			"Uploaded files are validated to reduce malicious content risk.",
-			"No internet transmission or storage method can be guaranteed as 100% secure.",
 		],
 	},
 	{
@@ -38,14 +37,12 @@ const sections = [
 		content: [
 			"You can access and update your account information.",
 			"You can request deletion of your account and associated personal data.",
-			"Additional rights may apply based on your jurisdiction.",
 		],
 	},
 	{
 		title: "6. Cookies",
 		content: [
 			"We use essential session mechanisms to keep users authenticated.",
-			"If analytics are enabled in the future, this page will be updated accordingly.",
 		],
 	},
 	{
