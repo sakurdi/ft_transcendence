@@ -43,11 +43,12 @@ export default async function uploadFile(path, body, options = {}) {
 
 		xhttp.onload = function() {
 			onProgress?.(100);
-			resolve({ ok: this.status >= 200 && this.status < 300, status: this.status, json: this.response });
+			const data = this.response
+			resolve({ ok: data.ok, status: data.message, json: data.json });
 		};
 
 		xhttp.onerror = function() {
-			resolve({ ok: false, status: this.status || 0, json: this.response });
+			resolve({ ok: false, status: this.status || 0, json: undefined });
 		};
 
 		xhttp.send(body);

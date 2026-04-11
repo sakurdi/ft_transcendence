@@ -65,7 +65,7 @@ export default function Login() {
                 <Button type="submit" className="w-full justify-center py-2.5 mt-1">
                     Sign In
                 </Button>
-                <p className="text-center text-xs text-[#46465a]">
+                <p className="flex text-center text-xs text-[#46465a]">
                     No account?{" "}
                     <button type="button" onClick={() => navigate("/register")}
                         className="text-g_seagreen hover:underline">

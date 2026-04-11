@@ -97,6 +97,9 @@ export default function CreatePost({ board, setRefreshKeyThread }) {
 			onProgress: (percent) => setUploadProgress(percent),
 		})
 		setIsUploading(false)
+		// console.log(res)
+		// console.log(res.json)
+
 		if (!res.ok) {
 			notifHandle.pushError(res.status)
 		} else {

@@ -6,7 +6,7 @@ const Card = ({ title, description, children, className = "" }) => {
       p-8
       ${className}
     `}>
-      {/* Accent top gradient */}
+      {}
       <div className="absolute top-0 left-8 right-8 h-px
         bg-gradient-to-r from-transparent via-g_seagreen/50 to-transparent rounded-full" />
 

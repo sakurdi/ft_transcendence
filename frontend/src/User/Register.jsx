@@ -87,7 +87,7 @@ export default function Register() {
 
 	return (
 		<Card title="Create Account" description="Join the community today.">
-			<form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); onSubmit() }}>
+			<form className="flex flex-col gap-4 items-stretch" onSubmit={(e) => { e.preventDefault(); onSubmit() }}>
 				<EMailInputVerify
 					value={values.email}
 					oldOnChange={(email) => setValue("email", email)}
@@ -110,8 +110,9 @@ export default function Register() {
 					onChange={(password) => setValue("password2", password)}
 					placeholder="Confirm password"
 					onEnter={onSubmit}
+					
 				/>
-				<Button type="submit" className="w-full justify-center py-2.5 mt-1">
+				<Button type="submit" className="w-80 justify-center py-2.5 mt-2">
 					Create Account
 				</Button>
 				<p className="text-center text-xs text-[#46465a]">

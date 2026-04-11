@@ -3,6 +3,7 @@ package middleware
 import (
 	"ft_transcendence/internal/config"
 	"ft_transcendence/internal/store"
+	"ft_transcendence/internal/utils"
 	"net/http"
 	"strconv"
 
@@ -19,7 +20,7 @@ func Auth(c *config.Config) func(http.Handler) http.Handler {
 			userID := c.Session.Get(r.Context(), "user_id")
 
 			if userID == nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				utils.WriteNewResponse(w, false, "Unauthorized")
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -33,7 +34,7 @@ func RequireBoardMod(c *config.Config) func(http.Handler) http.Handler {
 			userID := GetUserID(c, r)
 			boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 			if err != nil {
-				http.Error(w, "Invalid board ID", http.StatusBadRequest)
+				utils.WriteNewResponse(w, false, "Invalid board ID")
 				return
 			}
 			role, err := store.GetUserRole(c.DB, r.Context(), userID)
@@ -43,7 +44,7 @@ func RequireBoardMod(c *config.Config) func(http.Handler) http.Handler {
 			}
 			isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isMod {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+				utils.WriteNewResponse(w, false, "Forbidden")
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -57,7 +58,7 @@ func RequireBoardAdmin(c *config.Config) func(http.Handler) http.Handler {
 			userID := GetUserID(c, r)
 			boardID, err := strconv.Atoi(chi.URLParam(r, "boardID"))
 			if err != nil {
-				http.Error(w, "Invalid board ID", http.StatusBadRequest)
+				utils.WriteNewResponse(w, false, "Invalid board ID")
 				return
 			}
 			role, err := store.GetUserRole(c.DB, r.Context(), userID)
@@ -67,7 +68,7 @@ func RequireBoardAdmin(c *config.Config) func(http.Handler) http.Handler {
 			}
 			isAdmin, err := store.IsBoardAdmin(c.DB, r.Context(), boardID, userID)
 			if err != nil || !isAdmin {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+				utils.WriteNewResponse(w, false, "Forbidden")
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -80,7 +81,7 @@ func RequireSuperAdmin(c *config.Config) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role, err := store.GetUserRole(c.DB, r.Context(), GetUserID(c, r))
 			if err != nil || role != "superadmin" {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+				utils.WriteNewResponse(w, false, "Forbidden")
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -93,7 +94,8 @@ func DjangoFreeman(c *config.Config) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role, err := store.GetUserRole(c.DB, r.Context(), GetUserID(c, r))
 			if err != nil || role == "banned" {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+				utils.WriteNewResponse(w, false, "Forbidden")
+				c.Session.Destroy(r.Context())
 				return
 			}
 			next.ServeHTTP(w, r)
