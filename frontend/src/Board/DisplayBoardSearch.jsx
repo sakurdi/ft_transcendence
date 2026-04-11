@@ -36,7 +36,7 @@ export default function BoardList() {
 
 	const fetchBoards = async () => {
 		setLoading(true)
-		console.log("query test", buildQuery())
+
 		const response = await apiGet(buildQuery())
 		// const response = await apiGet("/board?page=1&limit=10&sort=name&order=asc&name=")
 		if (!response.ok) {
@@ -59,8 +59,7 @@ export default function BoardList() {
 		}
 
 		setLoading(false)
-		console.log("board", boards)
-		console.log("response", response)
+
 	}
 
 	const clearFilter = () => {

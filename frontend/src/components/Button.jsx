@@ -12,12 +12,14 @@ export default function Button({
 		children = "Default Button",
 		defaultClassName = defaultClassNameButton,
 		className = "",
-		type = "button"
+		type = "button",
+		...props
 }) {
 	return (
 		<button className = {`${defaultClassName} ${className}`}
 			onClick = {onClick}
-			type={type}>
+			type={type}
+			{...props}>
 			{children}
 		</button> 
 	)

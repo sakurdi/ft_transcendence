@@ -1,7 +1,9 @@
 import { BASE } from "./api";
 
-export default async function uploadFile(path, body) {
-	var xhttp = new XMLHttpRequest();
+export default async function uploadFile(path, body, options = {}) {
+	const { onProgress } = options;
+	const xhttp = new XMLHttpRequest();
+	const route = path.startsWith(BASE) ? path : `${BASE}/${path}`;
 
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 0) {
@@ -24,16 +26,30 @@ export default async function uploadFile(path, body) {
 			}
 		}
 	};
-	const route = path.startsWith(BASE) ? path : `${BASE}/${path}`
-	xhttp.open("POST", route, true);
-	// xhttp.setRequestHeader("Content-Type", "multipart/form-data");
-	xhttp.send(body);
-
-	xhttp.responseType = "json";
-
+	
 	return new Promise((resolve) => {
+		xhttp.upload.addEventListener("progress", (event) => {
+			if (!event.lengthComputable) {
+				onProgress?.(0);
+				return;
+			}
+
+			const percentComplete = Math.round((event.loaded / event.total) * 100);
+			onProgress?.(Math.min(100, Math.max(0, percentComplete)));
+		});
+
+		xhttp.responseType = "json";
+		xhttp.open("POST", route, true);
+
 		xhttp.onload = function() {
+			onProgress?.(100);
 			resolve({ ok: this.status >= 200 && this.status < 300, status: this.status, json: this.response });
 		};
+
+		xhttp.onerror = function() {
+			resolve({ ok: false, status: this.status || 0, json: this.response });
+		};
+
+		xhttp.send(body);
 	});
 }

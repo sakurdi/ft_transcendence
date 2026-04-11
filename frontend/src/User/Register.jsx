@@ -6,6 +6,7 @@ import styles from './Register.module.css';
 import useAuth from "./AuthProvider";
 import useNotif from "../components/Notif";
 import Loading from "../components/Loading";
+import Card from "../components/Card"
 
 function checkEmail(email, pushError) {
 	const regexEmail = "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
@@ -114,7 +115,11 @@ export default function Register() {
 	}
 
 	return (
-		<form className={styles.Register} onSubmit= {(e) => {e.preventDefault(); onSubmit()}}>
+		<Card className="flex flex-col items"
+			title="Create Account" 
+			description="Join our community today! Please fill in your details below."
+		>
+		<form className="flex flex-col gap-4 items-center" onSubmit= {(e) => {e.preventDefault(); onSubmit()}}>
 			<EMailInputVerify
 				value={values.email}
 				oldOnChange={(email) => setValue("email", email)}
@@ -125,6 +130,7 @@ export default function Register() {
 				onChange={(username) => setValue("username", username)}
 				placeholder="Username"
 				onKeypress={handleEnter}
+
 			/>
 			<PasswordInput
 				value={values.password1}
@@ -136,11 +142,13 @@ export default function Register() {
 				onChange={(password) => setValue("password2", password)}
 				placeholder="Confirm password"
 				onEnter={onSubmit}
+
 			/>
-			<Button type="submit">
+			<Button type="submit" className="w-full">
 				Register
 			</Button>
 		</form>
+		</Card>
 	);
 }
 

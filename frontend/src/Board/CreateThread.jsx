@@ -47,6 +47,8 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 
 	const [file, setFile] = useState(null)
 	const [previewUrl, setPreviewUrl] = useState(null)
+	const [isUploading, setIsUploading] = useState(false)
+	const [uploadProgress, setUploadProgress] = useState(0)
 
 	const infoElementError = document.getElementById("input-error");
 	const infoElement = document.getElementById("input-preview");
@@ -72,7 +74,6 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 		}
 
 		const magicType = await getMagicNumber(selectedFile);
-		console.log("magictype:", magicType)
 		if (magicType == "unknown" || magicType !== declaredType) {
 			infoElementError.textContent = "Wrong file type magic number";
 			infoElementError.style.color = "red";
@@ -129,9 +130,14 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 
 	async function onSubmit() {	
 		console.log(`Title: ${title}  | "${content}"`)
+		setIsUploading(true)
+		setUploadProgress(0)
 
 		// const res = await apiPostFormData(`/board/${board.id}/post`, { body: buildFormData() });
-		const res = await uploadFile(`/board/${board.id}/post`, buildFormData());
+		const res = await uploadFile(`/board/${board.id}/post`, buildFormData(), {
+			onProgress: (percent) => setUploadProgress(percent),
+		});
+		setIsUploading(false)
 		
 		if (!res.ok) {
 			notifHandle.pushError(res.status)
@@ -165,14 +171,24 @@ export default function CreatePost({board, setRefreshKeyThread}) {
 			<p id="input-error"></p>
 			<input type="file"
 				onChange={handleFileChange}
-				// accept={buildAcceptedFormat()}
+				accept={buildAcceptedFormat()}
 				id="input-file"
 				/>
 
 			<MediaPreview file={file} previewUrl={previewUrl}/>
 
-			<Button type = "submit">
-				Confirm
+			<div className="w-full mt-2">
+				<p className="text-sm text-stone-600">Upload: {uploadProgress}%</p>
+				<div className="w-full bg-stone-200 rounded h-2 overflow-hidden">
+					<div
+						className="h-2 bg-sky-600 transition-all duration-200"
+						style={{ width: `${uploadProgress}%` }}
+					/>
+				</div>
+			</div>
+
+			<Button type="submit" disabled={isUploading}>
+				{isUploading ? "Uploading..." : "Confirm"}
 			</Button>
 		</form>
 	)
