@@ -1,20 +1,15 @@
 import { Oval } from 'react-loader-spinner'
 
-import getRandomPastel from "../Utils/colors"
-
 export default function Loading() {
-	const secondaryColor = getRandomPastel()
-
 	return (
-		<div className="w-full h-full flex items-center justify-center bg-transparent">
+		<div className="w-full flex items-center justify-center py-12">
 			<Oval
-			height={45}
-			width={45}
-			color="#cfcfcf"
-			wrapperStyle={{}}
-			secondaryColor={secondaryColor}
-			strokeWidth={4}
-			strokeWidthSecondary={4}
+				height={36}
+				width={36}
+				color="#03B5AA"
+				secondaryColor="rgba(3, 181, 170, 0.2)"
+				strokeWidth={3}
+				strokeWidthSecondary={3}
 			/>
 		</div>
 	)

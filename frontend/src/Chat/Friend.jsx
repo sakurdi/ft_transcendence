@@ -1,13 +1,9 @@
 import { useState, useRef, useEffect } from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { createContext, useContext } from "react"
 import useAuth from "../User/AuthProvider";
-import "./Friend.css"
-import { apiDelete, apiGet, apiPost, apiPostFormData } from "../Utils/api";
+import { apiDelete, apiGet, apiPost } from "../Utils/api";
 import { buildAcceptedAvatarFormat } from "../Utils/Data";
-import Input from "../components/TextInput";
 import { maxAvatarSize } from "../Utils/Data";
-import { getFileFormatWithURL, getContentTypeData } from "../Utils/Data";
 import { getAvatarContentTypeData, getFileFormatAvatar, getMagicNumberAvatar } from "../Utils/Data";
 import uploadFile from "../Utils/Upload";
 import useNotif from "../components/Notif";
@@ -15,13 +11,9 @@ import useNotif from "../components/Notif";
 const WS_BASE = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
 const wsUrl = (path) => `${WS_BASE}${path.startsWith("/") ? path : `/${path}`}`
 
-// ── api ───────────────────────────────────────────────────────────────────────
-
 function timestamp() {
     return new Date().toLocaleTimeString()
 }
-
-// ── useLog ────────────────────────────────────────────────────────────────────
 
 function useLog() {
     const [entries, setEntries] = useState([])
@@ -31,15 +23,13 @@ function useLog() {
     return { entries, push }
 }
 
-// ── useSocket ─────────────────────────────────────────────────────────────────
-
 function useSocket(logPush) {
     const ref = useRef(null)
 
     function connect(url, onMessage) {
         if (ref.current) ref.current.close()
         const ws = new WebSocket(url)
-        ws.onopen    = ()  => logPush(`connected to ${url}`, "info")
+        ws.onopen    = ()  => logPush(`connected`, "info")
         ws.onclose   = ()  => logPush("disconnected", "info")
         ws.onerror   = ()  => logPush("connection error", "err")
         ws.onmessage = (e) => {
@@ -69,549 +59,501 @@ function useSocket(logPush) {
     return { connect, disconnect, send }
 }
 
-// ── Log ───────────────────────────────────────────────────────────────────────
+// ── Friend Context ─────────────────────────────────────────────────────────────
 
-function Log({ entries }) {
-    const ref = useRef(null)
+const FriendContext = createContext()
+
+function FriendProvider({ children }) {
+    const [message,  setMessage]  = useState("")
+    const [messages, setMessages] = useState([])
+    const [userConnected, setUserConnected] = useState({})
+    const [friends, setFriends] = useState([])
+    const [newFriendId, setNewFriendId] = useState("")
+    const [friendRequests, setFriendRequests] = useState([])
+    const [profilUser, setProfilUser] = useState(null)
+
+    const info = {
+        message, messages, userConnected, friends, newFriendId, friendRequests, profilUser,
+        setMessage, setMessages, setUserConnected, setFriends, setNewFriendId,
+        setFriendRequests, setProfilUser,
+    }
+
+    return (
+        <FriendContext.Provider value={info}>
+            {children}
+        </FriendContext.Provider>
+    )
+}
+
+// ── Profile Modal ──────────────────────────────────────────────────────────────
+
+function ProfilShowcase() {
+    const user = useContext(FriendContext)
+
+    return (user.profilUser &&
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
+            onClick={() => user.setProfilUser(null)}>
+            <div className="bg-[#18181f] rounded-2xl p-6 border border-white/8 shadow-2xl
+                flex flex-col items-center gap-4 w-72"
+                onClick={e => e.stopPropagation()}>
+                <img
+                    src={user.profilUser.avatar_url || "/api/uploads/avatars/default.jpg"}
+                    alt="avatar"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-white/10"
+                />
+                <p className="font-bold text-[#eaeaf4] text-lg">{user.profilUser.username}</p>
+                <button
+                    onClick={() => user.setProfilUser(null)}
+                    className="px-4 py-2 rounded-lg text-sm font-medium
+                        text-[#8a8aa8] border border-white/8 hover:border-white/20
+                        hover:text-[#eaeaf4] transition-all duration-150">
+                    Close
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// ── Avatar Upload ──────────────────────────────────────────────────────────────
+
+export function ProfileAvatar({ onUploaded }) {
+    const notifHandler = useNotif()
+    const [file, setFile] = useState(null)
+    const [previewUrl, setPreviewUrl] = useState()
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState(0)
+
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0]
+        setFile(selectedFile)
+        setPreviewUrl(URL.createObjectURL(selectedFile))
+    }
+
+    const handleFileError = async (selectedFile) => {
+        if (selectedFile.size > maxAvatarSize) {
+            notifHandler.pushError("File is too large")
+            throw new Error("File is too large")
+        }
+        if (getFileFormatAvatar(selectedFile.name) === "unknown") {
+            notifHandler.pushError("Wrong file extension")
+            throw new Error("Wrong file extension")
+        }
+        if (getAvatarContentTypeData(selectedFile.type) === "unknown") {
+            notifHandler.pushError("Wrong file type")
+            throw new Error("Wrong file type")
+        }
+        const magicType = await getMagicNumberAvatar(selectedFile)
+        if (magicType === "unknown") {
+            notifHandler.pushError("File content does not match its type")
+            throw new Error("File content mismatch")
+        }
+    }
+
+    const uploadAvatar = async () => {
+        if (!file) return
+        try {
+            await handleFileError(file)
+            setFile(null)
+            setPreviewUrl(null)
+        } catch {
+            setFile(null)
+            setPreviewUrl(null)
+            return
+        }
+
+        const formData = new FormData()
+        formData.append("avatar", file)
+        setIsUploading(true)
+        setUploadProgress(0)
+        const res = await uploadFile(`/uploads/avatar/${file.name}`, formData, {
+            onProgress: (percent) => setUploadProgress(percent),
+        })
+        setIsUploading(false)
+        if (res.ok) {
+            setPreviewUrl(null)
+            setFile(null)
+            onUploaded?.()
+            notifHandler.pushSuccess("Profile picture updated")
+        } else {
+            notifHandler.pushError("Failed to upload profile picture")
+        }
+    }
+
+    return (
+        <div className="flex flex-col items-start gap-4">
+            <div className="flex items-center gap-4">
+                {previewUrl ? (
+                    <img src={previewUrl}
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-white/8"
+                        alt="preview" />
+                ) : (
+                    <div className="w-16 h-16 rounded-xl bg-[#1f1f28] border border-white/8
+                        flex items-center justify-center text-[#6b6b85] text-xs">
+                        No image
+                    </div>
+                )}
+                <div className="space-y-2">
+                    <label htmlFor="avatar-upload"
+                        className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium
+                            text-[#8a8aa8] border border-white/8 bg-[#1f1f28]
+                            hover:text-[#eaeaf4] hover:border-white/15 cursor-pointer
+                            transition-all duration-150">
+                        Choose file
+                    </label>
+                    <input id="avatar-upload" type="file"
+                        accept={buildAcceptedAvatarFormat()}
+                        onChange={handleFileChange}
+                        className="hidden" />
+                    {file && (
+                        <button onClick={uploadAvatar} disabled={isUploading}
+                            className="block px-3 py-1.5 rounded-lg text-xs font-semibold
+                                bg-g_seagreen text-white hover:bg-g_seagreen-600
+                                disabled:opacity-50 transition-all duration-150 active:scale-[0.97]">
+                            {isUploading ? `Uploading ${uploadProgress}%` : "Upload"}
+                        </button>
+                    )}
+                </div>
+            </div>
+            {isUploading && (
+                <div className="w-full bg-[#2a2a38] rounded-full h-1 overflow-hidden">
+                    <div className="h-1 bg-g_seagreen transition-all duration-200"
+                        style={{ width: `${uploadProgress}%` }} />
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ── Chat Message Window ────────────────────────────────────────────────────────
+
+function TypingDots() {
+    return (
+        <div className="flex items-center gap-1 px-3 py-2">
+            {[0, 150, 300].map(delay => (
+                <span key={delay}
+                    className="w-1.5 h-1.5 rounded-full bg-[#8a8aa8] animate-bounce"
+                    style={{ animationDelay: `${delay}ms` }} />
+            ))}
+        </div>
+    )
+}
+
+function ChatWindow({ auth, activePeer, isRemoteTyping }) {
+    const user = useContext(FriendContext)
+    const msgsRef = useRef(null)
+
     useEffect(() => {
-        if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
-    }, [entries])
+        if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
+    }, [user.messages, isRemoteTyping])
 
-    const colors = {
-        recv: "text-emerald-700",
-        sent: "text-sky-700",
-        err:  "text-red-600",
-        info: "text-stone-400",
+    return (
+        <div ref={msgsRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
+            {user.messages.length === 0 && !isRemoteTyping ? (
+                <div className="h-full flex flex-col items-center justify-center gap-2 py-10">
+                    <div className="w-10 h-10 rounded-full bg-white/4 flex items-center justify-center text-lg">
+                        💬
+                    </div>
+                    <p className="text-xs text-[#8a8aa8]">No messages yet</p>
+                    <p className="text-[0.65rem] text-[#6b6b85]">Select a friend to start chatting</p>
+                </div>
+            ) : (
+                user.messages.map((m, i) => {
+                    if (!m) return null
+                    const isMine = m.sender_id === auth.user?.id
+                    const time = m.created_at
+                        ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        : ""
+
+                    return (
+                        <div key={m.id ?? i} className={`flex gap-2 ${isMine ? "flex-row-reverse" : "flex-row"}`}>
+                            {!isMine && (
+                                <div className="w-6 h-6 rounded-full bg-[#2a2a38] border border-white/8
+                                    flex items-center justify-center text-[0.6rem] font-bold text-[#8a8aa8]
+                                    flex-shrink-0 self-end mb-1">
+                                    {(m.username ?? "?")[0].toUpperCase()}
+                                </div>
+                            )}
+                            <div className={`max-w-[72%] flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
+                                <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed ${
+                                    isMine
+                                        ? "bg-g_seagreen/20 border border-g_seagreen/25 text-[#eaeaf4] rounded-br-sm"
+                                        : "bg-white/8 border border-white/10 text-[#dcdcf0] rounded-bl-sm"
+                                }`}>
+                                    {m.content}
+                                </div>
+                                {time && <span className="text-[0.6rem] text-[#6b6b85]">{time}</span>}
+                            </div>
+                        </div>
+                    )
+                })
+            )}
+
+            {/* Typing indicator */}
+            {isRemoteTyping && (
+                <div className="flex gap-2 flex-row">
+                    <div className="w-6 h-6 rounded-full bg-[#2a2a38] border border-white/8
+                        flex items-center justify-center text-[0.6rem] font-bold text-[#8a8aa8]
+                        flex-shrink-0 self-end mb-1">
+                        {activePeer?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="bg-white/8 border border-white/10 rounded-2xl rounded-bl-sm">
+                        <TypingDots />
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ── Friend List ────────────────────────────────────────────────────────────────
+
+function ConnectionDot({ username }) {
+    const user = useContext(FriendContext)
+    const isOnline = user.userConnected[username] !== undefined
+
+    return (
+        <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-[#18181f] ${
+            isOnline ? "bg-g_seagreen" : "bg-[#2a2a38]"
+        }`} />
+    )
+}
+
+function FriendList({ connectDM }) {
+    const user = useContext(FriendContext)
+
+    const getFriends = async () => {
+        const res = await apiGet("/friends")
+        if (res.ok) user.setFriends(Array.isArray(res.json) ? res.json : [])
+    }
+
+    const showProfil = async (username) => {
+        const res = await apiGet(`/users/${username}`)
+        if (res.ok) user.setProfilUser(res.json)
+    }
+
+    const removeFriend = async (username) => {
+        const res = await apiDelete(`/friends/${username}`)
+        if (res.ok) { user.setNewFriendId(""); getFriends() }
     }
 
     return (
-        <div
-            ref={ref}
-            className="h-36 overflow-y-auto bg-stone-50 border border-stone-200 rounded p-3 font-mono text-xs space-y-0.5"
-        >
-            {entries.length === 0
-                ? <p className="text-stone-300">no events yet</p>
-                : entries.map((e, i) => (
-                    <p key={i} className={colors[e.type] ?? "text-stone-600"}>
-                        [{e.time}] {e.msg}
-                    </p>
+        <div className="space-y-px">
+            <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-medium text-[#7878a0]">Friends</p>
+                <button onClick={getFriends}
+                    className="text-base leading-none text-[#6b6b85] hover:text-g_seagreen
+                        transition-colors duration-100 px-1.5 py-0.5 rounded"
+                    title="Refresh">
+                    ↻
+                </button>
+            </div>
+            {!user.friends || user.friends.length === 0 ? (
+                <p className="text-xs text-[#6b6b85] py-6 text-center">No friends yet</p>
+            ) : (
+                user.friends.map(friend => (
+                    <div key={friend.id}
+                        className="flex items-center gap-2.5 py-2 px-2 rounded-xl hover:bg-white/4
+                            group transition-colors duration-100">
+                        <div className="relative flex-shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-[#2a2a38] border border-white/8
+                                flex items-center justify-center text-xs font-semibold text-[#8a8aa8]">
+                                {friend.username[0].toUpperCase()}
+                            </div>
+                            <ConnectionDot username={friend.username} />
+                        </div>
+                        <span className="text-xs text-[#c8c8d8] flex-1 truncate font-medium">{friend.username}</span>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+                            <button onClick={() => connectDM(friend.username)}
+                                className="text-[0.65rem] px-2 py-1 rounded-lg bg-g_seagreen/15 text-g_seagreen
+                                    hover:bg-g_seagreen/25 transition-colors duration-100 font-semibold">
+                                Chat
+                            </button>
+                            <button onClick={() => showProfil(friend.username)}
+                                className="text-[0.65rem] px-2 py-1 rounded-lg bg-white/6 text-[#8a8aa8]
+                                    hover:bg-white/10 transition-colors duration-100">
+                                View
+                            </button>
+                            <button onClick={() => removeFriend(friend.username)}
+                                className="text-[0.65rem] px-1.5 py-1 rounded-lg text-[#7878a0]
+                                    hover:text-red-400 hover:bg-red-500/8 transition-colors duration-100">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
                 ))
-            }
+            )}
         </div>
     )
 }
 
-// ── primitives ────────────────────────────────────────────────────────────────
+// ── Friend Requests ────────────────────────────────────────────────────────────
 
-function Section({ title, children }) {
-    return (
-        <div className="border border-stone-200 rounded-lg p-5 space-y-3 bg-white">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400">
-                {title}
-            </h2>
-            {children}
-        </div>
-    )
-}
-
-function Row({ children }) {
-    return <div className="flex flex-wrap items-center gap-2">{children}</div>
-}
-
-function Btn({ onClick, children, variant = "default", className = "" }) {
-    const styles = {
-        default: "bg-stone-900 text-white hover:bg-stone-700",
-        ghost:   "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50",
+export function SendRequestFromProfil({ newFriendId }) {
+    const notifHandler = useNotif()
+    const sendRequest = async () => {
+        if (!newFriendId) return
+        const res = await apiPost(`/friends/request/${newFriendId}`)
+        if (res.ok) {
+            notifHandler.pushSuccess("Friend request sent")
+        } else {
+            notifHandler.pushError("Could not send friend request")
+        }
     }
+
     return (
-        <button
-            onClick={onClick}
-			className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${styles[variant]} ${className}`}
-        >
-            {children}
+        <button onClick={sendRequest}
+            className="px-4 py-2 rounded-lg text-sm font-semibold
+                bg-g_seagreen text-white hover:bg-g_seagreen-600
+                transition-all duration-150 active:scale-[0.97]">
+            Send Friend Request
         </button>
     )
 }
 
-// ── Friend Provider ───────────────────────────────────────────────────────────────
+function FriendRequests({ getFriends, getRequests }) {
+    const user = useContext(FriendContext)
 
-const FriendContext = createContext();
+    const acceptRequest = async (requestID) => {
+        if (!requestID) return
+        const res = await apiPost(`/friends/request/${requestID}/accept`)
+        if (res.ok) { getFriends(); getRequests() }
+    }
 
-function FriendProvider({ children }) {
-	const [message,  setMessage]  = useState("")
-    const [messages, setMessages] = useState([])
-	
-	const [userConnected, setUserConnected] = useState({})
+    const declineRequest = async (requestID) => {
+        if (!requestID) return
+        const res = await apiPost(`/friends/request/${requestID}/decline`)
+        if (res.ok) getRequests()
+    }
 
-    const [friends, setFriends] = useState([]);
-    const [newFriendId, setNewFriendId] = useState("");
-	const [friendRequests, setFriendRequests] = useState([]);
+    return (
+        <div className="space-y-4">
+            {/* Add friend */}
+            <div className="space-y-2">
+                <p className="text-xs font-medium text-[#7878a0]">Add friend</p>
+                <div className="flex gap-1.5">
+                    <input
+                        type="text"
+                        placeholder="Username..."
+                        value={user.newFriendId}
+                        onChange={e => user.setNewFriendId(e.target.value)}
+                        onKeyDown={async e => {
+                            if (e.key === "Enter" && user.newFriendId) {
+                                await apiPost(`/friends/request/${user.newFriendId}`)
+                                user.setNewFriendId("")
+                            }
+                        }}
+                        className="flex-1 bg-[#1a1a24] text-[#eaeaf4] border border-white/8 rounded-xl
+                            px-3 py-2 text-xs placeholder-[#46465a]
+                            focus:outline-none focus:border-g_seagreen/50 transition-all duration-150"
+                    />
+                    <button
+                        onClick={async () => {
+                            if (!user.newFriendId) return
+                            await apiPost(`/friends/request/${user.newFriendId}`)
+                            user.setNewFriendId("")
+                        }}
+                        className="px-3 py-2 rounded-xl text-xs font-semibold
+                            bg-g_seagreen text-white hover:bg-g_seagreen-600
+                            transition-all duration-150 active:scale-[0.97]">
+                        Add
+                    </button>
+                </div>
+            </div>
 
-	const [profilUser, setProfilUser] = useState(null);
-
-	const info = {
-		message,
-		messages,
-		userConnected,
-		friends,
-		newFriendId,
-		friendRequests,
-		profilUser,
-		setMessage,
-		setMessages,
-		setUserConnected,
-		setFriends,
-		setNewFriendId,
-		setFriendRequests,
-		setProfilUser,
-	}
-
-	return (
-		<FriendContext.Provider value={info}>
-			{children}
-		</FriendContext.Provider>
-	);
+            {/* Pending requests */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs font-medium text-[#7878a0]">Pending</p>
+                        {user.friendRequests.length > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-g_seagreen/15 text-g_seagreen text-[0.6rem] font-bold">
+                                {user.friendRequests.length}
+                            </span>
+                        )}
+                    </div>
+                    <button onClick={getRequests}
+                        className="text-base leading-none text-[#6b6b85] hover:text-g_seagreen
+                            transition-colors duration-100 px-1.5 py-0.5 rounded"
+                        title="Refresh">
+                        ↻
+                    </button>
+                </div>
+                {user.friendRequests.length === 0 ? (
+                    <p className="text-xs text-[#6b6b85] py-2">No pending requests</p>
+                ) : (
+                    user.friendRequests.map(request => (
+                        <div key={request.id}
+                            className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl bg-white/3 border border-white/5">
+                            <div className="w-7 h-7 rounded-full bg-[#2a2a38] border border-white/8
+                                flex items-center justify-center text-xs font-semibold text-[#8a8aa8] flex-shrink-0">
+                                {request.username[0].toUpperCase()}
+                            </div>
+                            <span className="text-xs text-[#c8c8d8] flex-1 truncate font-medium">
+                                {request.username}
+                            </span>
+                            <div className="flex gap-1">
+                                <button onClick={() => acceptRequest(request.username)}
+                                    className="text-xs px-2.5 py-1 rounded-lg bg-g_seagreen/15 text-g_seagreen
+                                        hover:bg-g_seagreen/25 font-semibold transition-colors duration-100">
+                                    ✓
+                                </button>
+                                <button onClick={() => declineRequest(request.username)}
+                                    className="text-xs px-2 py-1 rounded-lg text-[#7878a0]
+                                        hover:text-red-400 hover:bg-red-500/8 transition-colors duration-100">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    )
 }
 
-// ── Profil Showcase ───────────────────────────────────────────────────────────────
+// ── Tab Navigation ─────────────────────────────────────────────────────────────
 
-function ProfilShowcase() {
-	const user = useContext(FriendContext);
-
-	return (user.profilUser && 
-			<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-				onClick={() => user.setProfilUser(null)}>
-
-				<div className="bg-white rounded-xl p-6 shadow-xl flex flex-col items-center gap-3 w-64"
-					onClick={e => e.stopPropagation()}>
-
-					<img src={user.profilUser.avatar_url || "/api/uploads/avatars/default.jpg"}
-						alt="avatar123"
-						className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
-
-					{/* <p className="font-bold text-stone-800 text-lg">{profilUser.username}</p> */}
-					<p className="font-bold text-stone-800 text-lg">{user.profilUser.username}</p>
-
-					{/* <Btn onClick={() => setProfilUser(null)} variant="ghost">Close123</Btn> */}
-					<Btn onClick={() => user.setProfilUser(null)}>Close</Btn>
-				</div>
-			</div>)
+function TabBtn({ active, onClick, children, hasBadge }) {
+    return (
+        <button onClick={onClick}
+            className={`relative flex-1 py-1.5 text-xs font-medium rounded-lg transition-all duration-150
+                ${active
+                    ? "bg-white/8 text-[#eaeaf4] shadow-sm"
+                    : "text-[#8a8aa8] hover:text-[#c8c8e8]"
+                }`}>
+            {children}
+            {hasBadge && (
+                <span className="absolute top-1 right-2 w-1.5 h-1.5 rounded-full bg-g_seagreen" />
+            )}
+        </button>
+    )
 }
 
-// ── Avatar Upload ───────────────────────────────────────────────────────────────
-
-export function ProfileAvatar({ onUploaded }) {
-	const notifHandler = useNotif()
-
-    const [file, setFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState();
-	const [isUploading, setIsUploading] = useState(false);
-	const [uploadProgress, setUploadProgress] = useState(0);
-
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        setPreviewUrl(URL.createObjectURL(selectedFile)); 
-    };
-
-	const handleFileError = async (selectedFile) => {
-		if (selectedFile.size > maxAvatarSize) {
-			notifHandler.pushError("File is too large")
-			throw new Error("File is too large");
-		}
-		else if (getFileFormatAvatar(selectedFile.name) == "unknown") {
-			notifHandler.pushError("Wrong file extension")
-			throw new Error("Wrong file extension");
-		}
-		else if (getAvatarContentTypeData(selectedFile.type) == "unknown") {
-			notifHandler.pushError("Wrong file type")
-			throw new Error("Wrong file type");
-		}
-		const magicType = await getMagicNumberAvatar(selectedFile);
-		if (magicType == "unknown") {
-			notifHandler.pushError("File content does not match its type")
-			throw new Error("File content does not match its type");
-		}
-	}
-
-    const uploadAvatar = async (e) => {
-        if (!file)
-			return;
-
-		try {
-			await handleFileError(file)
-			setFile(null);
-			setPreviewUrl(null);
-		}
-		catch (err) {
-			setFile(null);
-			setPreviewUrl(null);
-			return;
-		}
-
-        const formData = new FormData();
-        formData.append("avatar", file);
-		setIsUploading(true);
-		setUploadProgress(0);
-		// const res = await apiPostFormData(`/uploads/avatar/${file.name}`, { body: formData });
-		const res = await uploadFile(`/uploads/avatar/${file.name}`, formData, {
-			onProgress: (percent) => setUploadProgress(percent),
-		});
-		setIsUploading(false);
-        if (res.ok) {
-			setPreviewUrl(null);
-			setFile(null);
-			onUploaded?.();
-			notifHandler.pushSuccess("Profil picture changed")
-        }
-		else {
-			notifHandler.pushError("Error when changing profil picture")
-		}
-    };
-
-	return (
-		<div className="flex flex-col items-center border rounded bg-white w-64">
-			<img src={previewUrl} 
-				className="w-24 h-24 rounded-full object-cover border-2 border-stone-200"/>
-
-			<input id="avatar-upload"
-				type="file" 
-				accept={buildAcceptedAvatarFormat()} 
-				onChange={handleFileChange} 
-				className="input-avatar"/>
-
-			<button onClick={uploadAvatar}
-				className="bg-sky-600 text-white rounded"
-				disabled={isUploading}>
-				{isUploading ? `Upload ${uploadProgress}%` : "Upload"}
-			</button>
-
-			<div className="w-full px-4 pb-3">
-				<div className="w-full bg-stone-200 rounded h-2 overflow-hidden">
-					<div
-						className="h-2 bg-sky-600 transition-all duration-200"
-						style={{ width: `${uploadProgress}%` }}
-					/>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-// ── Chat Window ───────────────────────────────────────────────────────────────
-
-function ChatWindow(props) {
-	const user = useContext(FriendContext);
-
-	const msgsRef = useRef(null)
-
-	const scrollToBottom = () => {
-		 if (msgsRef.current)
-			msgsRef.current.scrollTop = msgsRef.current.scrollHeight
-	}
-
-	useEffect(() => {
-       scrollToBottom()
-    }, [user.messages])
-
-	return  <div
-		ref={msgsRef}
-		className="h-48 overflow-y-auto border border-stone-200 rounded bg-white p-3 space-y-2"
-	>
-		{user.messages.length === 0
-			? <p className="text-xs text-stone-300 font-mono">no messages</p>
-			: user.messages.map((m, i) => m && (
-				<div key={m.id ?? i} className="flex flex-col gap-0.5">
-					<div className="flex items-center gap-2">
-						<span className={`text-xs font-mono font-medium ${
-							m.sender_id === props.auth.user?.id
-								? "text-sky-600"
-								: "text-stone-500"
-						}`}>
-							{props.auth.user?.username === m.username ? "you" : `user:${m.sender_id}`}
-						</span>
-						<span className="text-xs text-stone-300">
-							{m.created_at ? new Date(m.created_at).toLocaleTimeString() : ""}
-						</span>
-					</div>
-					<p className="text-sm text-stone-800">{m.content}</p>
-				</div>
-			))
-		}
-	</div>
-}
-
-// ── Chat Input ───────────────────────────────────────────────────────────────
-
-function ChatInput(props) {
-	// const user = useContext(FriendContext);
-
-	return  <Row>
-			<Input
-				autoFocus="autoFocus"
-				placeholder="message"
-				value={props.message}
-				onChange={props.isTyping}
-				onKeyDown={props.handleKey}
-				className="w-72"
-			/>
-			<Btn onClick={props.sendMessage}>Send</Btn>
-		</Row>
-}
-
-// ── Friend List ───────────────────────────────────────────────────────────────
-
-function GetFriend() {
-	const user = useContext(FriendContext);
-
-	const GetFriendFromDb = async () => { 
-		const res = await apiGet("/friends");
-
-		if (res.ok) {
-			const friends = res.json;
-			user.setFriends(Array.isArray(friends) ? friends : []);
-		}
-	}
-
-	return <Row>
-			<Btn onClick={GetFriendFromDb}>Refresh Friends2</Btn>
-		</Row>
-}
-
-function ShowProfil(props) {
-	const user = useContext(FriendContext);
-
-	const checkProfil = async (username) => {
-		const res = await apiGet(`/users/${username}`);
-		if (res.ok) {
-			const userData = res.json;
-			user.setProfilUser(userData);
-		}
-	};
-
-	return <Btn onClick={() => checkProfil(props.username)}>
-			Profile
-		</Btn>
-}
-
-function DeleteFriend(props) {
-	const user = useContext(FriendContext);
-
-	const GetFriendFromDb = async () => { 
-		const res = await apiGet("/friends");
-
-		if (res.ok) {
-			const friends = res.json;
-			user.setFriends(Array.isArray(friends) ? friends : []);
-		}
-	}
-
-	const removeFriend = async (username) => {
-        const res = await apiDelete(`/friends/${username}`);
-        if (res.ok) {
-            user.setNewFriendId("");
-			GetFriendFromDb();
-        }
-    };
-
-	return <Btn onClick={() => removeFriend(props.username)}>
-			Unfriend
-		</Btn>
-}
-
-function ConnectionLight(props) {
-	const user = useContext(FriendContext);
-
-	if (user.userConnected[props.username] !== undefined) {
-		return <div className="online-indicator"> pipi
-			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-green-600">oui</span>
-		</div>
-	}
-	else {
-		return <div className="online-indicator"> caca
-			<span className="w-24 h-24 rounded-full object-cover border-2 border-stone-200 bg-red-600">non</span>
-		</div>
-	}
-}
-
-function FriendList(props) {
-	const user = useContext(FriendContext);
-
-	return <>
-		<GetFriend />
-
-		<div>
-			<h3>Friends List:</h3>
-			<ul>
-				{user.friends && user.friends.length === 0 ? (
-					<li className="text-stone-400">No friend</li>
-				) : (
-					user.friends.map(friend => (
-						<li key={friend.id}>
-							{friend.username} (ID: {friend.id})
-							<ConnectionLight username={friend.username}/>
-							
-							<Btn onClick={() => props.connectDM(friend.username)}>Chat</Btn>
-
-							<ShowProfil username={friend.username}/>
-
-							<DeleteFriend username={friend.username}/>
-
-						</li>
-					))
-				)}
-			</ul>
-		</div>
-	</>
-}
-
-// ── Friend List Request ───────────────────────────────────────────────────────────────
-
-export function SendRequestFromProfil(props) {
-	const notifHandler = useNotif()
-	const sendRequest = async () => {
-		if (!props.newFriendId)
-			return;
-		const res = await apiPost(`/friends/request/${props.newFriendId}`);
-		if (res.ok) {
-			notifHandler.pushSuccess("Friend request send")
-		}
-		else {
-			notifHandler.pushError("Cant find your friend")
-		}
-	};
-		
-	return <Row>
-			<Btn onClick={sendRequest}>Send Request</Btn>
-		</Row>
-}
-
-function SendRequest(props) {
-	const user = useContext(FriendContext);
-	const notifHandler = useNotif()
-	const sendRequest = async () => {
-		if (!user.newFriendId)
-			return;
-		const res = await apiPost(`/friends/request/${user.newFriendId}`);
-		if (res.ok) {
-			user.setNewFriendId("")
-		}
-		else {
-			// handle error
-			notifHandler.pushError("Failed to send friend request")
-		}
-	};
-		
-	return <Row>
-			<Input placeholder="Username to send request" value={user.newFriendId} onChange={next => user.setNewFriendId(next)} />
-			<Btn onClick={sendRequest}>Send Request</Btn>
-		</Row>
-}
-
-function GetFriendRequests() {
-	const user = useContext(FriendContext);
-
-	const getFriendRequests = async () => {
-		const res = await apiGet("/friends/requests");
-		if (res.ok) {
-			const requests = res.json;
-			user.setFriendRequests(Array.isArray(requests) ? requests : []);
-		}
-	}
-
-	return <Row>
-			<Btn onClick={getFriendRequests}>Refresh Friend Requests</Btn>
-		</Row>
-}
-
-function FriendListRequest(props) {
-	const user = useContext(FriendContext);
-	
-	const acceptRequest = async (requestID) => {
-		if (!requestID)
-			return;
-		const res = await apiPost(`/friends/request/${requestID}/accept`);
-		if (res.ok) {
-			props.getFriends();
-			getFriendRequests();
-		}
-	};
-
-	const declineRequest = async (requestID) => {
-		if (!requestID)
-			return;
-		const res = await apiPost(`/friends/request/${requestID}/decline`);
-		if (res.ok) {
-			getFriendRequests();
-		}
-	};
-
-	const getFriendRequests = async () => {
-		const res = await apiGet("/friends/requests");
-		if (res.ok) {
-			const requests = res.json;
-			user.setFriendRequests(Array.isArray(requests) ? requests : []);
-		}
-	}
-
-	function ListRequest() {
-		return <div>
-			<h3>Friend Requests:</h3>
-			<ul>
-				{user.friendRequests && user.friendRequests.length === 0 ? (
-					<li>No friend request</li>
-				) : (
-					user.friendRequests.map(request => (
-						<li key={request.id}>
-							Request from {request.username} (ID: {request.from_user_id})
-							<Btn onClick={() => acceptRequest(request.username)}>Accept</Btn>
-							<Btn onClick={() => declineRequest(request.username)}>Decline</Btn>
-						</li>
-					))
-				)}
-			</ul>
-		</div>
-	}
-
-	return <>
-		<SendRequest />
-		<GetFriendRequests />
-		<ListRequest />
-	</>
-}
-
-// ── DM ────────────────────────────────────────────────────────────────────────
+// ── DM Section ─────────────────────────────────────────────────────────────────
 
 function DMSection({ auth }) {
-    const { entries, push } = useLog()
+    const { push } = useLog()
     const socket = useSocket(push)
-	const presenceScoket = useSocket(push)
-    const [message,  setMessage]  = useState("")
-    const [messages, setMessages] = useState([])
+    const presenceSocket = useSocket(push)
+    const [message, setMessage] = useState("")
+    const [activeTab, setActiveTab] = useState("chat")
 
     const handlerRef = useRef(null)
+    const typingTimerRef = useRef(null)
+    const userCon = useContext(FriendContext)
+    const [activePeer, setActivePeer] = useState(null)
+    const [isRemoteTyping, setIsRemoteTyping] = useState(false)
 
-	const [userConnected, setUserConnected] = useState({})
+    const userWentOffline = (userToRemove) => {
+        userCon.setUserConnected(prev => {
+            const { [userToRemove]: _, ...rest } = prev
+            return rest
+        })
+    }
 
-    const [friends, setFriends] = useState([]);
-    const [newFriendId, setNewFriendId] = useState("");
-	const [friendRequests, setFriendRequests] = useState([]);
-
-	const [profilUser, setProfilUser] = useState(null);
-
-	const userCon = useContext(FriendContext);
-	const notifHandler = useNotif()
-
-	const userWentOffline = (userToRemove) => {
-		userCon.setUserConnected(friends => {
-			const { [userToRemove]: _, ...rest} = friends;
-			return rest;
-		});
-	}
-
-	const userWentOnline = (userToAdd) => {
-		userCon.setUserConnected(friends => ({...friends, [userToAdd]: userToAdd}))
-	}
+    const userWentOnline = (userToAdd) => {
+        userCon.setUserConnected(prev => ({ ...prev, [userToAdd]: userToAdd }))
+    }
 
     handlerRef.current = function(event) {
         if (event.type === "history") {
@@ -619,125 +561,194 @@ function DMSection({ auth }) {
         }
         if (event.type === "new_message" && event.data) {
             userCon.setMessages(prev => [...prev, event.data])
+            setIsRemoteTyping(false)
+            clearTimeout(typingTimerRef.current)
         }
-		if (event.type === "typing") {
-
-		}
-		if (event.type === "connection") {
-			if (event.data === "isonline")
-			{
-				userWentOnline(event.user)
-			}
-			else {
-				userWentOffline(event.user)
-			}
-		}
+        if (event.type === "connection") {
+            if (event.data === "isonline") userWentOnline(event.user)
+            else userWentOffline(event.user)
+        }
+        if (event.type === "typing") {
+            setIsRemoteTyping(true)
+            clearTimeout(typingTimerRef.current)
+            typingTimerRef.current = setTimeout(() => setIsRemoteTyping(false), 2500)
+        }
     }
 
     const connectDM = async (username) => {
-		if (!username)
-			return
+        if (!username) return
+        setActivePeer(username)
+        setIsRemoteTyping(false)
+        clearTimeout(typingTimerRef.current)
         userCon.setMessages([])
-		socket.connect(wsUrl(`/ws/dm/${username}`), (event) => handlerRef.current(event))
+        socket.connect(wsUrl(`/ws/dm/${username}`), (event) => handlerRef.current(event))
     }
 
-	function isTyping(e) {
-		setMessage(e);
-		socket.send({type: "typing", content: e });
-	}
+    function isTyping(e) {
+        setMessage(e)
+        socket.send({ type: "typing", content: e })
+    }
 
     function sendMessage() {
-		if (message.trim() === "")
-			return;
-        if (socket.send({ content: message }))
-			setMessage("")
+        if (message.trim() === "") return
+        if (socket.send({ content: message })) setMessage("")
     }
-
-	const isConnected = async () => {
-		presenceScoket.connect(wsUrl("/ws/presence"), (event) => handlerRef.current(event))
-	}
 
     function handleKey(e) {
-        if (e.key === "Enter")
-			sendMessage()
+        if (e.key === "Enter") sendMessage()
     }
 
-	const getFriends = async () => {
-		const res = await apiGet("/friends");
-		if (res.ok) {
-			const friends = res.json;
-			userCon.setFriends(Array.isArray(friends) ? friends : []);
-		}
-	}
+    const getFriends = async () => {
+        const res = await apiGet("/friends")
+        if (res.ok) userCon.setFriends(Array.isArray(res.json) ? res.json : [])
+    }
 
-	useEffect(() => {
-		console.log(userConnected)
-	}, [userConnected])
+    const getRequests = async () => {
+        const res = await apiGet("/friends/requests")
+        if (res.ok) userCon.setFriendRequests(Array.isArray(res.json) ? res.json : [])
+    }
 
+    useEffect(() => {
+        if (auth.user) {
+            const timer = setTimeout(() => {
+                presenceSocket.connect(wsUrl("/ws/presence"), (event) => handlerRef.current(event))
+            }, 50)
+            return () => clearTimeout(timer)
+        } else {
+            socket.disconnect()
+            presenceSocket.disconnect()
+            userCon.setMessages([])
+        }
+    }, [auth.user])
 
-	// auto-connect when user logs in
-	useEffect(() => {
-		if (auth.user) {
-			const timer = setTimeout(() => {
-				isConnected()
-			}, 50)
-
-			return () => {
-				clearTimeout(timer)
-			}
-		}
-		else {
-			socket.disconnect()
-			presenceScoket.disconnect()
-			userCon.setMessages([])
-		}
-	}, [auth.user])
+    // Auto-refresh friend requests every 30s while the panel is open
+    useEffect(() => {
+        if (!auth.user) return
+        getRequests()
+        const interval = setInterval(getRequests, 30_000)
+        return () => clearInterval(interval)
+    }, [auth.user])
 
     return (
-		<>
+        <>
+            <ProfilShowcase />
 
-		<ProfilShowcase />
+            {/* Pill tabs */}
+            <div className="px-3 py-2 flex-shrink-0">
+                <div className="flex gap-1 p-1 bg-[#111118] rounded-xl">
+                    <TabBtn active={activeTab === "chat"} onClick={() => setActiveTab("chat")}>
+                        Chat
+                    </TabBtn>
+                    <TabBtn active={activeTab === "friends"} onClick={() => setActiveTab("friends")}>
+                        Friends
+                    </TabBtn>
+                    <TabBtn
+                        active={activeTab === "requests"}
+                        onClick={() => setActiveTab("requests")}
+                        hasBadge={userCon.friendRequests.length > 0}>
+                        Requests
+                    </TabBtn>
+                </div>
+            </div>
 
-		{/* <ProfileAvatar /> */}
+            {/* Tab content */}
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+                {activeTab === "chat" && (
+                    <div className="flex flex-col h-full min-h-0">
+                        {activePeer && (
+                            <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0 border-b border-white/5">
+                                <div className="w-5 h-5 rounded-full bg-[#2a2a38] border border-white/8
+                                    flex items-center justify-center text-[0.55rem] font-bold text-g_seagreen flex-shrink-0">
+                                    {activePeer[0].toUpperCase()}
+                                </div>
+                                <span className="text-xs font-semibold text-[#c8c8e8] truncate">{activePeer}</span>
+                            </div>
+                        )}
+                        <ChatWindow auth={auth} activePeer={activePeer} isRemoteTyping={isRemoteTyping} />
+                        <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-white/5 flex gap-2">
+                            <input
+                                autoFocus
+                                type="text"
+                                placeholder="Message..."
+                                value={message}
+                                onChange={e => isTyping(e.target.value)}
+                                onKeyDown={handleKey}
+                                className="flex-1 bg-[#1a1a24] text-[#eaeaf4] border border-white/8 rounded-xl
+                                    px-3 py-2 text-xs placeholder-[#46465a]
+                                    focus:outline-none focus:border-g_seagreen/50 transition-all duration-150"
+                            />
+                            <button onClick={sendMessage}
+                                className="px-3 py-2 rounded-xl text-sm font-semibold
+                                    bg-g_seagreen text-white hover:bg-g_seagreen-600
+                                    transition-all duration-150 active:scale-[0.97]">
+                                →
+                            </button>
+                        </div>
+                    </div>
+                )}
 
-        <Section title="DM Socket">
+                {activeTab === "friends" && (
+                    <div className="p-3 overflow-y-auto flex-1">
+                        <FriendList connectDM={(username) => {
+                            connectDM(username)
+                            setActiveTab("chat")
+                        }} />
+                    </div>
+                )}
 
-			<FriendList connectDM={connectDM} />
-
-			<FriendListRequest getFriends={getFriends}/>
-
-			<ChatWindow auth={auth} />
-
-            <Log entries={entries} />
-
-			<ChatInput message={message} isTyping={isTyping} handleKey={handleKey} sendMessage={sendMessage}/>
-
-        </Section>
-		</>
+                {activeTab === "requests" && (
+                    <div className="p-3 overflow-y-auto flex-1">
+                        <FriendRequests getFriends={getFriends} getRequests={getRequests} />
+                    </div>
+                )}
+            </div>
+        </>
     )
 }
 
-// ── App ───────────────────────────────────────────────────────────────────────
+// ── FriendChat (exported widget) ───────────────────────────────────────────────
 
 export function FriendChat() {
     const auth = useAuth()
-	const [isMinimized, setIsMinimized] = useState(false);
+    const [isOpen, setIsOpen] = useState(false)
 
-	if (auth.loading || !auth.user)
-		return ;
+    if (auth.loading || !auth.user) return null
 
     return (
-        <div className="chat">
-			<div className={"chat-header " + (isMinimized ? 'chat-invis' : '')}>
-				<FriendProvider>
-					<DMSection auth={auth} />
-				</FriendProvider>
-			</div>
+        <>
+            {/* Toggle button */}
+            <button
+                className={`fixed right-6 z-[1100]
+                    flex items-center gap-2 px-4 py-2.5 rounded-full
+                    bg-[#18181f] border border-white/8 shadow-xl shadow-black/40
+                    text-sm font-semibold text-[#eaeaf4]
+                    hover:border-g_seagreen/40 hover:text-g_seagreen
+                    transition-all duration-150 active:scale-[0.97]
+                    ${isOpen ? "bottom-[500px]" : "bottom-6"}`}
+                onClick={() => setIsOpen(prev => !prev)}>
+                <span>{isOpen ? "✕" : "💬"}</span>
+                {isOpen ? "Close" : "Chat"}
+            </button>
 
-			<Btn className="chat-btn" 
-				onClick={() => setIsMinimized(prev => !prev)} variant="ghost">
-				{isMinimized ? "Open Chat" : "Close Chat"}
-			</Btn>
-        </div>
+            {/* Chat panel */}
+            {isOpen && (
+                <div className="fixed bottom-0 right-6 w-80 z-[1000] flex flex-col
+                    bg-[#18181f] border border-white/8 rounded-t-2xl
+                    shadow-2xl shadow-black/60 overflow-hidden"
+                    style={{ height: "480px" }}>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 flex-shrink-0
+                        border-b border-white/5">
+                        <span className="text-sm font-semibold text-[#eaeaf4]">Messages</span>
+                        <span className="w-2 h-2 rounded-full bg-g_seagreen" title="Connected" />
+                    </div>
+
+                    <FriendProvider>
+                        <DMSection auth={auth} />
+                    </FriendProvider>
+                </div>
+            )}
+        </>
     )
 }

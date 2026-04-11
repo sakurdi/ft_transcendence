@@ -20,7 +20,8 @@ func CreatePost(db *pgxpool.Pool, ctx context.Context, post models.PostCreate, b
 
 func GetThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, offset int) ([]models.Post, error) {
 	rows, err := db.Query(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path,
+		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.board_id=$1 AND p.parent_id IS NULL
 		ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
@@ -35,7 +36,8 @@ func GetThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, offset in
 
 func GetScrollThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, offset int) ([]models.Post, error) {
 	rows, err := db.Query(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path,
+		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.board_id=$1 AND p.parent_id IS NULL
 		ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
@@ -50,7 +52,8 @@ func GetScrollThreads(db *pgxpool.Pool, ctx context.Context, boardID, limit, off
 
 func GetScrollReplies(db *pgxpool.Pool, ctx context.Context, parentID, limit, offset int) ([]models.Post, error) {
 	rows, err := db.Query(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path,
+		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.parent_id=$1
 		ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
@@ -65,7 +68,8 @@ func GetScrollReplies(db *pgxpool.Pool, ctx context.Context, parentID, limit, of
 
 func GetReplies(db *pgxpool.Pool, ctx context.Context, parentID int) ([]models.Post, error) {
 	rows, err := db.Query(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path,
+		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.parent_id=$1
 		ORDER BY p.created_at ASC`,
@@ -93,7 +97,7 @@ func scanPosts(rows pgx.Rows) ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var p models.Post
-		if err := rows.Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt, &p.UploadPath); err != nil {
+		if err := rows.Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt, &p.UploadPath, &p.ReplyCount); err != nil {
 			return nil, err
 		}
 		posts = append(posts, p)
@@ -104,11 +108,12 @@ func scanPosts(rows pgx.Rows) ([]models.Post, error) {
 func GetPost(db *pgxpool.Pool, ctx context.Context, postID int) (models.Post, error) {
 	var p models.Post
 	err := db.QueryRow(ctx, `
-		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path
+		SELECT p.id, p.board_id, p.author_id, COALESCE(u.login, '[deleted]'), p.title, p.content, p.parent_id, p.created_at, COALESCE(p.upload_path, '') AS upload_path,
+		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count
 		FROM posts p LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.id=$1`,
 		postID,
-	).Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt, &p.UploadPath)
+	).Scan(&p.ID, &p.BoardID, &p.AuthorID, &p.Username, &p.Title, &p.Content, &p.ParentID, &p.CreatedAt, &p.UploadPath, &p.ReplyCount)
 	return p, err
 }
 

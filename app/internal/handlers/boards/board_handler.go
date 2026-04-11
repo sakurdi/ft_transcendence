@@ -253,6 +253,10 @@ func CreatePostHandler(c *config.Config) http.HandlerFunc {
 			fileName := fmt.Sprintf("user_%d_%s%s", userID, newFilename, ext)
 			savePath := filepath.Join(upload_database_path, fileName)
 
+			if err := os.MkdirAll(upload_database_path, 0755); err != nil {
+				utils.WriteNewResponse(w, false, "Error creating upload directory")
+				return
+			}
 			dst, err := os.Create((savePath))
 			if err != nil {
 				utils.WriteNewResponse(w, false, "Error saving file")
@@ -340,13 +344,16 @@ func DeletePostHandler(c *config.Config) http.HandlerFunc {
 			return
 		}
 
-		isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
-		if err != nil {
-			utils.WriteNewResponse(w, false, "Internal server error")
-			return
-		} else if !isMod {
-			utils.WriteNewResponse(w, false, "You dont have the rights to delete this post")
-			return
+		role, _ := store.GetUserRole(c.DB, r.Context(), userID)
+		if role != "superadmin" {
+			isMod, err := store.IsBoardMod(c.DB, r.Context(), boardID, userID)
+			if err != nil {
+				utils.WriteNewResponse(w, false, "Internal server error")
+				return
+			} else if !isMod {
+				utils.WriteNewResponse(w, false, "You don't have the rights to delete this post")
+				return
+			}
 		}
 
 		if err := store.DeletePost(c.DB, r.Context(), postID); err != nil {

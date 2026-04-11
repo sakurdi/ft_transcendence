@@ -2,3 +2,101 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --clr-bg:            #1c1c28;
+    --clr-surface:       #22222e;
+    --clr-border:        rgba(255, 255, 255, 0.09);
+    --clr-border-active: rgba(255, 255, 255, 0.18);
+    --clr-accent:        #03B5AA;
+    --clr-accent-hover:  #02c9bc;
+    --clr-accent-dim:    rgba(3, 181, 170, 0.14);
+    --clr-text:          #eaeaf4;
+    --clr-text-muted:    #9898b8;
+    --clr-text-subtle:   #55556a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--clr-bg);
+    background-image:
+      radial-gradient(ellipse 900px 700px at 20% 10%, rgba(3, 181, 170, 0.07) 0%, transparent 100%),
+      radial-gradient(ellipse 700px 900px at 85% 85%, rgba(114, 139, 180, 0.07) 0%, transparent 100%);
+    min-height: 100vh;
+    color: var(--clr-text);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: var(--clr-text);
+  }
+
+  h1 { font-size: 1.875rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+
+  a { color: var(--clr-accent); text-decoration: none; }
+  a:hover { color: var(--clr-accent-hover); }
+  hr  { border-color: var(--clr-border); }
+
+  ::selection { background: rgba(3,181,170,0.28); color: #fff; }
+
+  ::-webkit-scrollbar       { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.20); }
+
+  * { box-sizing: border-box; }
+
+  /* ── Global form element resets ── */
+  input, textarea, select {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--clr-text);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--clr-accent);
+    box-shadow: 0 0 0 3px var(--clr-accent-dim);
+    background: rgba(255, 255, 255, 0.09);
+  }
+  input::placeholder, textarea::placeholder { color: var(--clr-text-subtle); }
+  select option { background-color: #22222e; color: var(--clr-text); }
+}
+
+/* ── Glass utilities ── */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.glass-elevated {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.glass-nav {
+  background: rgba(28, 28, 40, 0.75);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ── Smooth transitions ── */
+.glass, .glass-elevated { transition: background 0.2s ease, border-color 0.2s ease; }
