@@ -176,7 +176,6 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 			}}>
 
 			<div className="p-4 pl-5">
-				{/* Header */}
 				<header className="mb-3">
 					{postInfo.title != null && (
 						// isEditing ? (
@@ -201,9 +200,14 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 							{getDateDifferenceISO(post.created_at)}
 						</time>
 						<span className="text-[#55556a] text-xs">·</span>
-						<TextLink text={post.username}
-							link={`/user/${post.username}`}
-							className="text-xs text-[#9898b8] hover:text-g_seagreen font-medium" />
+						{	post.username == "[deleted]"
+							?	<span className="text-xs text-[#9898b8]">
+									{post.username}
+								</span>
+							:	<TextLink text={post.username}
+								link={`/user/${post.username}`}
+								className="text-xs text-[#9898b8] hover:text-g_seagreen font-medium" />
+						}
 						{canClickLink && (
 							<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full
 								text-[0.65rem] font-semibold border ${
