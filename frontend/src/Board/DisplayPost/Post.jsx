@@ -114,7 +114,7 @@ export default function DisplayPost({ post, privilegeLvl, update, canClickLink =
 			const userID = userHandle.user.id
 			const isSuperAdmin = userHandle.user.role === 'superadmin'
 			setCanEdit(userID === post.author_id)
-			setCanDelete(isSuperAdmin || privilegeLvl >= 2 || userID === post.author_id)
+			setCanDelete(isSuperAdmin || privilegeLvl >= 2)
 		} else {
 			setCanEdit(false)
 			setCanDelete(false)
