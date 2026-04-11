@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./User/AuthProvider";
+import { useEffect } from "react";
 import useNotif, { NotifProvider } from "./components/Notif";
 
 import Register from "./User/Register";
@@ -15,10 +16,14 @@ import CreateBoard from "./Board/CreateBoard";
 import DisplayBoard from "./Board/DisplayBoard";
 import ChangePassword from "./User/ChangePassword";
 import AdminPage from "./User/AdminPage";
-import {FriendChat} from "./Chat/Friend";
+import { FriendChat } from "./Chat/Friend";
 import BoardList from "./Board/DisplayBoardSearch";
-import { useEffect } from "react";
 import Loading from "./components/Loading";
+
+import PrivacyPage from "./Privacy/Privacy";
+import TermOfServicePage from "./Privacy/TermOfService.jsx"
+import Contact from "./Privacy/Contact.jsx";
+import FooterTOS from "./Privacy/Footer.jsx"
 
 const Home = () => {
 	return (
@@ -50,6 +55,7 @@ const Home = () => {
 				</div>
 			</div>
 			<FriendChat />
+			<FooterTOS/>
 		</Layout>
 	)
 }
@@ -85,6 +91,10 @@ export default function App() {
 					<Route path='/board/:boardName' element={<Layout><DisplayBoard/></Layout>} />
 					<Route path='/post/:postID' element={<Layout><PostPage/></Layout>} />
 					<Route path='/admin' element={<Layout><AdminPage /></Layout>} />
+					<Route path='/privacy' element={<Layout><PrivacyPage/></Layout>} />
+					<Route path='/termofservice' element={<Layout><TermOfServicePage/></Layout>} />
+					<Route path='/contact' element={<Layout><Contact/></Layout>} />
+
 					<Route path='*' element={<NoRouteFound/>} />
 				</Routes>
 			</BrowserRouter>
