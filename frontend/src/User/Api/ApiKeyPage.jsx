@@ -21,7 +21,7 @@ export function NewApiKey({ onRefresh }) {
 			notifHandle.pushError("Key name cannot be empty")
 			return
 		}
-		const res = await apiPost("/api-keys", {
+		const res = await apiPost("/api/api-keys", {
 			body: JSON.stringify({
 				'name': keyName,
 			})
@@ -83,7 +83,7 @@ export function NewApiKey({ onRefresh }) {
 	return (
 		<div className="flex flex-col sm:flex-row gap-3 items-end p-4 glass rounded-xl border border-white/5 mt-4">
 			<div className="flex-1 w-full">
-				<label className="block text-[10px] font-bold text-[#55556a] uppercase tracking-widest mb-2 ml-1">New Key Name</label>
+				<label className="block text-[10px] font-bold text-[#9898b8] uppercase tracking-widest mb-2 ml-1">New Key Name</label>
 				<TextInput
 					value={keyName}
 					onChange={setKeyName}
@@ -103,7 +103,7 @@ function DisplayOneApiKey({ oneToken, onRefresh }) {
 
 	const deleteKey = async () => {
 		if (!window.confirm(`Are you sure you want to revoke '${oneToken.name}'?`)) return;
-		const res = await apiDelete(`/api-keys/${oneToken.id}`)
+		const res = await apiDelete(`/api/api-keys/${oneToken.id}`)
 		if (res.ok) {
 			notifHandle.pushSuccess(`Key revoked`)
 			onRefresh?.()
@@ -127,7 +127,7 @@ function DisplayOneApiKey({ oneToken, onRefresh }) {
 				<span className="font-bold text-[#eaeaf4] truncate">
 					{oneToken.name}
 				</span>
-				<span className="text-[10px] font-bold text-[#55556a] uppercase tracking-wider bg-white/5 w-fit px-2 py-0.5 rounded">
+				<span className="text-[10px] font-bold text-[#9898b8] uppercase tracking-wider bg-white/5 w-fit px-2 py-0.5 rounded">
 					Created {readableDate(oneToken.created_at)}
 				</span>
 			</div>
@@ -174,7 +174,7 @@ export function ViewApiTokens() {
 
 	const fetchTokens = async () => {
 		setLoading(true)
-		const res = await apiGet("/api-keys")
+		const res = await apiGet("/api/api-keys")
 		if (res.ok) {
 			setTokens(res.json || [])
 		} else if (res.status !== 401) {
@@ -196,10 +196,7 @@ export function ViewApiTokens() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<h2 className="text-xs font-semibold text-[#55556a] uppercase tracking-wider">
-					API Keys
-				</h2>
+			<div className="flex justify-end items-center">
 				<button 
 					onClick={() => navigate('/api-docs')}
 					className="text-[10px] font-bold text-g_seagreen hover:text-g_seagreen-600 uppercase tracking-widest flex items-center gap-2 group transition-colors"
@@ -212,7 +209,7 @@ export function ViewApiTokens() {
 			<div className="space-y-3">
 				{(!tokens || tokens.length === 0) ? (
 					<div className="py-8 text-center glass rounded-xl border border-dashed border-white/5">
-						<p className="text-sm text-[#55556a] italic">No API keys generated yet.</p>
+						<p className="text-sm text-[#9898b8] italic">No API keys generated yet.</p>
 					</div>
 				) : (
 					tokens.map((oneToken) => 

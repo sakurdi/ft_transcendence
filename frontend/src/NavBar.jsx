@@ -102,6 +102,7 @@ export default function NavBar() {
 
 				<NavLink link="/board">Boards</NavLink>
 				<NavLink link="/createBoard">New Board</NavLink>
+				<NavLink link="/api-docs">API Docs</NavLink>
 				{userHandle.user?.role === "superadmin" && (
 					<NavLink link="/admin">Admin</NavLink>
 				)}

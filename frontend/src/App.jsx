@@ -19,6 +19,7 @@ import AdminPage from "./User/AdminPage";
 import { FriendChat } from "./Chat/Friend";
 import BoardList from "./Board/DisplayBoardSearch";
 import Loading from "./components/Loading";
+import ApiDocs from "./User/Api/ApiDocs";
 
 import PrivacyPage from "./Privacy/Privacy";
 import TermOfServicePage from "./Privacy/TermOfService.jsx"
@@ -93,6 +94,7 @@ export default function App() {
 					<Route path='/privacy' element={<Layout><PrivacyPage/></Layout>} />
 					<Route path='/termofservice' element={<Layout><TermOfServicePage/></Layout>} />
 					<Route path='/contact' element={<Layout><Contact/></Layout>} />
+					<Route path='/api-docs' element={<ApiDocs/>} />
 
 					<Route path='*' element={<NoRouteFound/>} />
 				</Routes>

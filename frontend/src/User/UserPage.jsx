@@ -123,9 +123,13 @@ export default function UserPage() {
 
 			{canEdit && (
 				<div className="glass rounded-2xl p-6">
-					<h2 className="text-xs font-semibold text-[#55556a] uppercase tracking-wider mb-4">
-						API Keys
+					<h2 className="text-xs font-semibold text-[#9898b8] uppercase tracking-wider mb-2">
+						API Management
 					</h2>
+					<p className="text-sm text-[#9898b8] mb-6 leading-relaxed">
+						Generate and manage API keys to build your own tools and integrations with the 
+						<span className="text-[#eaeaf4] font-medium"> ft_transcendence</span> public API.
+					</p>
 					<ApiTokenPage />
 				</div>
 			)}
