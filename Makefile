@@ -27,9 +27,5 @@ clean:
 	rm -rf data/
 	@echo "Postgres data wiped"
 
-app-rebuild:
-	docker compose build app
-	docker compose up -d app
-
 rebuild: down clean build up
 
