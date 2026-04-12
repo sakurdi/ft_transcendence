@@ -3,18 +3,17 @@
 # ft_transcendence
 
 ## Description
-**ft_transcendence** is a comprehensive social platform and forum designed to facilitate community interaction through organized discussion boards, real-time communication, and secure data management. The project aims to provide a robust, scalable architecture for user-generated content, featuring:
+**ft_transcendence** is a comprehensive social platform and forum designed to facilitate community interaction through organized discussion boards, real-time communication. The project aims to provide a robust, scalable architecture for user-generated content, featuring:
 - **Community Boards:** Hierarchical discussion areas with moderation capabilities.
-- **Real-time Interaction:** Direct messaging and live updates via WebSockets.
+- **Real-time Interaction:** Direct messaging between users.
 - **Security-First Design:** Integration with HashiCorp Vault for sensitive secret management and API key authentication.
-- **Modern User Experience:** A responsive React-based frontend coupled with a high-performance Go backend.
+- **Modern User Experience:** A responsive React-based frontend coupled with a Go backend.
 
 ## Instructions
 
 ### Prerequisites
 - **Docker & Docker Compose:** Ensure you have the latest version of Docker installed.
-- **Make:** Used for simplified command execution.
-- **OpenSSL:** (Optional) If you need to regenerate certificates for the Nginx proxy.
+- **Make:** Used for command execution.
 
 ### Setup and Execution
 1.  **Clone the repository:**
@@ -80,12 +79,12 @@ The system utilizes a relational PostgreSQL schema:
 | **Social System** | Friend requests (send/accept/decline), friends list, and presence tracking. | kevwang |
 | **Discussion Boards** | Create, browse, and search for community boards with owner controls. | saal-kur, gaeudes |
 | **Threaded Posts** | Infinite scrolling for threads and replies, supporting rich text and file uploads. | saal-kur, gaeudes, kevwang |
-| **Real-time Engine** | WebSockets for live updates on boards, threads, and private messaging. | kevwang |
+| **Real-time Engine** | WebSockets for live updates on private messaging. | kevwang |
 | **Direct Messaging** | Private, real-time chat between friends. | kevwang |
-| **Public API** | REST API for external access with API key authentication and rate limiting. | esouhail |
+| **Public API** | REST API for external access with API key authentication and rate limiting. | esouhail, hsebiane |
 | **Moderation Tools** | Role-based permissions for board admins, moderators, and superadmins. | saal-kur, gaeudes |
 | **Secret Management** | Full HashiCorp Vault integration for injecting sensitive credentials. | saal-kur |
-| **Security Layer** | Nginx reverse proxy with SSL termination and ModSecurity WAF. | saal-kur, gaeudes |
+| **Security Layer** | Nginx reverse proxy with SSL termination and ModSecurity WAF. | saal-kur, hsebiane |
 
 
 ## Modules
@@ -168,8 +167,6 @@ Pagination:
  - https://dev.to/siddheshk02/taking-pagination-to-the-next-level-sorting-and-filtering-in-go-apis-497d
  - https://medium.com/design-bootcamp/designing-filter-sort-for-better-ux-9b88f40081db
  - https://dev.to/hexshift/building-a-responsive-product-filter-and-sort-ui-with-tailwind-css-5e3e
-
-
 
 Database:
  - https://www.back4app.com/tutorials/how-to-design-a-database-schema-for-a-real-time-chat-and-messaging-app#a-overview-of-key-classes
