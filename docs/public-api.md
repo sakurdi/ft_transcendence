@@ -35,7 +35,7 @@ Returns a list of all boards.
     {
       "id": 1,
       "name": "42",
-      "description": "horrible ecole",
+      "description": "Meilleur ecole",
       "owner_id": 1,
       "created_at": "2026-04-06T12:00:00Z"
     }
