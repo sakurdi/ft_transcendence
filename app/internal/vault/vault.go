@@ -25,6 +25,10 @@ func LoadSecrets() (Secrets, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return Secrets{}, fmt.Errorf("vault error: status %d", resp.StatusCode)
+	}
+
 	var result struct {
 		Data struct {
 			Data map[string]string `json:"data"`
