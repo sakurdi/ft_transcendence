@@ -30,7 +30,6 @@
     make up
     ```
 4.  **Access the Application:**
-    - HTTP: [http://localhost:1042](http://localhost:1042)
     - HTTPS: [https://localhost:1043](https://localhost:1043)
 
 ### Management Commands
