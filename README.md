@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by saal-kur, kevwang, gaeudes, esouhail.*
+*This project has been created as part of the 42 curriculum by saal-kur, kevwang, gaeudes, esouhail, and hsebiane.*
 
 # ft_transcendence
 
@@ -45,7 +45,8 @@
 | **saal-kur** | PO / Developer | Defining project goals, feature prioritization, and core backend implementation. |
 | **kevwang** | Tech Lead / Developer | System architecture design, technical problem solving, and backend API development. |
 | **gaeudes** | Developer | Frontend component development, UI/UX implementation, and API integration. |
-| **esouhail** | PM / Developer | responsible for API development. |
+| **esouhail** | Developer | responsible for API development. |
+| **hsebiane** | PM | Task distribution, timeline management, and documentation oversight. |
 
 ## Project Management
 - **Organization:** Weekly Meetups.
@@ -125,6 +126,10 @@ The system utilizes a relational PostgreSQL schema:
 ### esouhail
 - **Contributions:** Developed and assisted with database management and API refinement.
 - **Challenges:** Handling concurrency and ensuring low-latency message delivery across multiple client sessions.
+
+### hsebiane
+- **Contributions:** Managed the project timeline and task distribution. Oversaw the creation of project documentation, including the README and API specifications, ensuring team alignment with milestones.
+- **Challenges:** Coordinating parallel development tracks and maintaining comprehensive documentation as the project evolved.
 
 ## Resources
 React:
